@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lê Quốc Thái - Blog</title>
+    <link rel="icon" type="image/jpeg" href="/path/to/your/avatar.jpg"> <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    <style>
+        /* === GIỮ NGUYÊN TOÀN BỘ CSS TỪ TRANG CŨ === */
+        :root {
+            --primary-color: #00bcd4;
+            --secondary-color: #0097a7;
+            --accent-color: #00eaff;
+            --dark-bg: #1a1a2e;
+            --darker-bg: #0f0f1e;
+            --light-text: #e0e0e0;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--light-text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            background: var(--darker-bg);
+        }
+        
+        /* Navbar */
+        .navbar {
+            background: rgba(26, 26, 46, 0.95) !important;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 188, 212, 0.1);
+            padding: 15px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-color) !important;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .navbar-brand img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%; /* Avatar thì nên để hình tròn */
+            object-fit: cover;
+        }
+        
+        .nav-link {
+            color: var(--light-text) !important;
+            font-weight: 500;
+            margin: 0 10px;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            color: var(--accent-color) !important;
+        }
+        
+        /* Hero Section */
+        .hero-section {
+            min-height: 80vh; /* Giảm chiều cao một chút cho blog */
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.99), rgba(0, 188, 212, 0.6)),
+                        url('https://images.unsplash.com/photo-1510915228340-29c85a43dcfe?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat; /* Ảnh nền về code */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 100px 20px 50px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 234, 255, 0.1) 0%, transparent 50%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+        
+        .hero-content { position: relative; z-index: 2; }
+        .hero-logo {
+            width: 150px; height: 150px;
+            margin: 0 auto 30px;
+            border-radius: 50%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 234, 255, 0.3);
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .hero-logo img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px rgba(0, 234, 255, 0.5);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            color: #fff;
+            max-width: 800px;
+            margin: 0 auto 40px;
+        }
+        
+        .btn-hero {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: #fff;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 188, 212, 0.4);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-hero:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 188, 212, 0.6);
+            color: #fff;
+        }
+        
+        /* Section Styles */
+        section { padding: 80px 0; position: relative; }
+        .section-dark { background: var(--dark-bg); }
+        .section-darker { background: var(--darker-bg); }
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+            display: inline-block;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 2px;
+        }
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: var(--light-text);
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 50px;
+        }
+        
+        /* === CSS MỚI CHO BLOG POST CARD === */
+        .post-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 234, 255, 0.2);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Quan trọng để bo góc ảnh */
+        }
+        
+        .post-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-color);
+            box-shadow: 0 15px 40px rgba(0, 234, 255, 0.3);
+        }
+        
+        .post-card-img-container {
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .post-card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .post-card:hover .post-card-img {
+            transform: scale(1.05);
+        }
+
+        .post-card-content {
+            padding: 25px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .post-category {
+            display: inline-block;
+            background-color: rgba(0, 234, 255, 0.1);
+            color: var(--accent-color);
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        
+        .post-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 10px;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .post-card:hover .post-title {
+            color: var(--accent-color);
+        }
+        
+        .post-excerpt {
+            color: var(--light-text);
+            line-height: 1.7;
+            margin-bottom: 20px;
+            flex-grow: 1;
+        }
+
+        .post-meta {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        .post-meta .fas {
+            margin-right: 5px;
+            color: var(--secondary-color);
+        }
+        
+        /* Footer và Scroll Top giữ nguyên */
+        footer {
+            background: var(--darker-bg);
+            padding: 30px 0;
+            text-align: center;
+            border-top: 1px solid rgba(0, 234, 255, 0.2);
+        }
+        .scroll-top {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 50px; height: 50px;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 1.5rem;
+            cursor: pointer; opacity: 0;
+            transition: all 0.3s ease; z-index: 1000;
+            box-shadow: 0 5px 20px rgba(0, 188, 212, 0.4);
+        }
+        .scroll-top.show { opacity: 1; }
+        .scroll-top:hover { transform: translateY(-5px); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.5rem; }
+            .hero-subtitle { font-size: 1.1rem; }
+            .section-title { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <img src="https://avatars.githubusercontent.com/u/89895514?v=4" alt="Avatar Lê Quốc Thái"> Lê Quốc Thái
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#">Trang chủ</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="#">Blog</a></li> <li class="nav-item"><a class="nav-link" href="https://surecheck.lequocthai.com" target="_blank">LQT SureCheck</a></li> <li class="nav-item"><a class="nav-link" href="#contact">Liên hệ</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header id="home" class="hero-section">
+        <div class="hero-content" data-aos="fade-up">
+            <div class="hero-logo">
+                <img src="https://avatars.githubusercontent.com/u/89895514?v=4" alt="Avatar Lê Quốc Thái"> </div>
+            <h1 class="hero-title">Nhật Ký Lập Trình & Cuộc Sống</h1>
+            <p class="hero-subtitle">
+                Nơi tôi chia sẻ về những dự án tâm huyết, những dòng code, và cả những khoảnh khắc đời thường.
+            </p>
+            <a href="#posts-section" class="btn-hero">
+                <i class="fas fa-arrow-down me-2"></i>Xem bài viết
+            </a>
+        </div>
+    </header>
+
+    <main id="posts-section" class="section-dark">
+        <div class="container">
+            <div class="text-center mb-5" data-aos="fade-up">
+                <h2 class="section-title">Bài Viết Mới Nhất</h2>
+                <p class="section-subtitle">
+                    Tổng hợp các bài viết về dự án, công nghệ và chia sẻ cá nhân.
+                </p>
+            </div>
+            
+            <div class="row g-4" id="posts-container">
+                <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+                    <div class="post-card">
+                        <div class="post-card-img-container">
+                            <img src="https://via.placeholder.com/400x250/00bcd4/FFFFFF?text=LQT+SureCheck" class="post-card-img" alt="Ảnh bài viết">
+                        </div>
+                        <div class="post-card-content">
+                            <div>
+                                <span class="post-category">Dự Án</span>
+                            </div>
+                            <a href="#" class="post-title">LQT SureCheck: Hành Trình Tạo Ra Công Cụ Miễn Phí Cho Cộng Đồng Y Tế</a>
+                            <p class="post-excerpt">
+                                Từ ý tưởng ban đầu đến khi triển khai cho hơn 150 cơ sở, đây là câu chuyện đằng sau dự án...
+                            </p>
+                            <div class="post-meta">
+                                <i class="fas fa-calendar-alt"></i> 13/10/2025
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+        </div>
+    </main>
+
+    <footer id="contact">
+        <div class="container">
+            <p class="mb-2">© 2025 Lê Quốc Thái - Blog cá nhân</p>
+            <p class="mb-0">Kết nối với tôi qua <a href="mailto:lethaicaolanh2@gmail.com" style="color: var(--accent-color);">lethaicaolanh2@gmail.com</a></p>
+        </div>
+    </footer>
+
+    <div class="scroll-top" id="scrollTop">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 1000,
+            once: true,
+        });
+
+        const scrollTopBtn = document.getElementById('scrollTop');
+        window.onscroll = () => {
+            if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+                scrollTopBtn.classList.add('show');
+            } else {
+                scrollTopBtn.classList.remove('show');
+            }
+        };
+        scrollTopBtn.onclick = () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // === JAVASCRIPT ĐỂ TẢI BÀI VIẾT ĐỘNG ===
+        document.addEventListener('DOMContentLoaded', function() {
+            const postsContainer = document.getElementById('posts-container');
+
+            // Nơi bạn quản lý tất cả bài viết. 
+            // Về sau, bạn có thể chuyển danh sách này ra một file posts.json riêng.
+            const allPosts = [
+                {
+                    title: 'LQT SureCheck: Hành Trình Tạo Ra Công Cụ Miễn Phí Cho Cộng Đồng Y Tế',
+                    excerpt: 'Từ ý tưởng ban đầu đến khi triển khai cho hơn 150 cơ sở, đây là câu chuyện đằng sau dự án LQT SureCheck và những bài học kinh nghiệm.',
+                    image: 'https://images.unsplash.com/photo-1599423300746-b625ed8ba949?q=80&w=1887&auto=format&fit=crop',
+                    category: 'Dự Án',
+                    date: '13/10/2025',
+                    fileName: 'lqt-surecheck-story' // Tên file .md tương ứng (không có đuôi)
+                },
+                {
+                    title: 'Đám Cưới Của Chúng Tôi: Những Khoảnh Khắc Đáng Nhớ',
+                    excerpt: 'Một chút chia sẻ về ngày trọng đại của cuộc đời mình. Album ảnh cưới và những câu chuyện chưa kể.',
+                    image: 'https://images.unsplash.com/photo-1523438943997-861c85025754?q=80&w=2070&auto=format&fit=crop',
+                    category: 'Đời Sống',
+                    date: '10/10/2025',
+                    fileName: 'our-wedding-day'
+                },
+                {
+                    title: 'Tối Ưu Hóa Website Tĩnh: Tại Sao Mình Chọn Jamstack?',
+                    excerpt: 'Khám phá lý do tại sao các trang web tĩnh đang trở lại mạnh mẽ. Mình sẽ chia sẻ cách xây dựng blog này mà không cần cơ sở dữ liệu.',
+                    image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?q=80&w=2070&auto=format&fit=crop',
+                    category: 'Kỹ Thuật',
+                    date: '05/10/2025',
+                    fileName: 'why-jamstack'
+                },
+                // Thêm các bài viết khác vào đây
+            ];
+
+            let delay = 100; // Hiệu ứng animation
+            postsContainer.innerHTML = ''; // Xóa nội dung mẫu
+
+            allPosts.forEach(post => {
+                const postCardHTML = `
+                <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="${delay}">
+                    <div class="post-card">
+                        <div class="post-card-img-container">
+                            <a href="post.html?name=${post.fileName}">
+                                <img src="${post.image}" class="post-card-img" alt="${post.title}">
+                            </a>
+                        </div>
+                        <div class="post-card-content">
+                            <div>
+                                <span class="post-category">${post.category}</span>
+                            </div>
+                            <a href="post.html?name=${post.fileName}" class="post-title">${post.title}</a>
+                            <p class="post-excerpt">
+                                ${post.excerpt}
+                            </p>
+                            <div class="post-meta">
+                                <i class="fas fa-calendar-alt"></i> ${post.date}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+                postsContainer.innerHTML += postCardHTML;
+                delay += 100; // Tăng delay cho card tiếp theo
+            });
+        });
+    </script>
+</body>
+</html>
