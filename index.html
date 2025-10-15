@@ -9,7 +9,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
     <style>
-        /* === GIỮ NGUYÊN TOÀN BỘ CSS TỪ TRANG CŨ === */
         :root {
             --primary-color: #00bcd4;
             --secondary-color: #0097a7;
@@ -18,9 +17,7 @@
             --darker-bg: #0f0f1e;
             --light-text: #e0e0e0;
         }
-        
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: var(--light-text);
@@ -28,8 +25,6 @@
             overflow-x: hidden;
             background: var(--darker-bg);
         }
-        
-        /* Navbar */
         .navbar {
             background: rgba(26, 26, 46, 0.95) !important;
             backdrop-filter: blur(10px);
@@ -37,7 +32,6 @@
             padding: 15px 0;
             transition: all 0.3s ease;
         }
-        
         .navbar-brand {
             font-size: 1.5rem;
             font-weight: 700;
@@ -46,30 +40,25 @@
             align-items: center;
             gap: 10px;
         }
-        
         .navbar-brand img {
             width: 40px;
             height: 40px;
-            border-radius: 50%; /* Avatar thì nên để hình tròn */
+            border-radius: 50%;
             object-fit: cover;
         }
-        
         .nav-link {
             color: var(--light-text) !important;
             font-weight: 500;
             margin: 0 10px;
             transition: color 0.3s ease;
         }
-        
         .nav-link:hover, .nav-link.active {
             color: var(--accent-color) !important;
         }
-        
-        /* Hero Section */
         .hero-section {
-            min-height: 80vh; /* Giảm chiều cao một chút cho blog */
+            min-height: 80vh;
             background: linear-gradient(135deg, rgba(26, 26, 46, 0.99), rgba(0, 188, 212, 0.6)),
-                        url('https://images.unsplash.com/photo-1510915228340-29c85a43dcfe?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat; /* Ảnh nền về code */
+                        url('https://images.unsplash.com/photo-1510915228340-29c85a43dcfe?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -78,7 +67,6 @@
             position: relative;
             overflow: hidden;
         }
-        
         .hero-section::before {
             content: '';
             position: absolute;
@@ -86,12 +74,7 @@
             background: radial-gradient(circle at 50% 50%, rgba(0, 234, 255, 0.1) 0%, transparent 50%);
             animation: pulse 4s ease-in-out infinite;
         }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-        
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
         .hero-content { position: relative; z-index: 2; }
         .hero-logo {
             width: 150px; height: 150px;
@@ -103,18 +86,12 @@
             box-shadow: 0 8px 32px rgba(0, 234, 255, 0.3);
             animation: float 3s ease-in-out infinite;
         }
-        
         .hero-logo img {
             width: 100%; height: 100%;
             object-fit: cover;
             border-radius: 50%;
         }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-        }
-        
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
         .hero-title {
             font-size: 3.5rem;
             font-weight: 800;
@@ -122,14 +99,12 @@
             margin-bottom: 20px;
             text-shadow: 0 0 30px rgba(0, 234, 255, 0.5);
         }
-        
         .hero-subtitle {
             font-size: 1.3rem;
             color: #fff;
             max-width: 800px;
             margin: 0 auto 40px;
         }
-        
         .btn-hero {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: #fff;
@@ -143,17 +118,13 @@
             text-decoration: none;
             display: inline-block;
         }
-        
         .btn-hero:hover {
             transform: translateY(-3px);
             box-shadow: 0 15px 40px rgba(0, 188, 212, 0.6);
             color: #fff;
         }
-        
-        /* Section Styles */
         section { padding: 80px 0; position: relative; }
         .section-dark { background: var(--dark-bg); }
-        .section-darker { background: var(--darker-bg); }
         .section-title {
             font-size: 2.5rem;
             font-weight: 700;
@@ -181,50 +152,59 @@
             max-width: 700px;
             margin: 0 auto 50px;
         }
-        
-        /* === CSS MỚI CHO BLOG POST CARD === */
+
+        /* === CSS ĐÃ ĐƯỢC CẬP NHẬT CHO BÀI VIẾT === */
         .post-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 234, 255, 0.2);
             border-radius: 20px;
             transition: all 0.3s ease;
             height: 100%;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Quan trọng để bo góc ảnh */
+            overflow: hidden;
+            position: relative; /* Quan trọng */
         }
-        
         .post-card:hover {
             transform: translateY(-10px);
             border-color: var(--accent-color);
             box-shadow: 0 15px 40px rgba(0, 234, 255, 0.3);
         }
-        
         .post-card-img-container {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 200px;
-            overflow: hidden;
+            height: 100%;
+            z-index: 1;
         }
-
+        .post-card-img-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, rgba(15, 15, 30, 1) 0%, rgba(26, 26, 46, 0.7) 60%, rgba(26, 26, 46, 0.5) 100%);
+            z-index: 2;
+        }
         .post-card-img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             transition: transform 0.4s ease;
         }
-
         .post-card:hover .post-card-img {
             transform: scale(1.05);
         }
-
         .post-card-content {
             padding: 25px;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
+            position: relative;
+            z-index: 3;
+            background-color: transparent;
         }
-        
         .post-category {
             display: inline-block;
             background-color: rgba(0, 234, 255, 0.1);
@@ -236,7 +216,6 @@
             margin-bottom: 15px;
             text-transform: uppercase;
         }
-        
         .post-title {
             font-size: 1.4rem;
             font-weight: 600;
@@ -245,18 +224,15 @@
             text-decoration: none;
             transition: color 0.3s ease;
         }
-        
         .post-card:hover .post-title {
             color: var(--accent-color);
         }
-        
         .post-excerpt {
             color: var(--light-text);
             line-height: 1.7;
             margin-bottom: 20px;
             flex-grow: 1;
         }
-
         .post-meta {
             font-size: 0.9rem;
             color: #aaa;
@@ -266,7 +242,6 @@
             color: var(--secondary-color);
         }
         
-        /* Footer và Scroll Top giữ nguyên */
         footer {
             background: var(--darker-bg);
             padding: 30px 0;
@@ -286,8 +261,6 @@
         }
         .scroll-top.show { opacity: 1; }
         .scroll-top:hover { transform: translateY(-5px); }
-
-        /* Responsive */
         @media (max-width: 768px) {
             .hero-title { font-size: 2.5rem; }
             .hero-subtitle { font-size: 1.1rem; }
@@ -375,12 +348,8 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        // === JAVASCRIPT ĐỂ TẢI BÀI VIẾT ĐỘNG ===
         document.addEventListener('DOMContentLoaded', function() {
             const postsContainer = document.getElementById('posts-container');
-
-            // Nơi bạn quản lý tất cả bài viết. 
-            // Về sau, bạn có thể chuyển danh sách này ra một file posts.json riêng.
             const allPosts = [
                 {
                     title: 'LQT SureCheck: Hành Trình Tạo Ra Công Cụ Miễn Phí Cho Cộng Đồng Y Tế',
@@ -388,7 +357,7 @@
                     image: 'https://images.unsplash.com/photo-1599423300746-b625ed8ba949?q=80&w=1887&auto=format&fit=crop',
                     category: 'Dự Án',
                     date: '13/10/2025',
-                    fileName: 'lqt-surecheck-story' // Bài viết nội bộ, dùng fileName
+                    fileName: 'lqt-surecheck-story'
                 },
                 {
                     title: 'Đám Cưới',
@@ -396,7 +365,6 @@
                     image: 'https://images.unsplash.com/photo-1523438943997-861c85025754?q=80&w=2070&auto=format&fit=crop', 
                     category: 'Đời Sống',
                     date: '26/05/2023',
-                    // Thuộc tính mới để dẫn link ra ngoài
                     externalUrl: 'https://photos.app.goo.gl/aStWdAqwKP4byU7m8' 
                 },
                 {
@@ -405,26 +373,23 @@
                     image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?q=80&w=2070&auto=format&fit=crop',
                     category: 'Kỹ Thuật',
                     date: '05/10/2025',
-                    fileName: 'why-jamstack' // Bài viết nội bộ
+                    fileName: 'why-jamstack'
                 },
-                // Thêm các bài viết khác vào đây
             ];
 
-            let delay = 100; // Hiệu ứng animation
-            postsContainer.innerHTML = ''; // Xóa nội dung mẫu (nếu có)
+            let delay = 100;
+            postsContainer.innerHTML = '';
 
             allPosts.forEach(post => {
                 let linkUrl = '';
                 let linkTarget = '';
-
                 if (post.externalUrl) {
                     linkUrl = post.externalUrl;
-                    linkTarget = 'target="_blank" rel="noopener noreferrer"'; // Mở trong tab mới, an toàn hơn
+                    linkTarget = 'target="_blank" rel="noopener noreferrer"';
                 } else {
                     linkUrl = `post.html?name=${post.fileName}`;
                     linkTarget = '';
                 }
-
                 const postCardHTML = `
                 <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="${delay}">
                     <div class="post-card">
@@ -449,7 +414,7 @@
                 </div>
                 `;
                 postsContainer.innerHTML += postCardHTML;
-                delay += 100; // Tăng delay cho card tiếp theo
+                delay += 100;
             });
         });
     </script>
