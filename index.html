@@ -393,69 +393,88 @@
         };
 
         // === JAVASCRIPT ĐỂ TẢI BÀI VIẾT ĐỘNG ===
-        document.addEventListener('DOMContentLoaded', function() {
-            const postsContainer = document.getElementById('posts-container');
+document.addEventListener('DOMContentLoaded', function() {
+    const postsContainer = document.getElementById('posts-container');
 
-            // Nơi bạn quản lý tất cả bài viết. 
-            // Về sau, bạn có thể chuyển danh sách này ra một file posts.json riêng.
-            const allPosts = [
-                {
-                    title: 'LQT SureCheck: Hành Trình Tạo Ra Công Cụ Miễn Phí Cho Cộng Đồng Y Tế',
-                    excerpt: 'Từ ý tưởng ban đầu đến khi triển khai cho hơn 150 cơ sở, đây là câu chuyện đằng sau dự án LQT SureCheck và những bài học kinh nghiệm.',
-                    image: 'https://images.unsplash.com/photo-1599423300746-b625ed8ba949?q=80&w=1887&auto=format&fit=crop',
-                    category: 'Dự Án',
-                    date: '13/10/2025',
-                    fileName: 'lqt-surecheck-story' // Tên file .md tương ứng (không có đuôi)
-                },
-                {
-                    title: 'Đám Cưới',
-                    excerpt: 'Một chút chia sẻ về ngày trọng đại của cuộc đời mình. Album ảnh cưới và những câu chuyện chưa kể.',
-                    image: 'https://photos.app.goo.gl/aStWdAqwKP4byU7m8',
-                    category: 'Đời Sống',
-                    date: '26/05/2023',
-                    fileName: 'ourweddingday'
-                },
-                {
-                    title: 'Tối Ưu Hóa Website Tĩnh: Tại Sao Mình Chọn Jamstack?',
-                    excerpt: 'Khám phá lý do tại sao các trang web tĩnh đang trở lại mạnh mẽ. Mình sẽ chia sẻ cách xây dựng blog này mà không cần cơ sở dữ liệu.',
-                    image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?q=80&w=2070&auto=format&fit=crop',
-                    category: 'Kỹ Thuật',
-                    date: '05/10/2025',
-                    fileName: 'why-jamstack'
-                },
-                // Thêm các bài viết khác vào đây
-            ];
+    // Nơi bạn quản lý tất cả bài viết. 
+    const allPosts = [
+        {
+            title: 'LQT SureCheck: Hành Trình Tạo Ra Công Cụ Miễn Phí Cho Cộng Đồng Y Tế',
+            excerpt: 'Từ ý tưởng ban đầu đến khi triển khai cho hơn 150 cơ sở, đây là câu chuyện đằng sau dự án LQT SureCheck và những bài học kinh nghiệm.',
+            image: 'https://images.unsplash.com/photo-1599423300746-b625ed8ba949?q=80&w=1887&auto=format&fit=crop',
+            category: 'Dự Án',
+            date: '13/10/2025',
+            fileName: 'lqt-surecheck-story' // Bài viết nội bộ, dùng fileName
+        },
+        {
+            // === BÀI VIẾT ĐÁM CƯỚI ĐÃ CẬP NHẬT ===
+            title: 'Đám Cưới',
+            excerpt: 'Một chút chia sẻ về ngày trọng đại của cuộc đời mình. Album ảnh cưới và những câu chuyện chưa kể.',
+            // LƯU Ý: Link Google Photos không hiển thị trực tiếp được. 
+            // Bạn cần lấy link ảnh trực tiếp (.jpg, .png) hoặc tải ảnh lên thư mục `img` của web.
+            // TÔI ĐÃ THAY BẰNG ẢNH MẪU, BẠN HÃY THAY LẠI BẰNG LINK ẢNH CỦA BẠN
+            image: 'https://images.unsplash.com/photo-1523438943997-861c85025754?q=80&w=2070&auto=format&fit=crop', 
+            category: 'Đời Sống',
+            date: '26/05/2023',
+            // Thay vì fileName, ta dùng externalUrl để dẫn đến link khác
+            externalUrl: 'https://photos.app.goo.gl/aStWdAqwKP4byU7m8' 
+        },
+        {
+            title: 'Tối Ưu Hóa Website Tĩnh: Tại Sao Mình Chọn Jamstack?',
+            excerpt: 'Khám phá lý do tại sao các trang web tĩnh đang trở lại mạnh mẽ. Mình sẽ chia sẻ cách xây dựng blog này mà không cần cơ sở dữ liệu.',
+            image: 'https://images.unsplash.com/photo-1618773928121-c32242e63f39?q=80&w=2070&auto=format&fit=crop',
+            category: 'Kỹ Thuật',
+            date: '05/10/2025',
+            fileName: 'why-jamstack' // Bài viết nội bộ
+        },
+        // Thêm các bài viết khác vào đây
+    ];
+});
 
-            let delay = 100; // Hiệu ứng animation
-            postsContainer.innerHTML = ''; // Xóa nội dung mẫu
+           let delay = 100; // Hiệu ứng animation
+    postsContainer.innerHTML = ''; // Xóa nội dung mẫu
 
-            allPosts.forEach(post => {
-                const postCardHTML = `
-                <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="${delay}">
-                    <div class="post-card">
-                        <div class="post-card-img-container">
-                            <a href="post.html?name=${post.fileName}">
-                                <img src="${post.image}" class="post-card-img" alt="${post.title}">
-                            </a>
-                        </div>
-                        <div class="post-card-content">
-                            <div>
-                                <span class="post-category">${post.category}</span>
-                            </div>
-                            <a href="post.html?name=${post.fileName}" class="post-title">${post.title}</a>
-                            <p class="post-excerpt">
-                                ${post.excerpt}
-                            </p>
-                            <div class="post-meta">
-                                <i class="fas fa-calendar-alt"></i> ${post.date}
-                            </div>
-                        </div>
+    allPosts.forEach(post => {
+        // Biến để chứa URL và target cho thẻ <a>
+        let linkUrl = '';
+        let linkTarget = ''; // Để mở link ngoài trong tab mới
+
+        // Kiểm tra nếu có externalUrl thì dùng nó
+        if (post.externalUrl) {
+            linkUrl = post.externalUrl;
+            linkTarget = 'target="_blank"'; // Mở trong tab mới
+        } else {
+            // Nếu không thì dùng cấu trúc cũ
+            linkUrl = `post.html?name=${post.fileName}`;
+            linkTarget = '';
+        }
+
+        const postCardHTML = `
+        <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="${delay}">
+            <div class="post-card">
+                <div class="post-card-img-container">
+                    <a href="${linkUrl}" ${linkTarget}>
+                        <img src="${post.image}" class="post-card-img" alt="${post.title}">
+                    </a>
+                </div>
+                <div class="post-card-content">
+                    <div>
+                        <span class="post-category">${post.category}</span>
+                    </div>
+                    <a href="${linkUrl}" ${linkTarget} class="post-title">${post.title}</a>
+                    <p class="post-excerpt">
+                        ${post.excerpt}
+                    </p>
+                    <div class="post-meta">
+                        <i class="fas fa-calendar-alt"></i> ${post.date}
                     </div>
                 </div>
-                `;
-                postsContainer.innerHTML += postCardHTML;
-                delay += 100; // Tăng delay cho card tiếp theo
-            });
+            </div>
+        </div>
+        `;
+        postsContainer.innerHTML += postCardHTML;
+        delay += 100; // Tăng delay cho card tiếp theo
+    });
         });
     </script>
 </body>
