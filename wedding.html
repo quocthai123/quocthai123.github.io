@@ -3,34 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đám Cưới - Quốc Thái & Kim Chi</title>
+    <title>Đám Cưới - Anh Khoa & Ngọc Thảo</title>
     
-    <meta name="description" content="Kỷ niệm lễ thành hôn của Quốc Thái & Kim Chi - 26/05/2023">
-    <meta property="og:title" content="Kỷ niệm Đám Cưới - Quốc Thái & Kim Chi">
-    <meta property="og:description" content="Kỷ niệm lễ thành hôn của Quốc Thái & Kim Chi - 26/05/2023">
-    <meta property="og:image" content="img/1F9A6221.jpg"> <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:url" content="https://your-website-url.com"> <meta property="og:type" content="website">
+    <meta name="description" content="Kỷ niệm lễ thành hôn của Anh Khoa & Ngọc Thảo - 06/04/2025">
+    <meta property="og:title" content="Kỷ niệm Đám Cưới - Ngọc Thảo & Anh Khoa">
+    <meta property="og:description" content="Kỷ niệm lễ thành hôn của Anh Khoa & Ngọc Thảo - 06/04/2025">
+    <meta property="og:image" content="https://lh3.googleusercontent.com/pw/AP1GczMoMjNNA8AG3N4AVe69G8nuf_phRCKTjnZPaw6Gi9ri1ch_1tCACaxdTCWVOL-Ff18TgJcqJ-J9o3naJodx1VpR3PyUHEVQFR2kyko5a6p1DAFzwvHzGeynbRrMxwVpHgPhPcRZMD2MNQ1CuqONt5wd=w1430-h953-s-no-gm?authuser=0">
+    <meta property="og:image:width" content="635">
+    <meta property="og:image:height" content="953">
+    <meta property="og:url" content="https://weddingaknt.github.io/">
+    <meta property="og:type" content="website">
     
-    <link rel="icon" href="img/favicon.png" type="image/x-icon"> <link rel="stylesheet" href="css/normalize.css">
+    <link rel="icon" href="https://png.pngtree.com/png-clipart/20191120/original/pngtree-geometric-pink-brush-wedding-logo-free-logo-design-template-png-image_5044811.jpg" type="image/x-icon">
+    
+    <link rel="stylesheet" href="css/normalize.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        /* Custom styles for anniversary countdown */
+        /* Custom styles for anniversary countdown (from original) */
         .anniversary-section {
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
             padding: 80px 0;
-            margin-top: -100px;
+            margin-top: -100px; /* Điều chỉnh nếu cần thiết sau khi thêm navbar fixed */
             position: relative;
         }
+        
         .anniversary-content {
             text-align: center;
             max-width: 800px;
             margin: 0 auto;
             padding: 0 20px;
         }
+        
         .anniversary-title {
             font-family: 'Dancing Script', cursive;
             font-size: 3.5rem;
@@ -38,18 +44,21 @@
             margin-bottom: 20px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
+        
         .anniversary-subtitle {
             font-size: 1.3rem;
             color: var(--dark-color);
             margin-bottom: 10px;
             font-weight: 500;
         }
+        
         .wedding-date {
             font-size: 1.1rem;
             color: var(--grey-color);
             margin-bottom: 40px;
             letter-spacing: 2px;
         }
+        
         .anniversary-counter {
             display: flex;
             justify-content: center;
@@ -57,6 +66,7 @@
             margin-bottom: 40px;
             flex-wrap: wrap;
         }
+        
         .counter-item {
             background: var(--white-color);
             border-radius: 15px;
@@ -66,11 +76,13 @@
             transition: var(--transition);
             border: 2px solid transparent;
         }
+        
         .counter-item:hover {
             transform: translateY(-10px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
             border-color: var(--primary-color);
         }
+        
         .counter-number {
             font-size: 2.5rem;
             font-weight: 700;
@@ -79,6 +91,7 @@
             margin-bottom: 10px;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
         }
+        
         .counter-label {
             font-size: 0.9rem;
             color: var(--dark-color);
@@ -86,7 +99,8 @@
             letter-spacing: 1px;
             font-weight: 600;
         }
-        .celebration-message {
+        
+        .celebration-message { /* Style này áp dụng cho cả hero và anniversary section */
             background: var(--white-color);
             border-radius: 20px;
             padding: 40px;
@@ -95,36 +109,44 @@
             position: relative;
             overflow: hidden;
         }
+        
         .celebration-message::before {
             content: '';
             position: absolute;
-            top: -50%; left: -50%;
-            width: 200%; height: 200%;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
             background: linear-gradient(45deg, transparent, rgba(212, 175, 122, 0.1), transparent);
             animation: shine 3s infinite;
             pointer-events: none;
         }
+        
         @keyframes shine {
             0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
             100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
         }
+        
         .celebration-icon {
             font-size: 3rem;
             color: var(--primary-color);
             margin-bottom: 20px;
             animation: bounce 2s infinite;
         }
+        
         @keyframes bounce {
             0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
             40% { transform: translateY(-15px); }
             60% { transform: translateY(-10px); }
         }
+        
         .celebration-text {
             font-size: 1.2rem;
             color: var(--dark-color);
             line-height: 1.6;
             margin-bottom: 20px;
         }
+        
         .love-quote {
             font-family: 'Dancing Script', cursive;
             font-size: 1.5rem;
@@ -132,31 +154,107 @@
             font-style: italic;
             margin-top: 20px;
         }
+        
+        /* Floating hearts animation (from original) */
+        .hearts {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        
+        .heart {
+            position: absolute;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            animation: float 6s infinite linear;
+            opacity: 0.7;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            90% {
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        /* Responsive adjustments (from original) */
+        @media (max-width: 768px) {
+            .anniversary-title {
+                font-size: 2.5rem;
+            }
+            .anniversary-counter {
+                gap: 15px;
+            }
+            .counter-item {
+                min-width: 100px;
+                padding: 20px 15px;
+            }
+            .counter-number {
+                font-size: 2rem;
+            }
+            .celebration-message {
+                padding: 30px 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .anniversary-counter {
+                gap: 10px;
+            }
+            .counter-item {
+                min-width: 80px;
+                padding: 15px 10px;
+            }
+            .counter-number {
+                font-size: 1.5rem;
+            }
+            .counter-label {
+                font-size: 0.8rem;
+            }
+        }
 
         /* ---- CSS MỚI CHO HIỆU ỨNG CUỘN ---- */
         .scroll-progress-bar-container {
             position: fixed;
-            top: 0; left: 0;
+            top: 0; 
+            left: 0;
             width: 100%;
             height: 5px; 
             background-color: rgba(0, 0, 0, 0.1); 
             z-index: 1001; 
         }
+
         .scroll-progress-bar {
             height: 100%;
             background: var(--primary-color); 
             width: 0%; 
             transition: width 0.05s ease-out; 
         }
+
         .animate-on-scroll {
             opacity: 0;
             transform: translateY(30px); 
             transition: opacity 0.7s ease-out, transform 0.7s ease-out;
         }
+
         .animate-on-scroll.is-visible {
             opacity: 1;
             transform: translateY(0);
         }
+        /* ---- KẾT THÚC CSS MỚI ---- */
+
     </style>
 </head>
 <body>
@@ -166,21 +264,36 @@
 
     <nav class="navbar">
         <div class="container">
-            <div class="logo">QT & KC</div>
-            <div class="menu-toggle"><i class="fas fa-bars"></i></div>
+            <div class="logo">WEDDING</div>
+            <div class="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
             <ul class="menu">
-                <li><a href="#" class="active">Trang Chủ</a></li>
-                <li><a href="#">Thiệp Cưới</a></li> <li><a href="#">Sự Kiện</a></li>    <li><a href="#">Album Cưới</a></li> </ul>
+                <li><a href="index.html" class="active">Trang Chủ</a></li>
+                <li class="dropdown">
+                    <a href="#">Thiệp Cưới</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="thiep-nha-trai/index.html">Thiệp Nhà Trai</a></li>
+                        <li><a href="thiep-nha-gai/index.html">Thiệp Nhà Gái</a></li>
+                    </ul>
+                </li>
+                <li><a href="le-dam-ngo/index.html">Lễ Dạm Ngỏ</a></li>
+                <li><a href="le-hoi/index.html">Lễ Hỏi</a></li>
+                <li><a href="le-cuoi/index.html">Lễ Cưới</a></li>
+                <li><a href="album-cuoi/index.html">Album Cưới</a></li>
+            </ul>
         </div>
     </nav>
 
     <header class="hero">
         <div class="overlay"></div>
         <div class="hero-content">
-            <h1>Quốc Thái & Kim Chi</h1>
-            <p class="date">26 THÁNG 05 NĂM 2023</p>
+            <h1>Anh Khoa & Ngọc Thảo</h1>
+            <p class="date">06 THÁNG 04 NĂM 2025</p>
             <div class="celebration-message" style="background: rgba(255, 255, 255, 0.95); border-radius: 20px; padding: 30px; margin: 30px 0;">
-                <div class="celebration-icon"><i class="fas fa-heart"></i></div>
+                <div class="celebration-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
                 <h3 style="color: var(--primary-color); margin-bottom: 15px; font-family: 'Dancing Script', cursive; font-size: 2rem;">
                     Chúng Tôi Đã Kết Hôn!
                 </h3>
@@ -188,7 +301,19 @@
                     Cảm ơn tất cả mọi người đã chúc phúc cho hạnh phúc của chúng tôi
                 </p>
             </div>
-            <a href="#overview" class="btn scroll-link">Xem Hành Trình</a>
+            <a href="#overview" class="btn scroll-link">Xem Kỷ Niệm</a>
+        </div>
+        
+        <div class="hearts">
+            <div class="heart" style="left: 10%; animation-delay: 0s;">♥</div>
+            <div class="heart" style="left: 20%; animation-delay: 1s;">♥</div>
+            <div class="heart" style="left: 30%; animation-delay: 2s;">♥</div>
+            <div class="heart" style="left: 40%; animation-delay: 3s;">♥</div>
+            <div class="heart" style="left: 50%; animation-delay: 4s;">♥</div>
+            <div class="heart" style="left: 60%; animation-delay: 1.5s;">♥</div>
+            <div class="heart" style="left: 70%; animation-delay: 2.5s;">♥</div>
+            <div class="heart" style="left: 80%; animation-delay: 3.5s;">♥</div>
+            <div class="heart" style="left: 90%; animation-delay: 0.5s;">♥</div>
         </div>
     </header>
 
@@ -196,8 +321,8 @@
         <div class="container">
             <div class="anniversary-content">
                 <h2 class="anniversary-title animate-on-scroll">Kỷ Niệm Ngày Cưới</h2>
-                <p class="anniversary-subtitle animate-on-scroll">Chúng tôi đã bên nhau được</p>
-                <p class="wedding-date animate-on-scroll">Kể từ ngày 26/05/2023</p>
+                <p class="anniversary-subtitle animate-on-scroll">Chúng tôi đã kết hôn được</p>
+                <p class="wedding-date animate-on-scroll">Kể từ ngày 06/04/2025</p>
                 
                 <div class="anniversary-counter" id="anniversaryCounter">
                     <div class="counter-item animate-on-scroll">
@@ -219,13 +344,15 @@
                 </div>
                 
                 <div class="celebration-message animate-on-scroll">
-                    <div class="celebration-icon"><i class="fas fa-hand-holding-heart"></i></div>
+                    <div class="celebration-icon">
+                        <i class="fas fa-rings-wedding"></i>
+                    </div>
                     <p class="celebration-text">
                         <strong>Hành trình tình yêu của chúng tôi đã chính thức bắt đầu!</strong><br>
                         Cảm ơn tất cả gia đình, bạn bè đã đồng hành và chúc phúc cho chúng tôi trong ngày trọng đại.
                     </p>
                     <p class="love-quote">
-                        "Nơi nào có tình yêu, nơi đó có sự sống."
+                        "Tình yêu không chỉ là nhìn vào mắt nhau, mà là cùng nhau nhìn về một hướng"
                     </p>
                 </div>
             </div>
@@ -240,20 +367,40 @@
             </div>
             <div class="cards">
                 <div class="card animate-on-scroll">
-                    <div class="card-icon"><i class="fas fa-envelope-open-text"></i></div>
+                    <div class="card-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
                     <h3>Thiệp Cưới</h3>
                     <p>Những lời mời chân thành từ trái tim</p>
-                    <a href="#" class="btn-small">Xem Thiệp</a> </div>
+                    <div class="card-links">
+                        <a href="thiep-nha-trai/index.html" class="btn-small">Thiệp Nhà Trai</a>
+                        <a href="thiep-nha-gai/index.html" class="btn-small">Thiệp Nhà Gái</a>
+                    </div>
+                </div>
                 <div class="card animate-on-scroll">
-                    <div class="card-icon"><i class="fas fa-calendar-check"></i></div>
-                    <h3>Sự Kiện Cưới</h3>
-                    <p>Ghi lại những nghi lễ quan trọng</p>
-                    <a href="#" class="btn-small">Xem Sự Kiện</a> </div>
+                    <div class="card-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h3>Lễ Dạm Ngỏ</h3>
+                    <p>Bước đầu tiên trong hành trình kết duyên</p>
+                    <a href="le-dam-ngo/index.html" class="btn-small">Xem Kỷ Niệm</a>
+                </div>
                 <div class="card animate-on-scroll">
-                    <div class="card-icon"><i class="fas fa-camera-retro"></i></div>
+                    <div class="card-icon">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <h3>Lễ Hỏi</h3>
+                    <p>Nghi lễ truyền thống đầy ý nghĩa</p>
+                    <a href="le-hoi/index.html" class="btn-small">Xem Kỷ Niệm</a>
+                </div>
+                <div class="card animate-on-scroll">
+                    <div class="card-icon">
+                        <i class="fas fa-camera"></i>
+                    </div>
                     <h3>Album Cưới</h3>
                     <p>Những khoảnh khắc vàng không thể quên</p>
-                    <a href="#" class="btn-small">Xem Album</a> </div>
+                    <a href="album-cuoi/index.html" class="btn-small">Xem Album</a>
+                </div>
             </div>
         </div>
     </section>
@@ -261,12 +408,12 @@
     <section class="section video-section">
         <div class="container">
             <div class="section-title animate-on-scroll">
-                <h2>Video Ngày Cưới</h2>
+                <h2>Video Lễ Hỏi</h2>
                 <div class="divider"></div>
-                <p>Khoảnh khắc đáng nhớ trong ngày vui của chúng tôi</p>
+                <p>Khoảnh khắc đáng nhớ trong lễ hỏi của chúng tôi</p>
             </div>
             <div class="video-container animate-on-scroll">
-                <iframe width="100%" height="455" src="https://www.youtube.com/embed/YourYouTubeVideoID" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                <iframe width="100%" height="455" src="https://www.youtube.com/embed/JMXSbCvjKiQ?si=ej7rZh-BIOcsJl9l" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
             </div>
         </div>
     </section>
@@ -274,37 +421,50 @@
     <section class="section gallery-preview">
         <div class="container">
             <div class="section-title animate-on-scroll">
-                <h2>Thư Viện Ảnh</h2>
+                <h2>Gallery</h2>
                 <div class="divider"></div>
                 <p>Những khoảnh khắc đẹp nhất từ hành trình tình yêu</p>
             </div>
             <div class="gallery-grid">
-                <div class="gallery-item animate-on-scroll"><img src="img/gallery1.jpg" alt="Gallery Image"></div>
-                <div class="gallery-item animate-on-scroll"><img src="img/gallery2.jpg" alt="Gallery Image"></div>
-                <div class="gallery-item animate-on-scroll"><img src="img/gallery3.jpg" alt="Gallery Image"></div>
-                <div class="gallery-item animate-on-scroll"><img src="img/gallery4.jpg" alt="Gallery Image"></div>
-                <div class="gallery-item animate-on-scroll"><img src="img/gallery5.jpg" alt="Gallery Image"></div>
-                <div class="gallery-item animate-on-scroll"><img src="img/gallery6.jpg" alt="Gallery Image"></div>
+                <div class="gallery-item animate-on-scroll">
+                    <img src="https://lh3.googleusercontent.com/pw/AP1GczNsRQeYcTQyH-kT0RWcZfprLNvQeI9YgYKOnJIjJJDr--eXkwpNAjGT-Ads6JAyGFz6Ipgjc1TxEMrG1Os8GR6kNON1EN7PKPjIh4iWNpiry1Ay5zmBS3lToTbrHFEyrqm8Ct8Ua39Z284_uEKRxHh7=w635-h953-s-no-gm?authuser=0" alt="Gallery Image">
+                </div>
+                <div class="gallery-item animate-on-scroll">
+                    <img src="https://lh3.googleusercontent.com/pw/AP1GczNAUEVa9tt-7MK0kYFbSNlN2f0MuBL2UJDBl1Wq43ofsR9GHa5F2ct31tVd_zVIoKp_F5WY1svVQSJYHijHxUyq60nH8Vdy7fJoRySAevGhkLrjwHagZ6BCAE9jp5UHstJFUGbwQ2fgrROkYx8te76s=w635-h953-s-no-gm?authuser=0" alt="Gallery Image">
+                </div>
+                <div class="gallery-item animate-on-scroll">
+                    <img src="https://lh3.googleusercontent.com/pw/AP1GczNa0HCmCOubmSILDOk4e6K39epATENRnrqD53oFH0pnowdH7gYQ5cjOY2isOoMzhcbl1TLVbAGmVO0UhAH314YzbZjyd4rFqLIqjrEx_Eg7_L-K4IrnWNp1Bisii9nAv9Y7V2I6sbbaz1B8D3RH9bqX=w635-h953-s-no-gm?authuser=0" alt="Gallery Image">
+                </div>
+                <div class="gallery-item animate-on-scroll">
+                    <img src="https://lh3.googleusercontent.com/pw/AP1GczMBM9hou9exebK1vXYGklk-r2fHWmG3MhnEyLUHnLcM9J81Raxu7IQMlDdJNaJy7WNE3H_ZbnCtvChAiI1FwN03FtXqATDtM938tLRAAwRMZdTvUFcWOrwXUa7Ihu2rR_bWUqZfAJh-freXlqq7Pt0s=w635-h953-s-no-gm?authuser=0" alt="Gallery Image">
+                </div>
+                <div class="gallery-item animate-on-scroll">
+                    <img src="https://lh3.googleusercontent.com/pw/AP1GczPs9W8hvtiTC8TdLHPRcYkH0i2Le-jpF2cs2bwFpxFYp014IzejRG7rNZ-duzEihAys4EK6RGzsANpJDQMg79kB1NZrTYLTyebrWrqLYioO4rb2Z2hzZVKMuw7E0qMnxwCh-ck3BKbzTqc8GGbTcfVo=w635-h953-s-no-gm?authuser=0" alt="Gallery Image">
+                </div>
+                <div class="gallery-item animate-on-scroll">
+                    <img src="https://lh3.googleusercontent.com/pw/AP1GczOtnloM71FAWHUbephjkqNILy9ML_RfDuNCPSraUqzq0pR0AxchBG8UIlukLD_zVW9WfFvendRbz97zA1kcWIMEuf8ptjFG7A_dY2t3CglZgFKP7jUxQsRmtobMCju5xduWHcEObOx8ydDnmDk5Eq6p=w635-h953-s-no-gm?authuser=0" alt="Gallery Image">
+                </div>
             </div>
             <div class="text-center animate-on-scroll">
-                <a href="#" class="btn">Xem Tất Cả Album</a> </div>
+                <a href="album-cuoi/index.html" class="btn">Xem Tất Cả</a>
+            </div>
         </div>
     </section>
 
     <footer>
         <div class="container">
             <div class="footer-content">
-                <h2>Trân Trọng Cảm Ơn</h2>
-                <p>Cảm ơn gia đình và bạn bè đã đến dự và chúc phúc cho lễ thành hôn của chúng tôi</p>
-                <p>Ngày 26 tháng 05 năm 2023</p>
+                <h2>Cảm Ơn</h2>
+                <p>Cảm ơn quý khách đã đến dự và chúc phúc cho lễ thành hôn của chúng tôi</p>
+                <p>05-06/04/2025</p>
                 <div class="social-icons">
-                     <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
                     <a href="#"><i class="fab fa-instagram"></i></a>
                     <a href="#"><i class="fab fa-youtube"></i></a>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>© 2023 - Quốc Thái & Kim Chi</p>
+                <p>© 2025 - Anh Khoa & Ngọc Thảo</p>
             </div>
         </div>
     </footer>
@@ -314,6 +474,7 @@
             // Mobile menu toggle
             const menuToggle = document.querySelector('.menu-toggle');
             const menu = document.querySelector('.menu');
+            
             if (menuToggle) {
                 menuToggle.addEventListener('click', function() {
                     menu.classList.toggle('active');
@@ -331,10 +492,12 @@
                     if (targetElement) {
                         const navbarHeight = document.querySelector('.navbar').offsetHeight;
                         const targetPosition = targetElement.offsetTop - navbarHeight;
+                        
                         window.scrollTo({
                             top: targetPosition,
                             behavior: 'smooth'
                         });
+                        
                         if (menu.classList.contains('active')) {
                             menu.classList.remove('active');
                             menuToggle.classList.remove('active');
@@ -350,20 +513,27 @@
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
                             entry.target.classList.add('is-visible');
-                            observerInstance.unobserve(entry.target);
+                            observerInstance.unobserve(entry.target); // Stop observing once visible
                         }
                     });
-                }, { threshold: 0.1 });
-                animatedElements.forEach(element => observer.observe(element));
+                }, { 
+                    threshold: 0.1 // Trigger when 10% of the element is visible
+                });
+
+                animatedElements.forEach(element => {
+                    observer.observe(element);
+                });
             } else {
-                animatedElements.forEach(element => element.classList.add('is-visible'));
+                // Fallback for older browsers: make elements visible immediately
+                animatedElements.forEach(element => {
+                    element.classList.add('is-visible');
+                });
             }
         });
         
         // Anniversary counter
         function updateAnniversaryCounter() {
-            // === CẬP NHẬT NGÀY CƯỚI Ở ĐÂY ===
-            const weddingDate = new Date('May 26, 2023 11:00:00').getTime();
+            const weddingDate = new Date('April 06, 2025 11:00:00').getTime();
             const now = new Date().getTime();
             const timePassed = now - weddingDate;
             
@@ -372,25 +542,28 @@
             const hoursEl = document.getElementById('hours');
             const minutesEl = document.getElementById('minutes');
 
-            if (timePassed > 0 && monthsEl && daysEl && hoursEl && minutesEl) {
-                const totalDays = Math.floor(timePassed / (1000 * 60 * 60 * 24));
-                const years = Math.floor(totalDays / 365.25);
-                const months = Math.floor(totalDays / 30.44); // Average months
-                const days = totalDays % 30; // Remainder days for display
+            if (timePassed > 0) {
+                const months = Math.floor(timePassed / (1000 * 60 * 60 * 24 * 30.44));
+                const days = Math.floor((timePassed % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24));
                 const hours = Math.floor((timePassed % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const minutes = Math.floor((timePassed % (1000 * 60 * 60)) / (1000 * 60));
                 
-                monthsEl.innerHTML = months;
-                daysEl.innerHTML = days;
-                hoursEl.innerHTML = hours;
-                minutesEl.innerHTML = minutes < 10 ? '0' + minutes : minutes;
+                if(monthsEl) monthsEl.innerHTML = months;
+                if(daysEl) daysEl.innerHTML = days;
+                if(hoursEl) hoursEl.innerHTML = hours;
+                if(minutesEl) minutesEl.innerHTML = minutes < 10 ? '0' + minutes : minutes;
+            } else {
+                if(monthsEl) monthsEl.innerHTML = '0';
+                if(daysEl) daysEl.innerHTML = '0';
+                if(hoursEl) hoursEl.innerHTML = '0';
+                if(minutesEl) minutesEl.innerHTML = '0';
             }
         }
         
         updateAnniversaryCounter();
-        setInterval(updateAnniversaryCounter, 60000); // Update every minute
+        setInterval(updateAnniversaryCounter, 60000);
         
-        // Combined scroll event listener
+        // Combined scroll event listener for Navbar effect and Scroll Progress Bar
         window.addEventListener('scroll', function() {
             // Navbar scroll effect
             const navbar = document.querySelector('.navbar');
