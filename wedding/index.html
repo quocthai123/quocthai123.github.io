@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -256,6 +255,41 @@
         }
         /* ---- KẾT THÚC CSS MỚI ---- */
 
+        /* ---- CSS ĐIỀU CHỈNH GALLERY MỚI ---- */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .gallery-item {
+            background-color: var(--white-color);
+            border-radius: 10px;
+            overflow: hidden; /* Đảm bảo hình ảnh không tràn ra ngoài khung */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            display: flex; /* Dùng flexbox để căn chỉnh ảnh */
+            justify-content: center; /* Căn giữa theo chiều ngang */
+            align-items: center; /* Căn giữa theo chiều dọc */
+            height: 250px; /* Đặt chiều cao cố định cho khung chứa ảnh */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .gallery-item img {
+            max-width: 100%; /* Đảm bảo ảnh không vượt quá chiều rộng của khung */
+            max-height: 100%; /* Đảm bảo ảnh không vượt quá chiều cao của khung */
+            width: auto; /* Cho phép chiều rộng tự điều chỉnh */
+            height: auto; /* Cho phép chiều cao tự điều chỉnh */
+            object-fit: contain; /* HIỂN THỊ ĐẦY ĐỦ NỘI DUNG ẢNH */
+            border-radius: 10px; /* Bo tròn các góc của ảnh để khớp với khung */
+        }
+        /* ---- KẾT THÚC CSS ĐIỀU CHỈNH GALLERY MỚI ---- */
+
     </style>
 </head>
 <body>
@@ -414,7 +448,7 @@
                 <p>Khoảnh khắc đáng nhớ trong lễ hỏi của chúng tôi</p>
             </div>
             <div class="video-container animate-on-scroll">
-                <iframe width="100%" height="455" src="https://www.youtube.com/watch?v=k7OUk8eIm9M" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                <iframe width="100%" height="455" src="https://www.youtube.com/embed/k7OUk8eIm9M" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
             </div>
         </div>
     </section>
