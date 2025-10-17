@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thống kê chi phí KCB BHYT</title>
+    <!-- Tích hợp thư viện SheetJS để đọc và ghi file Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --text-color: #333;
+            --border-color: #dee2e6;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background-color: var(--card-background);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        header p {
+            text-align: center;
+            color: var(--secondary-color);
+            margin-bottom: 30px;
+        }
+
+        .upload-section {
+            text-align: center;
+            border: 2px dashed var(--border-color);
+            padding: 40px 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        
+        .upload-section.drag-over {
+            border-color: var(--primary-color);
+            background-color: #e9f5ff;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .upload-label {
+            cursor: pointer;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            display: inline-block;
+        }
+
+        .upload-label:hover {
+            background-color: #0056b3;
+        }
+        
+        .upload-label-text {
+            margin-top: 15px;
+            color: var(--secondary-color);
+        }
+        
+        .sample-file-link-container {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: var(--secondary-color);
+        }
+
+        .sample-file-link-container a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .sample-file-link-container a:hover {
+            text-decoration: underline;
+        }
+
+
+        #status {
+            text-align: center;
+            margin: 20px 0;
+            font-weight: 500;
+            padding: 10px;
+            border-radius: 6px;
+            display: none; /* Ẩn ban đầu */
+        }
+
+        #status.success {
+            background-color: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        #status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        
+        #status.processing {
+            background-color: #fff3cd;
+            color: #856404;
+            display: block;
+        }
+
+        .results-section {
+            display: none; /* Ẩn ban đầu */
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .results-header h2 {
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        #download-btn {
+            background-color: var(--success-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        #download-btn:hover {
+            background-color: #218838;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #f8f9fa;
+            position: sticky;
+            top: 0;
+            font-weight: 600;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Thống kê chi phí KCB BHYT theo mã bệnh</h1>
+        <p>Tải lên file Excel có các cột 'mabenh', 'tongcong', 'bhtt' để tự động xử lý và nhận file kết quả.</p>
+    </header>
+
+    <main>
+        <div class="upload-section" id="upload-section">
+            <input type="file" id="file-input" accept=".xlsx, .xls">
+            <label for="file-input" class="upload-label">Chọn File Excel</label>
+            <p class="upload-label-text">hoặc kéo và thả file vào đây</p>
+            <p class="sample-file-link-container"><a href="#" id="download-sample-btn">Tải file mẫu tại đây</a></p>
+        </div>
+
+        <div id="status"></div>
+
+        <div class="results-section" id="results-section">
+            <div class="results-header">
+                <h2>Kết quả Thống kê</h2>
+                <button id="download-btn">Tải về kết quả (Excel)</button>
+            </div>
+            <div class="table-container" id="result-table"></div>
+        </div>
+    </main>
+    
+    <footer>
+        <p>© 2025 Lê Quốc Thái</p>
+    </footer>
+</div>
+
+<script>
+    const fileInput = document.getElementById('file-input');
+    const uploadSection = document.getElementById('upload-section');
+    const statusDiv = document.getElementById('status');
+    const resultsSection = document.getElementById('results-section');
+    const resultTableDiv = document.getElementById('result-table');
+    const downloadBtn = document.getElementById('download-btn');
+    const downloadSampleBtn = document.getElementById('download-sample-btn');
+
+    let processedData = []; // Biến toàn cục để lưu dữ liệu đã xử lý
+
+    // Xử lý sự kiện khi người dùng chọn file
+    fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            handleFile(file);
+        }
+    });
+
+    // Xử lý kéo và thả file
+    uploadSection.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        uploadSection.classList.add('drag-over');
+    });
+
+    uploadSection.addEventListener('dragleave', () => {
+        uploadSection.classList.remove('drag-over');
+    });
+
+    uploadSection.addEventListener('drop', (event) => {
+        event.preventDefault();
+        uploadSection.classList.remove('drag-over');
+        const file = event.dataTransfer.files[0];
+        if (file) {
+            handleFile(file);
+        }
+    });
+
+    function handleFile(file) {
+        setStatus('processing', `Đang xử lý file: ${file.name}...`);
+        resultsSection.style.display = 'none';
+
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                if (jsonData.length === 0) {
+                    throw new Error("File Excel không có dữ liệu.");
+                }
+
+                const firstRow = jsonData[0];
+                if (!('mabenh' in firstRow && 'tongcong' in firstRow && 'bhtt' in firstRow)) {
+                    throw new Error("File Excel phải chứa 3 cột: 'mabenh', 'tongcong', và 'bhtt'.");
+                }
+
+                const summary = {};
+                jsonData.forEach(row => {
+                    const maBenh = row.mabenh;
+                    const tongCong = Number(row.tongcong) || 0;
+                    const bhtt = Number(row.bhtt) || 0;
+
+                    if (!summary[maBenh]) {
+                        summary[maBenh] = { so_luot: 0, tong_cong: 0, tong_bhtt: 0 };
+                    }
+                    summary[maBenh].so_luot++;
+                    summary[maBenh].tong_cong += tongCong;
+                    summary[maBenh].tong_bhtt += bhtt;
+                });
+                
+                processedData = Object.keys(summary).map(maBenh => ({
+                    'Mã Bệnh': maBenh,
+                    'Số Lượt': summary[maBenh].so_luot,
+                    'Tổng Cộng': summary[maBenh].tong_cong,
+                    'Tổng BHTT': summary[maBenh].tong_bhtt
+                }));
+
+                displayResults(processedData);
+                setStatus('success', `Xử lý thành công ${jsonData.length} dòng dữ liệu.`);
+                resultsSection.style.display = 'block';
+
+            } catch (error) {
+                setStatus('error', `Lỗi: ${error.message}`);
+                console.error(error);
+                resultsSection.style.display = 'none';
+            }
+        };
+
+        reader.onerror = (e) => {
+             setStatus('error', 'Không thể đọc file. Vui lòng thử lại.');
+        };
+
+        reader.readAsArrayBuffer(file);
+    }
+
+    function setStatus(type, message) {
+        statusDiv.className = type;
+        statusDiv.textContent = message;
+    }
+    
+    function displayResults(data) {
+        if (data.length === 0) {
+            resultTableDiv.innerHTML = '<p>Không có dữ liệu để hiển thị.</p>';
+            return;
+        }
+
+        const table = document.createElement('table');
+        const thead = document.createElement('thead');
+        const tbody = document.createElement('tbody');
+        const headerRow = document.createElement('tr');
+
+        Object.keys(data[0]).forEach(key => {
+            const th = document.createElement('th');
+            th.textContent = key;
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+
+        data.forEach(rowData => {
+            const row = document.createElement('tr');
+            Object.entries(rowData).forEach(([key, value]) => {
+                const td = document.createElement('td');
+                if (typeof value === 'number' && key !== 'Số Lượt') {
+                    td.textContent = value.toLocaleString('vi-VN');
+                } else {
+                    td.textContent = value;
+                }
+                row.appendChild(td);
+            });
+            tbody.appendChild(row);
+        });
+
+        table.appendChild(thead);
+        table.appendChild(tbody);
+        
+        resultTableDiv.innerHTML = '';
+        resultTableDiv.appendChild(table);
+    }
+    
+    // Xử lý sự kiện nhấn nút tải về kết quả
+    downloadBtn.addEventListener('click', () => {
+        if (processedData.length > 0) {
+            const newWorksheet = XLSX.utils.json_to_sheet(processedData);
+            const newWorkbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, 'KetQuaThongKe');
+            XLSX.writeFile(newWorkbook, 'thong_ke_ket_qua.xlsx');
+        }
+    });
+
+    // *** THÊM MỚI: Xử lý sự kiện nhấn nút tải file mẫu ***
+    downloadSampleBtn.addEventListener('click', (event) => {
+        event.preventDefault(); // Ngăn hành vi mặc định của thẻ <a>
+        
+        const sampleData = [
+            { mabenh: 'J00', tongcong: 150000, bhtt: 120000 },
+            { mabenh: 'A09', tongcong: 250000, bhtt: 200000 },
+            { mabenh: 'J00', tongcong: 125000, bhtt: 100000 },
+            { mabenh: 'M47', tongcong: 500000, bhtt: 450000 },
+            { mabenh: 'A09', tongcong: 300000, bhtt: 240000 }
+        ];
+
+        // Tạo worksheet và workbook từ dữ liệu mẫu
+        const worksheet = XLSX.utils.json_to_sheet(sampleData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "DuLieuMau");
+        
+        // Tải file về máy người dùng
+        XLSX.writeFile(workbook, "file-mau.xlsx");
+    });
+
+</script>
+</body>
+</html>
