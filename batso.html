@@ -3,213 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>In Phiếu Khám Bệnh</title>
+    <title>Bệnh viện Phục hồi chức năng</title>
     <style>
         /* --- GIAO DIỆN TRÊN MÀN HÌNH MÁY TÍNH/TABLET --- */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #e9ecef;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .screen-container {
             text-align: center;
             background: white;
             padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            max-width: 400px;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            max-width: 450px;
             width: 100%;
         }
 
-        h2 { color: #333; margin-bottom: 30px; }
+        /* CSS CHO LOGO VÀ TIÊU ĐỀ MỚI */
+        .hospital-logo {
+            width: 100px; /* Kích thước logo */
+            height: auto;
+            margin-bottom: 15px;
+        }
+
+        .main-title {
+            color: #0056b3; /* Màu xanh đậm chuyên nghiệp */
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            line-height: 1.3;
+        }
+
+        .sub-title {
+            margin: 5px 0 30px 0;
+            font-size: 16px;
+            font-weight: normal;
+            color: #666;
+        }
+        /* ------------------------- */
+
+        .number-display {
+            margin-bottom: 25px; 
+            font-size: 20px;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
 
         /* Nút bấm được thiết kế to, dễ bấm */
         .btn-print {
             background-color: #007bff;
             color: white;
             border: none;
-            padding: 20px 40px;
-            font-size: 24px;
+            padding: 25px 40px;
+            font-size: 26px;
             font-weight: bold;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-            transition: transform 0.1s, background-color 0.2s;
+            transition: all 0.2s ease;
             width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .btn-print:hover { background-color: #0056b3; }
-        .btn-print:active { transform: scale(0.96); }
+        .btn-print:hover { background-color: #0056b3; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.3); }
+        .btn-print:active { transform: scale(0.98); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 
         .preview-text {
             margin-top: 20px;
             font-size: 14px;
-            color: #666;
+            color: #888;
         }
 
-        /* --- CẤU HÌNH CHO MÁY IN NHIỆT (QUAN TRỌNG) --- */
-        /* Khu vực in luôn bị ẩn trên màn hình thường */
+        /* --- CẤU HÌNH CHO MÁY IN NHIỆT (GIỮ NGUYÊN NHƯ CŨ) --- */
         #print-area { display: none; }
 
         @media print {
-            /* Ẩn mọi thứ của giao diện web */
             body * { visibility: hidden; }
             .screen-container { display: none; }
-
-            /* Chỉ hiện khu vực vé in */
-            #print-area, #print-area * {
-                visibility: visible;
-            }
+            #print-area, #print-area * { visibility: visible; }
 
             #print-area {
                 display: block;
                 position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%; /* Tự động theo khổ giấy máy in (58mm hoặc 80mm) */
-                margin: 0;
-                padding: 0 5px; /* Padding nhỏ để không bị mất chữ */
-                text-align: center;
-                color: black;
-            }
-
-            /* --- STYLE GIỐNG HÌNH ẢNH --- */
-            
-            /* Tên bệnh viện: Font có chân, in hoa, đậm */
-            .hospital-name {
-                font-family: "Times New Roman", Times, serif;
-                font-size: 16px; 
-                font-weight: bold;
-                text-transform: uppercase;
-                margin-top: 10px;
-                margin-bottom: 5px;
-                line-height: 1.2;
-            }
-
-            /* Tên dịch vụ: Font có chân, đậm */
-            .service-name {
-                font-family: "Times New Roman", Times, serif;
-                font-size: 20px;
-                font-weight: bold;
-                margin-bottom: 10px;
-            }
-
-            /* Số thứ tự: Cực lớn, đậm */
-            .ticket-number {
-                font-family: Arial, sans-serif; /* Số dùng Arial cho rõ ràng hoặc Times tùy ý */
-                font-size: 110px; /* Kích thước lớn như trong hình */
-                font-weight: 900; /* Độ đậm tối đa */
-                line-height: 1;
-                margin: 10px 0;
-            }
-
-            /* Ngày giờ: Font thường, nhỏ */
-            .print-time {
-                font-family: "Times New Roman", Times, serif; /* Giống hình */
-                font-size: 12px;
-                margin-top: 10px;
-                margin-bottom: 20px; /* Khoảng cách để cắt giấy */
+                top: 0; left: 0; width: 100%;
+                margin: 0; padding: 0 5px;
+                text-align: center; color: black;
             }
             
-            /* Cấu hình trang in để bỏ margin mặc định của trình duyệt */
-            @page {
-                margin: 0;
-                size: auto;
+            /* Style giống hình ảnh cũ */
+            .hospital-name-print {
+                font-family: "Times New Roman", Times, serif;
+                font-size: 16px; font-weight: bold; text-transform: uppercase;
+                margin-top: 10px; margin-bottom: 5px; line-height: 1.2;
             }
+            .service-name-print {
+                font-family: "Times New Roman", Times, serif;
+                font-size: 20px; font-weight: bold; margin-bottom: 10px;
+            }
+            .ticket-number-print {
+                font-family: Arial, sans-serif;
+                font-size: 110px; font-weight: 900; line-height: 1; margin: 10px 0;
+            }
+            .print-time-print {
+                font-family: "Times New Roman", Times, serif;
+                font-size: 12px; margin-top: 10px; margin-bottom: 20px;
+            }
+            @page { margin: 0; size: auto; }
         }
     </style>
 </head>
 <body>
 
     <div class="screen-container">
-        <h2>Hệ Thống Lấy Số</h2>
-        <div style="margin-bottom: 20px; font-size: 18px;">
-            Số hiện tại: <strong id="screen-number" style="color:red; font-size: 30px">---</strong>
+        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 24 24' fill='none' stroke='%230056b3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 12h-4l-3 9L9 3l-3 9H2'></path></svg>" 
+             alt="Logo Bệnh Viện" 
+             class="hospital-logo">
+        
+        <h1 class="main-title">BỆNH VIỆN PHỤC HỒI CHỨC NĂNG</h1>
+        <h2 class="sub-title">Hệ thống lấy số tự động</h2>
+
+        <div class="number-display">
+            Số đang cấp: <strong id="screen-number" style="color:#dc3545; font-size: 32px; margin-left: 10px;">---</strong>
         </div>
+        
         <button class="btn-print" onclick="processPrint()">
-            IN PHIẾU
+            <span style="margin-right: 10px;">🖨️</span> BẤM ĐỂ LẤY SỐ
         </button>
-        <p class="preview-text">Nhấn nút để in số tiếp theo</p>
+        <p class="preview-text">Vui lòng chờ nhận phiếu sau khi bấm</p>
     </div>
 
     <div id="print-area">
-        <div class="hospital-name">BV PHCN ĐỒNG THÁP</div>
-        <div class="service-name">Khám bệnh</div>
-        <div class="ticket-number" id="ticket-num">00</div>
-        <div class="print-time" id="ticket-time">Ngày in: ...</div>
+        <div class="hospital-name-print">BV PHCN ĐỒNG THÁP</div>
+        <div class="service-name-print">Khoa Khám bệnh</div>
+        <div class="ticket-number-print" id="ticket-num">00</div>
+        <div class="print-time-print" id="ticket-time">Ngày in: ...</div>
     </div>
 
     <script>
-        // CẤU HÌNH LOGIC RESET THEO NGÀY
-        const KEY_DATE = 'last_print_date';
-        const KEY_COUNT = 'current_count';
+        // --- LOGIC GIỮ NGUYÊN ---
+        const KEY_DATE = 'last_print_date_v2'; // Đổi key để tránh conflict bản cũ
+        const KEY_COUNT = 'current_count_v2';
 
-        function getToday() {
-            return new Date().toLocaleDateString('vi-VN'); // Lấy ngày theo định dạng VN
-        }
+        function getToday() { return new Date().toLocaleDateString('vi-VN'); }
 
         function getNextNumber() {
             const today = getToday();
             const lastDate = localStorage.getItem(KEY_DATE);
             let count = parseInt(localStorage.getItem(KEY_COUNT) || '0');
-
-            // Nếu ngày lưu khác ngày hôm nay -> Reset về 0
             if (lastDate !== today) {
                 count = 0;
                 localStorage.setItem(KEY_DATE, today);
             }
-
             count++;
             localStorage.setItem(KEY_COUNT, count);
             return count;
         }
 
-        // Hàm format ngày giờ giống hệt hình: dd/mm/yyyy h:mm:ss AM/PM
         function getFormattedDateTime() {
             const now = new Date();
-            
-            // Lấy ngày: dd/mm/yyyy
             const dateStr = now.toLocaleDateString('en-GB'); 
-            
-            // Lấy giờ: h:mm:ss AM/PM (Kiểu 12h)
-            const timeStr = now.toLocaleTimeString('en-US', { 
-                hour12: true, 
-                hour: 'numeric', 
-                minute: 'numeric', 
-                second: 'numeric' 
-            });
-
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: 'numeric', second: 'numeric' });
             return `Ngày in: ${dateStr} ${timeStr}`;
         }
 
-        // Hàm cập nhật số lên màn hình (để nhân viên/người dùng biết)
         function updateScreen() {
             const current = localStorage.getItem(KEY_COUNT) || 0;
             document.getElementById('screen-number').innerText = current > 0 ? current : '--';
         }
 
-        // --- XỬ LÝ KHI BẤM NÚT ---
         function processPrint() {
-            // 1. Lấy số mới
             const newNum = getNextNumber();
-
-            // 2. Điền dữ liệu vào mẫu in
             document.getElementById('ticket-num').innerText = newNum;
             document.getElementById('ticket-time').innerText = getFormattedDateTime();
-
-            // 3. Cập nhật màn hình điều khiển
             updateScreen();
-
-            // 4. Gọi lệnh in
             window.print();
         }
 
-        // Chạy khi mở trang
         updateScreen();
     </script>
 </body>
