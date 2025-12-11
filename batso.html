@@ -3,45 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bệnh viện Phục hồi chức năng - Lấy số</title>
+    <title>Kiosk Lấy Số Bệnh Viện</title>
     <style>
-        /* --- CSS MÀN HÌNH --- */
+        /* --- 1. CẤU HÌNH GIAO DIỆN KIOSK FULL MÀN HÌNH --- */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #e9ecef;
-            display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            height: 100vh; /* Chiều cao 100% màn hình */
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Ẩn thanh cuộn */
         }
+
         .screen-container {
-            text-align: center; background: white; padding: 40px;
-            border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-            max-width: 450px; width: 100%;
+            background: white;
+            width: 95%; /* Chiếm 95% màn hình */
+            height: 95%; /* Chiếm 95% chiều cao */
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between; /* Chia đều khoảng cách các phần */
+            padding: 40px;
+            box-sizing: border-box;
+            position: relative;
         }
-        .hospital-logo { width: 100px; height: auto; margin-bottom: 15px; }
-        .main-title { color: #0056b3; margin: 0; font-size: 24px; font-weight: bold; text-transform: uppercase; line-height: 1.3; }
-        .sub-title { margin: 5px 0 30px 0; font-size: 16px; font-weight: normal; color: #666; }
-        .number-display { margin-bottom: 25px; font-size: 20px; background-color: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #dee2e6; }
-        
+
+        /* --- LOGO & TIÊU ĐỀ --- */
+        .header-section {
+            text-align: center;
+            flex: 1; /* Chiếm 1 phần không gian */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hospital-logo {
+            height: 120px; /* Logo to hơn */
+            width: auto;
+            margin-bottom: 20px;
+        }
+
+        .main-title {
+            color: #0056b3;
+            margin: 0;
+            font-size: 3vw; /* Cỡ chữ tự chỉnh theo độ rộng màn hình */
+            font-weight: 800;
+            text-transform: uppercase;
+            line-height: 1.2;
+        }
+
+        .sub-title {
+            margin: 10px 0 0 0;
+            font-size: 2vw;
+            color: #555;
+        }
+
+        /* --- KHU VỰC HIỂN THỊ SỐ (NHỎ GỌN LẠI) --- */
+        .info-section {
+            margin: 20px 0;
+            font-size: 24px;
+            color: #666;
+        }
+
+        #screen-number {
+            color: #dc3545;
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        /* --- 2. NÚT BẤM KHỔNG LỒ (THEO YÊU CẦU) --- */
+        .action-section {
+            flex: 2; /* Chiếm 2 phần không gian (Rộng gấp đôi phần header) */
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
         .btn-print {
-            background-color: #007bff; color: white; border: none;
-            padding: 25px 40px; font-size: 26px; font-weight: bold;
-            border-radius: 12px; cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: all 0.2s ease;
-            width: 100%; display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            border: none;
+            width: 90%;
+            height: 80%; /* Nút cao, to */
+            font-size: 5vw; /* Chữ cực to */
+            font-weight: 900;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0, 86, 179, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column; /* Để icon nằm trên chữ */
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: pulse-animation 2s infinite; /* Hiệu ứng nhịp thở */
         }
-        .btn-print:hover { background-color: #0056b3; transform: translateY(-2px); }
-        .btn-print:active { transform: scale(0.98); }
 
-        .preview-text { margin-top: 20px; font-size: 14px; color: #888; }
-        
-        /* Nút Reset nhỏ gọn */
+        /* Hiệu ứng bấm nút */
+        .btn-print:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Hiệu ứng nhịp thở để thu hút */
+        @keyframes pulse-animation {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7); }
+            70% { transform: scale(1.02); box-shadow: 0 0 0 20px rgba(0, 123, 255, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 123, 255, 0); }
+        }
+
+        .note-text {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #888;
+            font-style: italic;
+        }
+
+        /* --- NÚT RESET ẨN (Góc dưới phải) --- */
         .btn-reset {
-            margin-top: 30px; background: none; border: none;
-            color: #ccc; font-size: 20px; cursor: pointer;
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: none;
+            border: 1px dashed #ddd;
+            color: #ddd;
+            font-size: 14px;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            opacity: 0.3;
+            transition: opacity 0.3s;
         }
-        .btn-reset:hover { color: #dc3545; }
+        .btn-reset:hover {
+            opacity: 1;
+            color: red;
+            border-color: red;
+        }
 
-        /* --- CSS IN ẤN --- */
+        /* --- 3. CSS IN ẤN (GIỮ NGUYÊN TUYỆT ĐỐI) --- */
         #print-area { display: none; }
         @media print {
             body * { visibility: hidden; }
@@ -57,7 +164,6 @@
             .service-name-print {
                 font-family: "Times New Roman", Times, serif; font-size: 20px; font-weight: bold; margin-bottom: 5px;
             }
-            /* Số vé to, đậm */
             .ticket-number-print {
                 font-family: Arial, sans-serif; font-size: 100px; font-weight: 900; line-height: 1; margin: 5px 0;
             }
@@ -70,24 +176,27 @@
 </head>
 <body>
     <div class="screen-container">
-        <img src="/img/logopng-removebg-preview.png" 
-             onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%230056b3\' stroke-width=\'2\'><path d=\'M22 12h-4l-3 9L9 3l-3 9H2\'></path></svg>'"
-             alt="Logo Bệnh Viện" class="hospital-logo">
-        
-        <h1 class="main-title">BỆNH VIỆN PHỤC HỒI CHỨC NĂNG</h1>
-        <h2 class="sub-title">Hệ thống lấy số tự động</h2>
-
-        <div class="number-display">
-            Số đang cấp: <strong id="screen-number" style="color:#dc3545; font-size: 32px; margin-left: 10px;">---</strong>
+        <div class="header-section">
+            <img src="/img/logopng-removebg-preview.png" 
+                 onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%230056b3\' stroke-width=\'2\'><path d=\'M22 12h-4l-3 9L9 3l-3 9H2\'></path></svg>'"
+                 alt="Logo" class="hospital-logo">
+            <h1 class="main-title">BỆNH VIỆN PHỤC HỒI CHỨC NĂNG</h1>
+            <h2 class="sub-title">Hệ thống lấy số tự động</h2>
+            <div class="info-section">
+                Số đang cấp: <span id="screen-number">---</span>
+            </div>
         </div>
         
-        <button class="btn-print" onclick="processPrint()">
-            <span style="margin-right: 10px;">🖨️</span> BẤM ĐỂ LẤY SỐ
-        </button>
-        <p class="preview-text">Phiếu sẽ tự động in ra máy in mặc định</p>
+        <div class="action-section">
+            <button class="btn-print" onclick="processPrint()">
+                <span style="font-size: 60px; margin-bottom: 10px;">🖨️</span>
+                BẤM ĐỂ LẤY SỐ
+            </button>
+            <p class="note-text">Vui lòng chờ lấy phiếu tại máy in</p>
+        </div>
 
         <button class="btn-reset" onclick="manualReset()" title="Reset về 0">
-            🔄
+            ⚙️ Cài đặt lại số
         </button>
     </div>
 
@@ -130,21 +239,19 @@
         }
 
         function processPrint() {
-            // 1. Tính toán số liệu
             const newNum = getNextNumber();
             document.getElementById('ticket-num').innerText = newNum;
             document.getElementById('ticket-time').innerText = getFormattedDateTime();
             updateScreen();
 
-            // 2. Delay cực ngắn (150ms) để đảm bảo trình duyệt kịp vẽ lại số mới lên màn hình trước khi gửi lệnh in
-            // Nếu không có delay này, đôi khi máy in nhanh quá sẽ in ra số cũ.
+            // Delay 150ms để giao diện cập nhật trước khi in
             setTimeout(function() {
                 window.print();
             }, 150);
         }
 
         function manualReset() {
-            if (confirm("⚠️ CẢNH BÁO:\nBạn có chắc chắn muốn đặt lại số thứ tự về 0 không?")) {
+            if (confirm("⚠️ CẢNH BÁO QUẢN TRỊ:\nBạn có chắc chắn muốn đặt lại số thứ tự về 0 không?")) {
                 localStorage.setItem(KEY_COUNT, 0);
                 updateScreen();
             }
