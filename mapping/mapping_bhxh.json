@@ -1,26 +1,566 @@
 [
-  {"MA_PHAM_VI": "101", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Hồi sức cấp cứu", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "102", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Nội khoa", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "102.04", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Nội Tim mạch", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "102.05", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Nội tiêu hóa", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "102.06", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Nội cơ - xương - khớp", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "102.07", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Nội thận - tiết niệu", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "102.09", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Dị ứng", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "102.1", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Huyết học", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "102.11", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Truyền nhiễm", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "103", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Nhi khoa", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "104", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Ngoại lao", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "105", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Da liễu", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "106", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Tâm thần", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "110", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Ngoại khoa", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "111", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Bỏng", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "112", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Ung bướu", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "113", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Phụ sản", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "114", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Mắt", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "115", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Tai mũi họng", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "116", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ Răng hàm mặt", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "118", "MA_CHUC_DANH": "1", "TEN_CHUYEN_KHOA": "Bác sĩ chuyên khoa Chẩn đoán hình ảnh", "CDNN": "Bác sĩ"},
-  {"MA_PHAM_VI": "301", "MA_CHUC_DANH": "3", "TEN_CHUYEN_KHOA": "Điều dưỡng có trình độ từ đại học trở lên", "CDNN": "Điều dưỡng"},
-  {"MA_PHAM_VI": "302", "MA_CHUC_DANH": "3", "TEN_CHUYEN_KHOA": "Điều dưỡng trình độ dưới đại học", "CDNN": "Điều dưỡng"},
-  {"MA_PHAM_VI": "501", "MA_CHUC_DANH": "10", "TEN_CHUYEN_KHOA": "Kỹ thuật y xét nghiệm Huyết học trình độ từ đại học trở lên", "CDNN": "Cử nhân xét nghiệm"}
+  {
+    "MA_PHAM_VI": "101",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Hồi sức cấp cứu",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "102",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Nội khoa",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "102.04",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Nội Tim mạch",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "102.05",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Nội tiêu hóa",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "102.06",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Nội cơ - xương - khớp",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "102.07",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Nội thận - tiết niệu",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "102.5",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Nội Hô hấp",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "102.09",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Dị ứng",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "102.1",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Huyết học",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "102.11",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Truyền nhiễm",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "102.14",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Thần kinh",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "103",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Nhi khoa",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "104",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Ngoại lao",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "105",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Da liễu",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "106",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Tâm thần",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "107",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Nội tiết",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "108",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ Y học cổ truyền",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "109",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Gây mê hồi sức",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "110",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Ngoại khoa",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "110.2",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Ngoại thần kinh",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "110.21",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Ngoại lồng ngực",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "110.22",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Ngoại tiêu hóa",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "110.23",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Ngoại thận - tiết niệu",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "110.24",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Chấn thương chỉnh hình",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "111",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Bỏng",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "112",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Ung bướu",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "113",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Phụ sản",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "114",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Mắt",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "115",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Tai mũi họng",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "116",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ Răng hàm mặt",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "117",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Phục hồi chức năng",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "118",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Chẩn đoán hình ảnh",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "119",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Y học hạt nhân",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "120",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Nội soi chẩn đoán can thiệp",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "121",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Thăm dò chức năng",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "122",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Huyết học-truyển máu",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "123",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Hóa sinh",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "124",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Vi sinh",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "125",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Giải phẫu bệnh",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "126",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Vi phẫu",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "127",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Phẫu thuật nội soi",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "128",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa Tạo hình thẩm mỹ",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "129",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ đa khoa",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "130",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ Y học dự phòng",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "131",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ y học cổ truyền không dùng thuốc",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "201",
+    "MA_CHUC_DANH": "2",
+    "TEN_CHUYEN_KHOA": "Y sỹ đa khoa",
+    "CDNN": "Y sĩ"
+  },
+  {
+    "MA_PHAM_VI": "202",
+    "MA_CHUC_DANH": "2",
+    "TEN_CHUYEN_KHOA": "Y sỹ Y học cổ truyền",
+    "CDNN": "Y sĩ"
+  },
+  {
+    "MA_PHAM_VI": "515",
+    "MA_CHUC_DANH": "5",
+    "TEN_CHUYEN_KHOA": "Kỹ thuật y phục hồi chức năng",
+    "CDNN": "Kỹ thuật viên"
+  },
+  {
+    "MA_PHAM_VI": "701",
+    "MA_CHUC_DANH": "9",
+    "TEN_CHUYEN_KHOA": "Lương y",
+    "CDNN": "Lương y"
+  },
+  {
+    "MA_PHAM_VI": "801",
+    "MA_CHUC_DANH": "7",
+    "TEN_CHUYEN_KHOA": "Dược sỹ từ đại học trở lên",
+    "CDNN": "Dược sĩ đại học"
+  },
+  {
+    "MA_PHAM_VI": "802",
+    "MA_CHUC_DANH": "8",
+    "TEN_CHUYEN_KHOA": "Dược sỹ dưới đại học",
+    "CDNN": "Dược sĩ trung cấp"
+  },
+  {
+    "MA_PHAM_VI": "132",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ y khoa",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "133",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ chuyên khoa dinh dưỡng",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "134",
+    "MA_CHUC_DANH": "1",
+    "TEN_CHUYEN_KHOA": "Bác sỹ tâm lý lâm sàng",
+    "CDNN": "Bác sĩ"
+  },
+  {
+    "MA_PHAM_VI": "301",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng có trình độ từ đại học trở lên",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "302",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng trình độ dưới đại học",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "303",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng có văn bằng chuyên khoa Hồi sức cấp cứu",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "304",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng có văn bằng chuyên khoa Nội khoa",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "305",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng có văn bằng chuyên khoa Da liễu",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "306",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng có văn bằng chuyên khoa Tâm thần",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "307",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng có văn bằng chuyên khoa Nội tiết",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "308",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng có văn bằng chuyên khoa Y học cổ truyền",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "309",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng có văn bằng chuyên khoa Gây mê hồi sức",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "310",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng có văn bằng chuyên khoa Ngoại",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "311",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng có văn bằng chuyên khoa Bỏng",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "312",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng có văn bằng chuyên khoa Ung bướu",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "313",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng đại học chuyên ngành phụ sản, Điều dưỡng chuyên ngành hộ sinh, Điều dưỡng chuyên ngành sản phụ khoa",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "314",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng có văn bằng chuyên khoa Mắt",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "315",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng có văn bằng chuyên khoa Tai mũi họng",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "316",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng có văn bằng chuyên khoa Răng hàm mặt",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "317",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng có văn bằng chuyên khoa Phục hồi chức năng",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "318",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng có văn bằng chuyên khoa Thăm dò chức năng",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "319",
+    "MA_CHUC_DANH": "3",
+    "TEN_CHUYEN_KHOA": "Điều dưỡng có văn bằng chuyên khoa Huyết học-truyển máu",
+    "CDNN": "Điều dưỡng"
+  },
+  {
+    "MA_PHAM_VI": "402",
+    "MA_CHUC_DANH": "4",
+    "TEN_CHUYEN_KHOA": "Hộ sinh trình độ dưới đại học",
+    "CDNN": "Hộ sinh"
+  },
+  {
+    "MA_PHAM_VI": "401",
+    "MA_CHUC_DANH": "4",
+    "TEN_CHUYEN_KHOA": "Hộ sinh trình độ từ đại học trở lên",
+    "CDNN": "Hộ sinh"
+  },
+  {
+    "MA_PHAM_VI": "501",
+    "MA_CHUC_DANH": "10",
+    "TEN_CHUYEN_KHOA": "Kỹ thuật y xét nghiệm Huyết học trình độ từ đại học trở lên",
+    "CDNN": "Cử nhân xét nghiệm"
+  },
+  {
+    "MA_PHAM_VI": "502",
+    "MA_CHUC_DANH": "10",
+    "TEN_CHUYEN_KHOA": "Kỹ thuật y xét nghiệm Hóa sinh trình độ từ đại học trở lên",
+    "CDNN": "Cử nhân xét nghiệm"
+  },
+  {
+    "MA_PHAM_VI": "503",
+    "MA_CHUC_DANH": "10",
+    "TEN_CHUYEN_KHOA": "Kỹ thuật y xét nghiệm Vi sinh trình độ từ đại học trở lên",
+    "CDNN": "Cử nhân xét nghiệm"
+  },
+  {
+    "MA_PHAM_VI": "504",
+    "MA_CHUC_DANH": "10",
+    "TEN_CHUYEN_KHOA": "Kỹ thuật y xét nghiệm Giải phẫu bệnh trình độ từ đại học trở lên",
+    "CDNN": "Cử nhân xét nghiệm"
+  },
+  {
+    "MA_PHAM_VI": "505",
+    "MA_CHUC_DANH": "5",
+    "TEN_CHUYEN_KHOA": "Kỹ thuật y xét nghiệm Huyết học trình độ dưới đại học",
+    "CDNN": "Kỹ thuật viên"
+  },
+  {
+    "MA_PHAM_VI": "506",
+    "MA_CHUC_DANH": "5",
+    "TEN_CHUYEN_KHOA": "Kỹ thuật y xét nghiệm Hóa sinh trình độ dưới đại học",
+    "CDNN": "Kỹ thuật viên"
+  },
+  {
+    "MA_PHAM_VI": "507",
+    "MA_CHUC_DANH": "5",
+    "TEN_CHUYEN_KHOA": "Kỹ thuật y xét nghiệm Vi sinh trình độ dưới đại học",
+    "CDNN": "Kỹ thuật viên"
+  },
+  {
+    "MA_PHAM_VI": "508",
+    "MA_CHUC_DANH": "5",
+    "TEN_CHUYEN_KHOA": "Kỹ thuật y xét nghiệm Giải phẫu bệnh trình độ dưới đại học",
+    "CDNN": "Kỹ thuật viên"
+  },
+  {
+    "MA_PHAM_VI": "509",
+    "MA_CHUC_DANH": "10",
+    "TEN_CHUYEN_KHOA": "Cử nhân hóa học, sinh học (theo quy định tại điểm d khoản 3 Điều 127 Nghị định số 96/2023/NĐ-CP)",
+    "CDNN": "Cử nhân xét nghiệm"
+  },
+  {
+    "MA_PHAM_VI": "510",
+    "MA_CHUC_DANH": "7",
+    "TEN_CHUYEN_KHOA": "Dược sĩ trình độ đại học (theo quy định tại điểm d khoản 3 Điều 127 Nghị định số 96/2023/NĐ-CP)",
+    "CDNN": "Dược sĩ đại học"
+  },
+  {
+    "MA_PHAM_VI": "511",
+    "MA_CHUC_DANH": "6",
+    "TEN_CHUYEN_KHOA": "Kỹ thuật y hình ảnh y học trình độ từ đại học trở lên",
+    "CDNN": "Cử nhân X-quang"
+  },
+  {
+    "MA_PHAM_VI": "512",
+    "MA_CHUC_DANH": "5",
+    "TEN_CHUYEN_KHOA": "Kỹ thuật y hình ảnh y học trình độ dưới đại học",
+    "CDNN": "Kỹ thuật viên"
+  },
+  {
+    "MA_PHAM_VI": "513",
+    "MA_CHUC_DANH": "5",
+    "TEN_CHUYEN_KHOA": "Kỹ thuật y phục hình răng",
+    "CDNN": "Kỹ thuật viên"
+  },
+  {
+    "MA_PHAM_VI": "514",
+    "MA_CHUC_DANH": "5",
+    "TEN_CHUYEN_KHOA": "Kỹ thuật y khúc xạ nhãn khoa",
+    "CDNN": "Kỹ thuật viên"
+  },
+  {
+    "MA_PHAM_VI": "601",
+    "MA_CHUC_DANH": "",
+    "TEN_CHUYEN_KHOA": "Cử nhân tâm lý lâm sàng",
+    "CDNN": ""
+  },
+  {
+    "MA_PHAM_VI": "901",
+    "MA_CHUC_DANH": "",
+    "TEN_CHUYEN_KHOA": "Kỹ sư vật lý y học",
+    "CDNN": ""
+  },
+  {
+    "MA_PHAM_VI": "902",
+    "MA_CHUC_DANH": "",
+    "TEN_CHUYEN_KHOA": "Kỹ sư xạ trị",
+    "CDNN": ""
+  },
+  {
+    "MA_PHAM_VI": "903",
+    "MA_CHUC_DANH": "",
+    "TEN_CHUYEN_KHOA": "Kỹ sư công nghệ sinh học",
+    "CDNN": ""
+  },
+  {
+    "MA_PHAM_VI": "904",
+    "MA_CHUC_DANH": "10",
+    "TEN_CHUYEN_KHOA": "Cử nhân công nghệ sinh học",
+    "CDNN": "Cử nhân xét nghiệm"
+  }
 ]
