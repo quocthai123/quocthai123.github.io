@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý VLTL - V40 (Logic Final)</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <style>
+        :root { --primary: #4A148C; --bg: #F3E5F5; --text: #212121; --danger: #C62828; --success: #2E7D32; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); margin: 0; padding: 15px; font-size: 14px; color: var(--text); }
+        .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); min-height: 90vh; display: flex; flex-direction: column; }
+        
+        .tabs { display: flex; background: #E1BEE7; border-bottom: 2px solid #BA68C8; border-radius: 8px 8px 0 0; }
+        .tab-btn { padding: 15px 30px; border: none; background: none; cursor: pointer; font-weight: 700; color: #6A1B9A; font-size: 15px; transition: 0.2s; }
+        .tab-btn.active { color: #4A148C; border-bottom: 3px solid #4A148C; background: white; }
+        .tab-content { display: none; padding: 20px; flex: 1; }
+        .tab-content.active { display: block; }
+
+        .card { background: #fff; border: 1px solid #E0E0E0; padding: 20px; border-radius: 6px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #424242; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #BDBDBD; border-radius: 4px; }
+        
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; color: white; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: var(--primary); }
+        .btn-danger { background: var(--danger); }
+        .btn-success { background: var(--success); }
+        .btn-warning { background: #FF6F00; }
+        .btn-outline { background: white; border: 1px solid #757575; color: #424242; }
+
+        table { width: 100%; border-collapse: collapse; min-width: 1200px; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #E0E0E0; text-align: left; }
+        th { background: #F3E5F5; color: #4A148C; font-weight: 700; position: sticky; top: 0; }
+        .table-container { overflow-x: auto; border: 1px solid #E0E0E0; }
+        
+        .switch-wrap { display: flex; align-items: center; gap: 15px; padding: 15px; background: #E1BEE7; border-radius: 6px; margin-bottom: 20px; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #9E9E9E; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(24px); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-schedule')">📅 1. Lập Lịch</button>
+        <button class="tab-btn" onclick="switchTab('tab-patients')">👥 2. Hồ Sơ Bệnh Nhân</button>
+        <button class="tab-btn" onclick="switchTab('tab-config')">⚙️ 3. Cấu Hình</button>
+    </div>
+
+    <div id="tab-schedule" class="tab-content active">
+        <div class="card" style="background:#F3E5F5; border-color:#CE93D8">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0; color:#4A148C">⚡ Auto Xếp Lịch (V40 Final)</h3>
+                <button class="btn btn-outline" onclick="downloadTemplate('schedule')">⬇️ Tải mẫu Excel (.xlsx)</button>
+            </div>
+            <p style="margin:0 0 10px; font-size:13px;">* Fix lỗi: Nhập tay hay Import đều kiểm tra chặt chẽ BHYT và Giờ Y Lệnh.</p>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <input type="file" id="inpFileSchedule" accept=".xlsx, .xls" style="display:none" onchange="handleScheduleImport(this)">
+                <button class="btn btn-warning" style="color:white" onclick="document.getElementById('inpFileSchedule').click()">📂 Chọn File Excel</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top:0">Nhập thủ công</h3>
+            <div class="form-grid">
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>Bệnh Nhân (Tìm theo Tên hoặc Mã)</label>
+                    <select id="selPatient"><option value="">-- Đang tải --</option></select>
+                </div>
+                <div class="form-group"><label>Người Chỉ Định</label><select id="selPrescriber"></select></div>
+                <div class="form-group"><label>KTV Thực Hiện</label><select id="selKTV"></select></div>
+                <div class="form-group"><label>Kỹ Thuật</label><select id="selTech"></select></div>
+                <div class="form-group"><label>Ngày Y Lệnh</label><input type="datetime-local" id="dateYL"></div>
+                <div class="form-group"><label>Bắt Đầu Làm</label><input type="datetime-local" id="dateTH"></div>
+            </div>
+            <button class="btn btn-primary" style="width:100%" onclick="addScheduleManual()">➕ KIỂM TRA & THÊM</button>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="margin:0">Danh sách phân công</h3>
+            <div>
+                <button class="btn btn-success" onclick="exportToExcel()">📥 Xuất Báo Cáo</button>
+                <button class="btn btn-danger" onclick="clearData('schedule')">🗑️ Xóa Sạch Lịch</button>
+            </div>
+        </div>
+        <div class="table-container">
+            <table id="tblSchedule">
+                <thead><tr><th>Ngày Y Lệnh</th><th>Người Chỉ Định</th><th>Bắt Đầu</th><th>Kết Thúc</th><th>Bệnh Nhân</th><th>Kỹ Thuật</th><th>KTV Thực Hiện</th><th>Xóa</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="tab-patients" class="tab-content">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;">
+            <div style="display:flex; gap:10px; flex:1;">
+                <div class="form-group" style="margin:0; flex:2"><label>Họ Tên</label><input type="text" id="pName"></div>
+                <div class="form-group" style="margin:0; width:100px"><label>Năm Sinh</label><input type="number" id="pYear"></div>
+                <div class="form-group" style="margin:0; flex:1"><label>Mã BHYT</label><input type="text" id="pCode"></div>
+                <button class="btn btn-primary" style="height:42px; margin-bottom:1px;" onclick="addPatient()">Lưu Mới</button>
+            </div>
+            <div style="margin-left:20px; display:flex; gap:10px;">
+                <button class="btn btn-outline" onclick="downloadTemplate('patient')">⬇️ Mẫu BN</button>
+                <input type="file" id="inpFilePatient" accept=".xlsx" style="display:none" onchange="handlePatientImport(this)">
+                <button class="btn btn-outline" onclick="document.getElementById('inpFilePatient').click()">📂 Import</button>
+            </div>
+        </div>
+        <div class="table-container" style="max-height:600px;">
+            <table id="tblPatient"><thead><tr><th width="50">STT</th><th>Họ Tên</th><th>Năm Sinh</th><th>Mã BHYT</th><th width="80">Xóa</th></tr></thead><tbody></tbody></table>
+        </div>
+        <div style="text-align:right; margin-top:15px;">
+            <button class="btn btn-danger" onclick="clearData('patient')">🗑️ XÓA TOÀN BỘ BỆNH NHÂN</button>
+        </div>
+    </div>
+
+    <div id="tab-config" class="tab-content">
+        <div class="card">
+            <h3>Quy Tắc Tự Động</h3>
+            <div class="switch-wrap">
+                <label class="switch"><input type="checkbox" id="cfgOfficeHours" onchange="saveConfig()"><span class="slider"></span></label>
+                <div><strong>Giờ Hành Chính:</strong> Bật (07h-11h & 13h-17h). Tắt (24h).</div>
+            </div>
+            <div style="text-align:right"><button class="btn btn-danger" onclick="factoryReset()">⚠️ Reset Về Mặc Định</button></div>
+        </div>
+
+        <div class="form-grid">
+            <div style="border:1px solid #E0E0E0; padding:15px; border-radius:6px;">
+                <h4 style="margin-top:0">1. Người Chỉ Định</h4>
+                <div style="display:flex; gap:5px; margin-bottom:10px;">
+                    <input id="newPrescriber" placeholder="Tên..."><button class="btn btn-primary btn-sm" onclick="addCfg('prescriber')">Thêm</button>
+                </div>
+                <div style="max-height:250px; overflow-y:auto;"><table id="tblCfgPrescriber" style="width:100%"><tbody></tbody></table></div>
+            </div>
+            
+            <div style="border:1px solid #E0E0E0; padding:15px; border-radius:6px;">
+                <h4 style="margin-top:0">2. KTV Thực Hiện</h4>
+                <div style="display:flex; gap:5px; margin-bottom:10px;">
+                    <input id="newKTV" placeholder="Tên KTV..."><button class="btn btn-primary btn-sm" onclick="addCfg('ktv')">Thêm</button>
+                </div>
+                <div style="max-height:250px; overflow-y:auto;"><table id="tblCfgKTV" style="width:100%"><tbody></tbody></table></div>
+            </div>
+            
+            <div style="border:1px solid #E0E0E0; padding:15px; border-radius:6px;">
+                <h4 style="margin-top:0">3. Kỹ Thuật</h4>
+                <div style="display:flex; gap:5px; margin-bottom:10px;">
+                    <input id="newTech" placeholder="Tên KT" style="flex:2"><input id="newTime" type="number" placeholder="Phút" style="width:60px"><button class="btn btn-primary btn-sm" onclick="addCfg('tech')">Thêm</button>
+                </div>
+                <div style="max-height:250px; overflow-y:auto;"><table id="tblCfgTech" style="width:100%"><tbody></tbody></table></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- DATABASE ---
+    const STORAGE_KEY = 'VLTL_V40_FINAL';
+    const DEFAULT_DB = {
+        schedules: [],
+        patients: [],
+        prescribers: ["BS Nguyễn Văn A", "KTV Trần Quốc Em"],
+        ktvs: ["KTV 1", "KTV 2", "KTV Trần Quốc Em"],
+        techs: [
+            {name: "Điều trị bằng tia hồng ngoại", time: 17}, {name: "Điện châm", time: 25},
+            {name: "Xoa bóp bấm huyệt", time: 30}, {name: "Điều trị bằng máy kéo giãn cột sống", time: 17},
+            {name: "Điều trị bằng siêu âm", time: 17}, {name: "Điều trị bằng các dòng điện xung", time: 17}
+        ],
+        config: { officeHours: true }
+    };
+
+    let DB = JSON.parse(localStorage.getItem(STORAGE_KEY)) || JSON.parse(JSON.stringify(DEFAULT_DB));
+
+    // REHYDRATE DATES (Fix lỗi ngày tháng bị biến thành chuỗi khi load)
+    function rehydrate() {
+        DB.schedules.forEach(s => { s.yl = new Date(s.yl); s.start = new Date(s.start); s.end = new Date(s.end); });
+    }
+    rehydrate();
+
+    function saveDB() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(DB)); } catch (e) { alert("Bộ nhớ đầy!"); }
+    }
+
+    function init() {
+        renderPatients(); renderSchedule(); renderConfig(); updateSelects();
+        document.getElementById('cfgOfficeHours').checked = DB.config.officeHours;
+    }
+
+    // --- UTILS ---
+    function cleanStr(s) { return s ? String(s).trim().toLowerCase().replace(/\s+/g, ' ') : ""; }
+    
+    function formatDateTimeVN(isoStr) {
+        if (!isoStr) return ""; const d = new Date(isoStr); if (isNaN(d.getTime())) return "";
+        const pad = (n) => n < 10 ? '0' + n : n;
+        return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function parseDateStringVN(str) {
+        if (!str) return null; const parts = str.trim().split(/\s+/);
+        if (parts.length < 2) return null;
+        const d = parts[0].split('/'); const t = parts[1].split(':');
+        if (d.length < 3 || t.length < 2) return null;
+        return new Date(d[2], d[1] - 1, d[0], t[0], t[1]);
+    }
+
+    // --- LOGIC CORE V40 ---
+    function isSameMinute(d1, d2) {
+        if (!d1 || !d2) return false;
+        // So sánh theo timestamp phút (bỏ giây)
+        return Math.floor(d1.getTime()/60000) === Math.floor(d2.getTime()/60000);
+    }
+
+    function isStartValid(date) {
+        if (!DB.config.officeHours) return true;
+        const m = date.getHours() * 60 + date.getMinutes();
+        return (m >= 420 && m < 660) || (m >= 780 && m < 1020);
+    }
+
+    function adjustTime(date) {
+        if (!DB.config.officeHours) return new Date(date);
+        let d = new Date(date);
+        let loop = 0;
+        while(loop < 20) {
+            loop++;
+            const m = d.getHours() * 60 + d.getMinutes();
+            if (m < 420) { d.setHours(7,0,0,0); continue; }
+            if (m >= 660 && m < 780) { d.setHours(13,0,0,0); continue; }
+            if (m >= 1020) { d.setDate(d.getDate()+1); d.setHours(7,0,0,0); continue; }
+            break;
+        }
+        return d;
+    }
+
+    // *** LOGIC KIỂM TRA TRUNG TÂM ***
+    // targetBHYT: Mã BHYT của bệnh nhân đang được xét
+    function checkSlot(targetBHYT, prescriber, performerKTV, techName, dYL, dStart, dEnd) {
+        // 1. Check Hành chính
+        if (DB.config.officeHours) {
+            const m = dStart.getHours() * 60 + dStart.getMinutes();
+            if (!((m >= 420 && m < 660) || (m >= 780 && m < 1020))) 
+                return {valid:false, msg:"Ngoài giờ hành chính (7h-11h, 13h-17h)"};
+        }
+        
+        // 2. Check Thời gian
+        if (dStart.getTime() < dYL.getTime()) return {valid:false, msg:"Giờ TH không được trước giờ YL"};
+
+        const normPrescriber = cleanStr(prescriber);
+        const normPerformer = cleanStr(performerKTV);
+        const normTech = cleanStr(techName);
+        const normTargetBHYT = cleanStr(targetBHYT); // Chuẩn hóa BHYT đầu vào
+
+        for (let s of DB.schedules) {
+            const sPrescriber = cleanStr(s.prescriber);
+            const sPerformer = cleanStr(s.performerKTV);
+            const sTech = cleanStr(s.tech);
+            const sBHYT = cleanStr(s.bhyt); // Lấy BHYT từ lịch sử
+            
+            const sYL = new Date(s.yl);
+            const sStart = new Date(s.start);
+            const sEnd = new Date(s.end);
+
+            // --- RULE 1: CHẶN TRÙNG Y LỆNH (Cùng người chỉ định, Cùng phút, KHÁC BỆNH NHÂN) ---
+            if (sPrescriber === normPrescriber && isSameMinute(sYL, dYL)) {
+                if (sBHYT !== normTargetBHYT) {
+                    return {valid:false, msg:`LỖI: ${s.prescriber} đang chỉ định cho BN khác (${s.pName}) lúc ${formatDateTimeVN(s.yl)}!`};
+                }
+            }
+
+            // --- RULE 2: KIỂM TRA TRÙNG GIỜ LÀM (OVERLAP) ---
+            const isOverlap = (dStart < sEnd && dEnd > sStart); 
+
+            if (isOverlap) {
+                // CASE 2A: CÙNG BỆNH NHÂN
+                if (sBHYT === normTargetBHYT) {
+                    if (sPerformer !== normPerformer) {
+                        return {valid:false, msg:`LỖI: Một bệnh nhân không được 2 KTV làm cùng lúc. Vui lòng chọn KTV ${s.performerKTV}!`};
+                    }
+                    const isNewIR = normTech.includes("hong ngoai");
+                    const isOldIR = sTech.includes("hong ngoai");
+                    if (!isNewIR && !isOldIR) {
+                        return {valid:false, msg:`Cùng KTV làm song song: Phải có 1 kỹ thuật là Hồng ngoại!`};
+                    }
+                    if (Math.abs(dStart.getTime() - sStart.getTime())/60000 < 2) {
+                        return {valid:false, msg:`Song song phải cách nhau tối thiểu 2 phút!`};
+                    }
+                }
+                // CASE 2B: KHÁC BỆNH NHÂN
+                else {
+                    if (sPerformer === normPerformer) {
+                        return {valid:false, msg:`KTV ${s.performerKTV} đang bận làm cho BN ${s.pName}!`};
+                    }
+                }
+            }
+        }
+        return {valid:true};
+    }
+
+    // --- MAIN ACTIONS ---
+    function addScheduleManual() {
+        const selPatient = document.getElementById('selPatient');
+        // FIX: Lấy BHYT trực tiếp từ value của Option (đã gán ở updateSelects)
+        const bhyt = selPatient.value; 
+        const patientName = selPatient.options[selPatient.selectedIndex].text.split(' - ')[0];
+
+        const prescriber = document.getElementById('selPrescriber').value;
+        const performerKTV = document.getElementById('selKTV').value;
+        const techName = document.getElementById('selTech').value;
+        const strYL = document.getElementById('dateYL').value;
+        const strTH = document.getElementById('dateTH').value;
+
+        if(!bhyt || !prescriber || !performerKTV || !techName || !strYL || !strTH) return alert("Thiếu thông tin!");
+
+        const techObj = DB.techs.find(t => cleanStr(t.name) === cleanStr(techName));
+        const dYL = new Date(strYL);
+        const dStart = new Date(strTH);
+        const dEnd = new Date(dStart.getTime() + techObj.time * 60000);
+
+        // Truyền BHYT vào checkSlot
+        const check = checkSlot(bhyt, prescriber, performerKTV, techName, dYL, dStart, dEnd);
+        if (!check.valid) return alert("⛔ " + check.msg);
+
+        // Tìm object bệnh nhân để lấy ID (cho đầy đủ data)
+        const p = DB.patients.find(x => cleanStr(x.bhyt) === cleanStr(bhyt));
+
+        DB.schedules.push({
+            id: Date.now(), pId: p ? p.id : Date.now(), pName: patientName, bhyt: bhyt,
+            prescriber, performerKTV, tech: techName,
+            yl: dYL, start: dStart, end: dEnd
+        });
+        saveDB(); renderSchedule(); alert("Thành công!");
+    }
+
+    function handleScheduleImport(input) {
+        const file = input.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header:1});
+
+                let s = 0, f = 0, log = "";
+                for (let i = 1; i < json.length; i++) {
+                    const row = json[i];
+                    if (!row || row.length < 7) continue;
+
+                    const name = String(row[0]||"").trim();
+                    const bhyt = String(row[2]||"").trim();
+                    const prescriber = String(row[3]||"").trim();
+                    const performerKTV = String(row[4]||"").trim();
+                    const tech = String(row[5]||"").trim();
+                    
+                    let dYL;
+                    if (typeof row[6] === 'number') {
+                        const utc_val = Math.floor(row[6] - 25569) * 86400;
+                        const date_info = new Date(utc_val * 1000);
+                        const total_sec = Math.floor(86400 * (row[6] - Math.floor(row[6]) + 0.0000001));
+                        const sec = total_sec % 60; const min = Math.floor(total_sec / 60) % 60; const hr = Math.floor(total_sec / 3600);
+                        dYL = new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate(), hr, min, sec);
+                    } else {
+                        dYL = parseDateStringVN(row[6]); 
+                        if(!dYL || isNaN(dYL.getTime())) dYL = new Date(row[6]);
+                    }
+
+                    if (!name || isNaN(dYL.getTime())) { f++; continue; }
+
+                    // Sync Patient
+                    let p = DB.patients.find(x => cleanStr(x.bhyt) === cleanStr(bhyt));
+                    if (!p) { p = {id: Date.now()+Math.random(), name, yob: row[1], bhyt}; DB.patients.push(p); }
+
+                    const techObj = DB.techs.find(t => cleanStr(t.name) === cleanStr(tech));
+                    if (!techObj) { log+=`Dòng ${i+1}: Sai tên KT "${tech}"\n`; f++; continue; }
+
+                    let attempt = new Date(dYL.getTime() + 60000);
+                    let found = false, loops = 0;
+                    while (!found && loops < 200) {
+                        attempt = adjustTime(attempt);
+                        const dEnd = new Date(attempt.getTime() + techObj.time * 60000);
+                        
+                        // Pass BHYT string directly
+                        const res = checkSlot(bhyt, prescriber, performerKTV, techObj.name, dYL, attempt, dEnd);
+                        
+                        if (res.valid) {
+                            DB.schedules.push({
+                                id: Date.now()+Math.random(), pId: p.id, pName: p.name, bhyt: p.bhyt,
+                                prescriber, performerKTV, tech: techObj.name,
+                                yl: dYL, start: attempt, end: dEnd
+                            });
+                            found = true; s++;
+                        } else {
+                            if (res.msg.includes("LỖI")) { log+=`Dòng ${i+1}: ${res.msg}\n`; found = true; f++; }
+                            else { attempt = new Date(attempt.getTime() + 5*60000); loops++; }
+                        }
+                    }
+                    if (!found && loops >= 200) { log+=`Dòng ${i+1}: Kẹt lịch\n`; f++; }
+                }
+                saveDB(); renderPatients(); renderSchedule();
+                alert(`KẾT QUẢ:\n✅ ${s}\n❌ ${f}\n\n${log}`);
+            } catch (err) { alert("Lỗi file: " + err.message); }
+            input.value = "";
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    // --- EXPORT/TEMPLATE ---
+    function exportToExcel() {
+        const data = [["STT","Ngày Y Lệnh","Người Chỉ Định","KTV Thực Hiện","Kỹ Thuật","Bắt Đầu","Kết Thúc","Bệnh Nhân","BHYT"]];
+        DB.schedules.forEach((s,i) => {
+            data.push([
+                i+1, formatDateTimeVN(s.yl), s.prescriber, s.performerKTV, s.tech, 
+                formatDateTimeVN(s.start), formatDateTimeVN(s.end), s.pName, s.bhyt
+            ]);
+        });
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(data), "Lich");
+        XLSX.writeFile(wb, "BaoCao_Lich.xlsx");
+    }
+
+    function downloadTemplate(type) {
+        const wb = XLSX.utils.book_new();
+        let data, name;
+        if(type==='schedule') {
+            data = [["Họ Tên", "Năm Sinh", "Mã BHYT", "Người Chỉ Định", "KTV Thực Hiện", "Kỹ Thuật", "Ngày Y Lệnh (dd/mm/yyyy HH:mm)"], ["Nguyễn Văn A", "1990", "DN1", "BS Hùng", "KTV Lan", "Điện châm", "10/12/2025 08:00"]];
+            name = "Mau_Lich_V40.xlsx";
+        } else {
+            data = [["Họ Tên", "Năm Sinh", "Mã BHYT"], ["Lê Văn B", "1980", "HS2"]];
+            name = "Mau_BN.xlsx";
+        }
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(data), "Mau");
+        XLSX.writeFile(wb, name);
+    }
+
+    // --- UI/CONFIG ---
+    function renderSchedule() {
+        DB.schedules.sort((a,b) => a.start - b.start);
+        const tbody = document.querySelector("#tblSchedule tbody");
+        tbody.innerHTML = DB.schedules.map((s, i) => `
+            <tr>
+                <td style="color:#D84315">${formatDateTimeVN(s.yl)}</td>
+                <td>${s.prescriber}</td>
+                <td style="font-weight:bold">${formatDateTimeVN(s.start)}</td>
+                <td>${formatDateTimeVN(s.end)}</td>
+                <td>${s.pName}</td>
+                <td>${s.tech}</td>
+                <td>${s.performerKTV}</td>
+                <td><button class="btn-danger btn-sm" onclick="delSchedule(${i})">X</button></td>
+            </tr>
+        `).join('');
+    }
+
+    function renderPatients() {
+        document.querySelector("#tblPatient tbody").innerHTML = DB.patients.map((p,i)=>`
+            <tr><td>${i+1}</td><td><b>${p.name}</b></td><td><span class="badge" style="background:#eee">${p.bhyt}</span></td><td><button class="btn-danger btn-sm" onclick="delPatient(${i})">X</button></td></tr>
+        `).join('');
+    }
+
+    function renderConfig() {
+        const renderList = (id, list, type) => {
+            document.querySelector(`#${id} tbody`).innerHTML = list.map((item, i) => `
+                <tr><td>${item.name || item} ${item.time ? `(${item.time}p)` : ''}</td><td align="right"><button class="btn-danger btn-sm" onclick="delCfg('${type}',${i})">X</button></td></tr>
+            `).join('');
+        };
+        renderList('tblCfgPrescriber', DB.prescribers, 'prescriber');
+        renderList('tblCfgKTV', DB.ktvs, 'ktv');
+        renderList('tblCfgTech', DB.techs, 'tech');
+    }
+
+    function updateSelects() {
+        const fill = (id, data) => { document.getElementById(id).innerHTML = '<option value="">--Chọn--</option>' + data.map(x => `<option>${x}</option>`).join(''); };
+        fill('selPrescriber', DB.prescribers);
+        fill('selKTV', DB.ktvs);
+        
+        // FIX: Value là BHYT để đồng bộ logic
+        document.getElementById('selPatient').innerHTML = '<option value="">--Chọn Bệnh Nhân--</option>' + 
+            DB.patients.map(p => `<option value="${p.bhyt}">${p.name} - ${p.bhyt}</option>`).join('');
+            
+        document.getElementById('selTech').innerHTML = DB.techs.map(t => `<option value="${t.name}">${t.name} (${t.time}p)</option>`).join('');
+    }
+
+    function addCfg(type) {
+        let val;
+        if(type==='tech') {
+            const n = document.getElementById('newTech').value.trim();
+            const t = document.getElementById('newTime').value.trim();
+            if(n && t) val = {name: n, time: parseInt(t)};
+            document.getElementById('newTech').value=''; document.getElementById('newTime').value='';
+        } else {
+            const id = type==='prescriber'?'newPrescriber':'newKTV';
+            val = document.getElementById(id).value.trim();
+            document.getElementById(id).value='';
+        }
+        if(val) {
+            if(type==='tech') DB.techs.push(val);
+            else if(type==='prescriber') DB.prescribers.push(val);
+            else DB.ktvs.push(val);
+            saveDB(); renderConfig(); updateSelects();
+        }
+    }
+
+    function delCfg(type, i) {
+        if(!confirm("Xóa?")) return;
+        if(type==='tech') DB.techs.splice(i,1);
+        else if(type==='prescriber') DB.prescribers.splice(i,1);
+        else DB.ktvs.splice(i,1);
+        saveDB(); renderConfig(); updateSelects();
+    }
+
+    function saveConfig() { DB.config.officeHours = document.getElementById('cfgOfficeHours').checked; saveDB(); }
+    function factoryReset() { if(confirm("XÓA HẾT?")) { localStorage.removeItem(STORAGE_KEY); location.reload(); } }
+    
+    function addPatient() {
+        const name = document.getElementById('pName').value.trim();
+        const yob = document.getElementById('pYear').value.trim();
+        const code = document.getElementById('pCode').value.trim();
+        if(name && code) {
+            DB.patients.push({id: Date.now(), name, yob, bhyt: code});
+            saveDB(); renderPatients(); updateSelects();
+            document.getElementById('pName').value=''; document.getElementById('pCode').value='';
+        }
+    }
+
+    function delPatient(i) { if(confirm("Xóa?")) { DB.patients.splice(i,1); saveDB(); renderPatients(); updateSelects(); } }
+    function delSchedule(i) { if(confirm("Xóa?")) { DB.schedules.splice(i,1); saveDB(); renderSchedule(); } }
+    function clearData(type) { if(confirm("Xóa hết?")) { if(type==='schedule') DB.schedules=[]; else DB.patients=[]; saveDB(); init(); } }
+    function handlePatientImport(i){ /* Simple import */ }
+    function switchTab(id) { document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active')); document.getElementById(id).classList.add('active'); event.currentTarget.classList.add('active'); }
+
+    init();
+</script>
+</body>
+</html>
