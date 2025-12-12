@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Công cụ Đối chiếu BHXH v2</title>
+    <title>Đối chiếu DM</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 p-8">
     <div class="max-w-7xl mx-auto bg-white shadow-xl rounded-lg p-6">
-        <h1 class="text-2xl font-bold text-blue-800 mb-2 border-b pb-2">TOOL ĐỐI CHIẾU DỮ LIỆU NHÂN VIÊN Y TẾ (MULTI-CHECK)</h1>
-        <p class="text-sm text-gray-500 mb-6 italic">Hỗ trợ tách chuỗi (;) cho Mã Khoa và Phạm vi chuyên môn.</p>
+        <h1 class="text-2xl font-bold text-blue-800 mb-2 border-b pb-2">TOOL ĐỐI CHIẾU DỮ LIỆU NHÂN VIÊN Y TẾ</h1>
+        
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div class="border-2 border-dashed border-blue-300 p-4 rounded bg-blue-50">
@@ -132,7 +132,7 @@
                                 errors.push({
                                     stt: stt++, ma: maBHXH, ten: hoTen, 
                                     loai: "Sai Mã Khoa", 
-                                    chitiet: `Mã khoa '${ma}' không tồn tại trong danh mục KP.`,
+                                    chitiet: `Mã khoa '${ma}' không tồn tại trong danh mục Khoa Phòng Giường.`,
                                     goc: rawMaKhoa
                                 });
                             } else {
@@ -146,7 +146,7 @@
                                          errors.push({
                                             stt: stt++, ma: maBHXH, ten: hoTen, 
                                             loai: "Cảnh báo Tên Khoa", 
-                                            chitiet: `Mã '${ma}' đúng, nhưng tên khoa NV là '${rawTenKhoa}' khác với KP là '${tenKhoaGoc}'`,
+                                            chitiet: `Mã '${ma}' đúng, nhưng tên khoa file Nhân Viên là '${rawTenKhoa}' khác với file Khoa Phòng là '${tenKhoaGoc}'`,
                                             goc: rawMaKhoa
                                         });
                                     }
@@ -202,7 +202,7 @@
                              errors.push({
                                 stt: stt++, ma: maBHXH, ten: hoTen, 
                                 loai: "Sai Chức danh", 
-                                chitiet: `Chức danh NV là '${rawChucDanh}' không khớp. Các phạm vi của NV yêu cầu mã chức danh: ${suggested}`,
+                                chitiet: `Chức danh file Nhân Viên là '${rawChucDanh}' không khớp. Các phạm vi của nhân viên yêu cầu mã chức danh: ${suggested}`,
                                 goc: `${rawPhamVi} | ${rawChucDanh}`
                             });
                         }
