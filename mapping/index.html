@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đối chiếu DM</title>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <title>Công cụ Đối chiếu BHXH</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 p-8">
     <div class="max-w-7xl mx-auto bg-white shadow-xl rounded-lg p-6">
-        <h1 class="text-2xl font-bold text-blue-800 mb-2 border-b pb-2">TOOL ĐỐI CHIẾU DỮ LIỆU NHÂN VIÊN Y TẾ</h1>
-        
+        <h1 class="text-2xl font-bold text-blue-800 mb-2 border-b pb-2">LQT SureCheck</h1>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div class="border-2 border-dashed border-blue-300 p-4 rounded bg-blue-50">
@@ -23,29 +22,26 @@
             </div>
         </div>
 
-        <button onclick="processData()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-4 rounded shadow transition duration-300 flex justify-center items-center gap-2">
-            <span>🚀 CHẠY KIỂM TRA</span>
-        </button>
+        <div class="flex gap-4">
+            <button onclick="processData()" class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-4 rounded shadow transition duration-300">
+                🚀 1. CHẠY KIỂM TRA
+            </button>
+            <button id="btnExport" onclick="exportResult()" class="hidden flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded shadow transition duration-300">
+                📥 2. TẢI FILE EXCEL ĐÃ TÔ LỖI
+            </button>
+        </div>
 
         <div id="resultArea" class="mt-8 hidden">
             <h2 class="text-xl font-bold mb-4">Kết quả: <span id="errorCount" class="text-red-600"></span></h2>
-            
-            <div class="mb-4 flex gap-2">
-                 <button onclick="filterTable('all')" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm">Tất cả</button>
-                 <button onclick="filterTable('Sai Mã Khoa')" class="px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded text-sm">Lỗi Khoa</button>
-                 <button onclick="filterTable('Sai Chức danh')" class="px-3 py-1 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded text-sm">Lỗi Chức danh</button>
-            </div>
-
-            <div class="overflow-x-auto max-h-[600px] border border-gray-300 rounded">
+            <div class="overflow-x-auto max-h-[500px] border border-gray-300 rounded">
                 <table class="min-w-full bg-white text-sm">
-                    <thead class="bg-gray-100 sticky top-0 shadow">
+                    <thead class="bg-gray-100 sticky top-0 shadow z-10">
                         <tr>
                             <th class="py-3 px-4 border text-left w-12">STT</th>
                             <th class="py-3 px-4 border text-left">Mã BHXH</th>
                             <th class="py-3 px-4 border text-left">Họ tên</th>
                             <th class="py-3 px-4 border text-left">Loại lỗi</th>
                             <th class="py-3 px-4 border text-left">Chi tiết lỗi</th>
-                            <th class="py-3 px-4 border text-left">Dữ liệu gốc</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -55,7 +51,7 @@
     </div>
 
     <script>
-        // CẤU HÌNH TÊN CỘT (QUAN TRỌNG: Phải khớp file Excel)
+        // CẤU HÌNH TÊN CỘT
         const COL = {
             NV_MA_KHOA: "MA_KHOA",
             NV_TEN_KHOA: "TEN_KHOA",
@@ -67,7 +63,11 @@
             KP_TEN_KHOA: "TEN_KHOA"
         };
 
-        // Hàm tiện ích: Tách chuỗi bằng dấu chấm phẩy và xóa khoảng trắng thừa
+        // Biến toàn cục lưu Workbook để xuất file
+        let globalWorkbookNV = null;
+        let globalSheetNameNV = null;
+        let globalHeaderMap = {}; // Map tên cột -> chỉ số cột (A, B, C...)
+
         function splitAndTrim(str) {
             if (!str) return [];
             return str.toString().split(';').map(item => item.trim()).filter(item => item !== "");
@@ -83,96 +83,92 @@
             }
 
             try {
-                // 1. Tải Mapping Rules từ JSON
+                // 1. Load Rules & Data KP
                 const response = await fetch('mapping_bhxh.json');
                 const mappingRules = await response.json();
-                
-                // Tạo Dictionary cho Rules: Key là MA_PHAM_VI
                 const mapRulesDict = {};
                 mappingRules.forEach(item => {
-                    // Lưu ý: JSON key nên convert về string để chắc chắn
                     mapRulesDict[item.MA_PHAM_VI.toString().trim()] = item; 
                 });
 
-                // 2. Đọc Excel
-                const dataNV = await readExcel(fileNV);
-                const dataKP = await readExcel(fileKP);
-
-                // Tạo Dictionary cho Khoa Phòng: Key là MA_KHOA
+                // Đọc file KP (chỉ cần lấy data để tra cứu)
+                const dataKP = await readExcelDataOnly(fileKP);
                 const mapKhoaPhong = {};
                 dataKP.forEach(row => {
                     if (row[COL.KP_MA_KHOA]) {
-                        const key = row[COL.KP_MA_KHOA].toString().trim();
-                        mapKhoaPhong[key] = row[COL.KP_TEN_KHOA] || "";
+                        mapKhoaPhong[row[COL.KP_MA_KHOA].toString().trim()] = row[COL.KP_TEN_KHOA] || "";
                     }
                 });
 
-                // 3. Xử lý Đối chiếu
+                // 2. Đọc file NV (Giữ lại Workbook để sửa style)
+                await readNVWorkbook(fileNV);
+                
+                // Lấy data dạng JSON từ workbook đã load
+                const worksheet = globalWorkbookNV.Sheets[globalSheetNameNV];
+                const dataNV = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                // 3. Xử lý Đối chiếu & Tô màu
                 let errors = [];
                 let stt = 1;
 
-                dataNV.forEach(nv => {
-                    // Lấy dữ liệu thô
+                // Thêm cột ghi chú lỗi vào data nếu cần, nhưng ta sẽ ghi thẳng vào cell
+                // Xác định cột cuối cùng để ghi chú
+                const range = XLSX.utils.decode_range(worksheet['!ref']);
+                const noteColIndex = range.e.c + 1; 
+                
+                // Ghi header cho cột Ghi chú
+                const noteHeaderCell = XLSX.utils.encode_cell({r: 0, c: noteColIndex});
+                worksheet[noteHeaderCell] = { v: "CHI_TIET_LOI_TOOL", t: 's', s: { font: { bold: true, color: { rgb: "FF0000" } } } };
+                // Mở rộng vùng in
+                range.e.c = noteColIndex;
+                worksheet['!ref'] = XLSX.utils.encode_range(range);
+
+                dataNV.forEach((nv, index) => {
+                    const rowIndex = index + 1; // Row trong Excel (header là 0) -> Data bắt đầu từ dòng 1 (A2)
+                    
                     const rawMaKhoa = nv[COL.NV_MA_KHOA] || "";
                     const rawTenKhoa = nv[COL.NV_TEN_KHOA] || "";
-                    const maBHXH = nv[COL.NV_MA_BHXH] || "N/A";
-                    const hoTen = nv[COL.NV_HO_TEN] || "N/A";
+                    const maBHXH = nv[COL.NV_MA_BHXH] || "";
+                    const hoTen = nv[COL.NV_HO_TEN] || "";
                     const rawPhamVi = nv[COL.NV_PHAM_VI] || "";
                     const rawChucDanh = nv[COL.NV_CDNN] ? nv[COL.NV_CDNN].toString().trim() : "";
 
-                    // --- RULE 1 & 3: KIỂM TRA KHOA PHÒNG (Hỗ trợ nhiều mã khoa) ---
+                    let rowErrors = [];
+
+                    // --- CHECK KHOA ---
                     const listMaKhoa = splitAndTrim(rawMaKhoa);
-                    
-                    if (listMaKhoa.length === 0) {
-                        // errors.push({stt: stt++, ma: maBHXH, ten: hoTen, loai: "Thiếu dữ liệu", chitiet: "Không có Mã khoa", gockhoa: rawMaKhoa, gocpv: rawPhamVi});
-                    } else {
+                    if (listMaKhoa.length > 0) {
+                        let isKhoaError = false;
                         listMaKhoa.forEach(ma => {
-                            // Kiểm tra tồn tại Mã
                             if (!mapKhoaPhong.hasOwnProperty(ma)) {
-                                errors.push({
-                                    stt: stt++, ma: maBHXH, ten: hoTen, 
-                                    loai: "Sai Mã Khoa", 
-                                    chitiet: `Mã khoa '${ma}' không tồn tại trong danh mục Khoa Phòng Giường.`,
-                                    goc: rawMaKhoa
-                                });
-                            } else {
-                                // Kiểm tra Tên (Nếu chỉ có 1 mã khoa thì kiểm tra tên chặt chẽ hơn)
-                                // Nếu có nhiều mã khoa, việc so khớp tên string rất khó chính xác, nên ta chỉ cảnh báo nếu Tên Khoa trong NV trống
-                                if (listMaKhoa.length === 1) {
-                                    const tenKhoaGoc = mapKhoaPhong[ma];
-                                    // So sánh tương đối (bỏ viết hoa/thường)
-                                    if (rawTenKhoa && tenKhoaGoc && rawTenKhoa.toLowerCase().trim() !== tenKhoaGoc.toLowerCase().trim()) {
-                                         // Đây là cảnh báo (Warning)
-                                         errors.push({
-                                            stt: stt++, ma: maBHXH, ten: hoTen, 
-                                            loai: "Cảnh báo Tên Khoa", 
-                                            chitiet: `Mã '${ma}' đúng, nhưng tên khoa file Nhân Viên là '${rawTenKhoa}' khác với file Khoa Phòng là '${tenKhoaGoc}'`,
-                                            goc: rawMaKhoa
-                                        });
-                                    }
+                                isKhoaError = true;
+                                rowErrors.push(`Mã khoa '${ma}' sai`);
+                            } else if (listMaKhoa.length === 1) {
+                                const tenKhoaGoc = mapKhoaPhong[ma];
+                                if (rawTenKhoa && tenKhoaGoc && rawTenKhoa.toLowerCase().trim() !== tenKhoaGoc.toLowerCase().trim()) {
+                                    rowErrors.push(`Tên khoa chưa chuẩn xác so với DM`);
+                                    highlightCell(worksheet, rowIndex, COL.NV_TEN_KHOA, "FFFFCC"); // Vàng cảnh báo
                                 }
                             }
                         });
+
+                        if (isKhoaError) {
+                            errors.push({stt: stt++, ma: maBHXH, ten: hoTen, loai: "Sai Mã Khoa", chitiet: rowErrors.join('; ')});
+                            highlightCell(worksheet, rowIndex, COL.NV_MA_KHOA, "FFCCCC"); // Đỏ nhạt
+                        }
                     }
 
-                    // --- RULE 2: KIỂM TRA PHẠM VI & CHỨC DANH (Hỗ trợ nhiều phạm vi) ---
+                    // --- CHECK PHẠM VI & CHỨC DANH ---
                     const listPhamVi = splitAndTrim(rawPhamVi);
-                    
                     if (listPhamVi.length > 0) {
-                        let isTitleValid = false; // Cờ kiểm tra chức danh
-                        let validScopeCount = 0;  // Đếm số scope hợp lệ tìm thấy trong JSON
+                        let isTitleValid = false;
+                        let validScopeCount = 0;
                         let invalidScopes = [];
 
-                        // Duyệt qua từng phạm vi chuyên môn của nhân viên
                         listPhamVi.forEach(pv => {
                             if (mapRulesDict.hasOwnProperty(pv)) {
                                 validScopeCount++;
-                                const rule = mapRulesDict[pv];
-                                const ruleMaChucDanh = rule.MA_CHUC_DANH.toString().trim();
-                                
-                                // LOGIC QUAN TRỌNG: 
-                                // Nếu Chức danh NV == Mã chức danh trong JSON của scope này => OK
-                                if (rawChucDanh === ruleMaChucDanh) {
+                                if (rawChucDanh === mapRulesDict[pv].MA_CHUC_DANH.toString().trim()) {
                                     isTitleValid = true;
                                 }
                             } else {
@@ -180,37 +176,30 @@
                             }
                         });
 
-                        // Báo lỗi 1: Có mã phạm vi không tồn tại trong JSON
                         if (invalidScopes.length > 0) {
-                            errors.push({
-                                stt: stt++, ma: maBHXH, ten: hoTen, 
-                                loai: "Sai Phạm vi CM", 
-                                chitiet: `Các mã phạm vi sau không có trong mapping: ${invalidScopes.join(', ')}`,
-                                goc: rawPhamVi
-                            });
+                            rowErrors.push(`Mã PV '${invalidScopes.join(',')}' không có trong DM`);
+                            errors.push({stt: stt++, ma: maBHXH, ten: hoTen, loai: "Sai Phạm vi CM", chitiet: `Mã PV không tồn tại: ${invalidScopes.join(', ')}`});
+                            highlightCell(worksheet, rowIndex, COL.NV_PHAM_VI, "FFCCCC");
                         }
 
-                        // Báo lỗi 2: Có phạm vi hợp lệ nhưng Chức danh không khớp với bất kỳ cái nào
-                        // Logic: Nếu tìm thấy ít nhất 1 scope trong JSON, nhưng không scope nào khớp chức danh hiện tại
                         if (validScopeCount > 0 && !isTitleValid) {
-                             // Lấy danh sách các chức danh gợi ý
-                             const suggested = listPhamVi
-                                .filter(pv => mapRulesDict[pv])
-                                .map(pv => `${pv}(${mapRulesDict[pv].MA_CHUC_DANH})`)
-                                .join(', ');
-
-                             errors.push({
-                                stt: stt++, ma: maBHXH, ten: hoTen, 
-                                loai: "Sai Chức danh", 
-                                chitiet: `Chức danh file Nhân Viên là '${rawChucDanh}' không khớp. Các phạm vi của nhân viên yêu cầu mã chức danh: ${suggested}`,
-                                goc: `${rawPhamVi} | ${rawChucDanh}`
-                            });
+                            rowErrors.push(`Chức danh '${rawChucDanh}' không khớp với PVCM`);
+                            errors.push({stt: stt++, ma: maBHXH, ten: hoTen, loai: "Sai Chức danh", chitiet: `Chức danh '${rawChucDanh}' không hợp lệ với các phạm vi đã khai`});
+                            highlightCell(worksheet, rowIndex, COL.NV_CDNN, "FFCCCC");
                         }
                     }
 
+                    // --- GHI CHÚ LỖI VÀO CỘT CUỐI CÙNG CỦA EXCEL ---
+                    if (rowErrors.length > 0) {
+                        const noteCell = XLSX.utils.encode_cell({r: rowIndex, c: noteColIndex});
+                        worksheet[noteCell] = { v: rowErrors.join(" | "), t: 's' };
+                    }
                 });
 
                 renderResult(errors);
+                
+                // Hiện nút Export
+                document.getElementById('btnExport').classList.remove('hidden');
 
             } catch (e) {
                 console.error(e);
@@ -218,27 +207,67 @@
             }
         }
 
-        // Đọc file Excel thành JSON
-        function readExcel(file) {
+        // Hàm tô màu ô
+        function highlightCell(ws, r, colName, colorHex) {
+            // Tìm index cột dựa trên tên header (đã map từ trước)
+            const c = globalHeaderMap[colName];
+            if (c === undefined) return;
+
+            const cellAddress = XLSX.utils.encode_cell({r: r, c: c});
+            
+            if (!ws[cellAddress]) ws[cellAddress] = { v: "", t: "s" }; // Tạo ô nếu rỗng
+            
+            // Apply Style
+            if (!ws[cellAddress].s) ws[cellAddress].s = {};
+            ws[cellAddress].s.fill = { fgColor: { rgb: colorHex } };
+        }
+
+        // Đọc workbook NV và lưu toàn cục + Map Header
+        function readNVWorkbook(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    try {
-                        const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, {type: 'array'});
-                        const firstSheetName = workbook.SheetNames[0];
-                        const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName]);
-                        resolve(jsonData);
-                    } catch (err) {
-                        reject(err);
+                    const data = new Uint8Array(e.target.result);
+                    globalWorkbookNV = XLSX.read(data, {type: 'array', cellStyles: true});
+                    globalSheetNameNV = globalWorkbookNV.SheetNames[0];
+                    
+                    // Map Header
+                    const ws = globalWorkbookNV.Sheets[globalSheetNameNV];
+                    const range = XLSX.utils.decode_range(ws['!ref']);
+                    globalHeaderMap = {};
+                    
+                    // Duyệt dòng 0 (header) để tìm vị trí cột
+                    for(let C = range.s.c; C <= range.e.c; ++C) {
+                        const cell = ws[XLSX.utils.encode_cell({r: 0, c: C})];
+                        if(cell && cell.v) {
+                            globalHeaderMap[cell.v.toString().trim()] = C;
+                        }
                     }
+                    resolve();
                 };
-                reader.onerror = reject;
                 reader.readAsArrayBuffer(file);
             });
         }
 
-        // Hiển thị kết quả ra bảng
+        // Đọc data thường cho file KP
+        function readExcelDataOnly(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const wb = XLSX.read(data, {type: 'array'});
+                    resolve(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]));
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function exportResult() {
+            if (!globalWorkbookNV) return;
+            // Xuất file
+            XLSX.writeFile(globalWorkbookNV, "KetQua_DoiChieu_NV_ToMau.xlsx");
+        }
+
         function renderResult(errors) {
             const resultArea = document.getElementById('resultArea');
             const tableBody = document.getElementById('tableBody');
@@ -248,50 +277,26 @@
             tableBody.innerHTML = "";
             
             if (errors.length === 0) {
-                errorCount.innerHTML = "✅ Dữ liệu hoàn toàn hợp lệ!";
+                errorCount.innerHTML = "✅ Không có lỗi!";
                 errorCount.className = "text-green-600";
                 return;
             }
 
-            errorCount.innerHTML = `⚠️ Tìm thấy ${errors.length} vấn đề`;
+            errorCount.innerHTML = `⚠️ ${errors.length} dòng lỗi (Xem chi tiết và tải Excel)`;
             errorCount.className = "text-red-600";
 
-            window.currentErrors = errors; // Lưu biến toàn cục để lọc
-            fillTable(errors);
-        }
-
-        // Hàm vẽ bảng (tách riêng để hỗ trợ filter)
-        function fillTable(data) {
-            const tableBody = document.getElementById('tableBody');
-            tableBody.innerHTML = "";
-            data.forEach(err => {
-                // Tô màu loại lỗi
-                let colorClass = "text-red-600";
-                if(err.loai.includes("Cảnh báo")) colorClass = "text-yellow-600";
-
+            errors.forEach(err => {
                 const row = `
                     <tr class="hover:bg-blue-50 border-b transition">
                         <td class="py-2 px-4 text-center text-gray-500">${err.stt}</td>
                         <td class="py-2 px-4 font-semibold text-gray-700">${err.ma}</td>
                         <td class="py-2 px-4 text-blue-900 font-medium">${err.ten}</td>
-                        <td class="py-2 px-4 font-bold ${colorClass}">${err.loai}</td>
+                        <td class="py-2 px-4 font-bold text-red-600">${err.loai}</td>
                         <td class="py-2 px-4 text-sm text-gray-700">${err.chitiet}</td>
-                        <td class="py-2 px-4 text-xs text-gray-400 font-mono max-w-xs truncate" title="${err.goc}">${err.goc}</td>
                     </tr>
                 `;
                 tableBody.innerHTML += row;
             });
-        }
-
-        // Hàm lọc bảng
-        function filterTable(type) {
-            if(!window.currentErrors) return;
-            if(type === 'all') {
-                fillTable(window.currentErrors);
-            } else {
-                const filtered = window.currentErrors.filter(e => e.loai.includes(type));
-                fillTable(filtered);
-            }
         }
     </script>
 </body>
