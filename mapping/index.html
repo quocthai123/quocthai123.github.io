@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Công cụ Đối chiếu BHXH</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-6xl mx-auto bg-white shadow-lg rounded-lg p-6">
+        <h1 class="text-2xl font-bold text-blue-700 mb-6 border-b pb-2">TOOL ĐỐI CHIẾU DỮ LIỆU NHÂN VIÊN Y TẾ</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="border p-4 rounded bg-blue-50">
+                <label class="block font-semibold mb-2">1. File Danh mục Nhân viên (Excel/CSV)</label>
+                <input type="file" id="fileNV" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200"/>
+            </div>
+            <div class="border p-4 rounded bg-green-50">
+                <label class="block font-semibold mb-2">2. File Danh mục Khoa phòng (Excel/CSV)</label>
+                <input type="file" id="fileKP" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200"/>
+            </div>
+        </div>
+
+        <button onclick="processData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded transition duration-300">
+            CHẠY ĐỐI CHIẾU NGAY
+        </button>
+
+        <div id="resultArea" class="mt-8 hidden">
+            <h2 class="text-xl font-bold mb-4">Kết quả kiểm tra: <span id="errorCount" class="text-red-600"></span></h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-300">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-2 px-4 border">STT</th>
+                            <th class="py-2 px-4 border">Mã BHXH</th>
+                            <th class="py-2 px-4 border">Họ tên</th>
+                            <th class="py-2 px-4 border">Loại lỗi</th>
+                            <th class="py-2 px-4 border">Chi tiết lỗi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cấu hình tên cột trong file Excel (phải khớp chính xác với file của bạn)
+        const COL = {
+            NV_MA_KHOA: "MA_KHOA",
+            NV_MA_BHXH: "MA_BHXH",
+            NV_HO_TEN: "HO_TEN",
+            NV_PHAM_VI: "PHAMVI_CM",  // Cột mã phạm vi chuyên môn trong file NV
+            NV_CDNN: "CHUCDANH_NN",   // Cột chức danh nghề nghiệp trong file NV
+            KP_MA_KHOA: "MA_KHOA",
+            KP_TEN_KHOA: "TEN_KHOA"
+        };
+
+        async function processData() {
+            const fileNV = document.getElementById('fileNV').files[0];
+            const fileKP = document.getElementById('fileKP').files[0];
+
+            if (!fileNV || !fileKP) {
+                alert("Vui lòng chọn đủ cả 2 file Nhân viên và Khoa phòng!");
+                return;
+            }
+
+            try {
+                // 1. Tải quy tắc Mapping từ file JSON trên GitHub (cùng thư mục)
+                const response = await fetch('mapping_bhxh.json');
+                const mappingRules = await response.json();
+                
+                // Tạo Map để tra cứu Mapping nhanh hơn
+                // Key: MA_PHAM_VI -> Value: Object chứa thông tin mapping
+                const mapRulesDict = {};
+                mappingRules.forEach(item => {
+                    mapRulesDict[item.MA_PHAM_VI.toString()] = item;
+                });
+
+                // 2. Đọc dữ liệu từ file Excel người dùng upload
+                const dataNV = await readExcel(fileNV);
+                const dataKP = await readExcel(fileKP);
+
+                // Tạo Map Khoa phòng để tra cứu nhanh
+                // Key: MA_KHOA -> Value: TEN_KHOA
+                const mapKhoaPhong = {};
+                dataKP.forEach(row => {
+                    if (row[COL.KP_MA_KHOA]) {
+                        mapKhoaPhong[row[COL.KP_MA_KHOA].toString().trim()] = row[COL.KP_TEN_KHOA];
+                    }
+                });
+
+                // 3. Xử lý đối chiếu
+                let errors = [];
+                let stt = 1;
+
+                dataNV.forEach(nv => {
+                    const maKhoa = nv[COL.NV_MA_KHOA] ? nv[COL.NV_MA_KHOA].toString().trim() : "";
+                    const maBHXH = nv[COL.NV_MA_BHXH] || "";
+                    const hoTen = nv[COL.NV_HO_TEN] || "";
+                    const phamViCM = nv[COL.NV_PHAM_VI] ? nv[COL.NV_PHAM_VI].toString().trim() : "";
+                    const chucDanh = nv[COL.NV_CDNN] ? nv[COL.NV_CDNN].toString().trim() : "";
+
+                    // RULE 1: Kiểm tra Mã khoa có tồn tại không
+                    if (maKhoa && !mapKhoaPhong.hasOwnProperty(maKhoa)) {
+                        errors.push({stt: stt++, ma: maBHXH, ten: hoTen, loai: "Sai Mã Khoa", chitiet: `Mã khoa '${maKhoa}' không có trong DM Khoa Phòng`});
+                    }
+
+                    // RULE 2: Kiểm tra Phạm vi chuyên môn có hợp lệ trong JSON mapping không
+                    if (phamViCM) {
+                        if (!mapRulesDict.hasOwnProperty(phamViCM)) {
+                            errors.push({stt: stt++, ma: maBHXH, ten: hoTen, loai: "Sai Phạm vi CM", chitiet: `Mã phạm vi '${phamViCM}' không tồn tại trong danh mục Mapping`});
+                        } else {
+                            // RULE 3: Đối chiếu Chức danh nghề nghiệp (nếu có dữ liệu)
+                            // So sánh CHUCDANH_NN trong file NV với CDNN trong file JSON
+                            const ruleInfo = mapRulesDict[phamViCM];
+                            // Chuẩn hóa chuỗi để so sánh (bỏ viết hoa/thường)
+                            if (chucDanh && ruleInfo.CDNN && chucDanh.toLowerCase() !== ruleInfo.CDNN.toLowerCase()) {
+                                 errors.push({
+                                     stt: stt++, 
+                                     ma: maBHXH, 
+                                     ten: hoTen, 
+                                     loai: "Sai Chức danh", 
+                                     chitiet: `NV là '${chucDanh}' nhưng Mã phạm vi '${phamViCM}' quy định là '${ruleInfo.CDNN}'`
+                                 });
+                            }
+                        }
+                    }
+                });
+
+                // 4. Hiển thị kết quả
+                renderResult(errors);
+
+            } catch (e) {
+                console.error(e);
+                alert("Có lỗi xảy ra: " + e.message);
+            }
+        }
+
+        function readExcel(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheetName = workbook.SheetNames[0];
+                    // Chuyển sheet đầu tiên thành JSON (dạng mảng các object)
+                    const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName]);
+                    resolve(jsonData);
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function renderResult(errors) {
+            const resultArea = document.getElementById('resultArea');
+            const tableBody = document.getElementById('tableBody');
+            const errorCount = document.getElementById('errorCount');
+
+            resultArea.classList.remove('hidden');
+            tableBody.innerHTML = "";
+            
+            if (errors.length === 0) {
+                errorCount.innerHTML = "Tuyệt vời! Không tìm thấy lỗi nào.";
+                errorCount.className = "text-green-600";
+                return;
+            }
+
+            errorCount.innerHTML = `${errors.length} lỗi được tìm thấy`;
+            errorCount.className = "text-red-600";
+
+            errors.forEach(err => {
+                const row = `
+                    <tr class="hover:bg-gray-50 border-b">
+                        <td class="py-2 px-4 text-center">${err.stt}</td>
+                        <td class="py-2 px-4 font-medium">${err.ma}</td>
+                        <td class="py-2 px-4">${err.ten}</td>
+                        <td class="py-2 px-4 text-red-600 font-bold">${err.loai}</td>
+                        <td class="py-2 px-4 text-sm text-gray-700">${err.chitiet}</td>
+                    </tr>
+                `;
+                tableBody.innerHTML += row;
+            });
+        }
+    </script>
+</body>
+</html>
