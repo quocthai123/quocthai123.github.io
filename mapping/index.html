@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Công cụ Đối chiếu DM BHXH</title>
+    <title>Công cụ Đối chiếu danh mục</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 p-8">
     <div class="max-w-7xl mx-auto bg-white shadow-xl rounded-lg p-6">
         <h1 class="text-2xl font-bold text-blue-800 mb-2 border-b pb-2">TOOL ĐỐI CHIẾU DỮ LIỆU NHÂN VIÊN Y TẾ</h1>
+        
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div class="border-2 border-dashed border-blue-300 p-4 rounded bg-blue-50">
@@ -29,15 +30,16 @@
         <div id="resultArea" class="mt-8 hidden">
             <h2 class="text-xl font-bold mb-4">Kết quả: <span id="errorCount" class="text-red-600"></span></h2>
             
-            <div class="mb-4 flex gap-2">
-                 <button onclick="filterTable('all')" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm">Tất cả</button>
-                 <button onclick="filterTable('Sai Mã Khoa')" class="px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded text-sm">Lỗi Khoa</button>
-                 <button onclick="filterTable('Sai Chức danh')" class="px-3 py-1 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded text-sm">Lỗi Chức danh</button>
+            <div class="mb-4 flex gap-2 flex-wrap">
+                 <button onclick="filterTable('all')" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm font-medium">Tất cả</button>
+                 <button onclick="filterTable('Sai Mã Khoa')" class="px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded text-sm font-medium">Lỗi Khoa</button>
+                 <button onclick="filterTable('Sai Chức danh')" class="px-3 py-1 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded text-sm font-medium">Lỗi Chức danh</button>
+                 <button onclick="filterTable('Lỗi Vị trí')" class="px-3 py-1 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded text-sm font-medium">Lỗi Vị trí</button>
             </div>
 
             <div class="overflow-x-auto max-h-[600px] border border-gray-300 rounded">
                 <table class="min-w-full bg-white text-sm">
-                    <thead class="bg-gray-100 sticky top-0 shadow">
+                    <thead class="bg-gray-100 sticky top-0 shadow z-10">
                         <tr>
                             <th class="py-3 px-4 border text-left w-12">STT</th>
                             <th class="py-3 px-4 border text-left">Mã BHXH</th>
@@ -54,20 +56,19 @@
     </div>
 
     <script>
-        // CẤU HÌNH TÊN CỘT (QUAN TRỌNG: Phải khớp file Excel)
+        // --- CẤU HÌNH TÊN CỘT ---
         const COL = {
             NV_MA_KHOA: "MA_KHOA",
             NV_TEN_KHOA: "TEN_KHOA",
             NV_MA_BHXH: "MA_BHXH",
             NV_HO_TEN: "HO_TEN",
             NV_PHAM_VI: "PHAMVI_CM",  
-            NV_CDNN: "CHUCDANH_NN",  
-            NV_VI_TRI: "VI_TRI",
+            NV_CDNN: "CHUCDANH_NN",
+            NV_VI_TRI: "VI_TRI", // Cột mới thêm
             KP_MA_KHOA: "MA_KHOA",
             KP_TEN_KHOA: "TEN_KHOA"
         };
 
-        // Hàm tiện ích: Tách chuỗi bằng dấu chấm phẩy và xóa khoảng trắng thừa
         function splitAndTrim(str) {
             if (!str) return [];
             return str.toString().split(';').map(item => item.trim()).filter(item => item !== "");
@@ -83,22 +84,18 @@
             }
 
             try {
-                // 1. Tải Mapping Rules từ JSON
+                // 1. Load Rules Mapping
                 const response = await fetch('mapping_bhxh.json');
                 const mappingRules = await response.json();
-                
-                // Tạo Dictionary cho Rules: Key là MA_PHAM_VI
                 const mapRulesDict = {};
                 mappingRules.forEach(item => {
-                    // Lưu ý: JSON key nên convert về string để chắc chắn
                     mapRulesDict[item.MA_PHAM_VI.toString().trim()] = item; 
                 });
 
-                // 2. Đọc Excel
+                // 2. Load Excel Files
                 const dataNV = await readExcel(fileNV);
                 const dataKP = await readExcel(fileKP);
 
-                // Tạo Dictionary cho Khoa Phòng: Key là MA_KHOA
                 const mapKhoaPhong = {};
                 dataKP.forEach(row => {
                     if (row[COL.KP_MA_KHOA]) {
@@ -107,21 +104,23 @@
                     }
                 });
 
-                // 3. Xử lý Đối chiếu
+                // 3. Process Logic
                 let errors = [];
                 let stt = 1;
-
-                let listQuanLy = [];
+                
+                // Mảng lưu danh sách những người có VI_TRI = 1 để kiểm tra trùng lặp
+                let listQuanLy = []; 
 
                 dataNV.forEach(nv => {
-                    // Lấy dữ liệu thô
                     const rawMaKhoa = nv[COL.NV_MA_KHOA] || "";
                     const rawTenKhoa = nv[COL.NV_TEN_KHOA] || "";
                     const maBHXH = nv[COL.NV_MA_BHXH] || "N/A";
                     const hoTen = nv[COL.NV_HO_TEN] || "N/A";
                     const rawPhamVi = nv[COL.NV_PHAM_VI] || "";
                     const rawChucDanh = nv[COL.NV_CDNN] ? nv[COL.NV_CDNN].toString().trim() : "";
+                    const rawViTri = nv[COL.NV_VI_TRI] ? nv[COL.NV_VI_TRI].toString().trim() : "";
 
+                    // RULE MỚI: Thu thập thông tin người có VI_TRI = 1
                     if (rawViTri === "1") {
                         listQuanLy.push({
                             ma: maBHXH,
@@ -130,14 +129,10 @@
                         });
                     }
 
-                    // --- RULE 1 & 3: KIỂM TRA KHOA PHÒNG (Hỗ trợ nhiều mã khoa) ---
+                    // RULE 1: KIỂM TRA KHOA
                     const listMaKhoa = splitAndTrim(rawMaKhoa);
-                    
-                    if (listMaKhoa.length === 0) {
-                        // errors.push({stt: stt++, ma: maBHXH, ten: hoTen, loai: "Thiếu dữ liệu", chitiet: "Không có Mã khoa", gockhoa: rawMaKhoa, gocpv: rawPhamVi});
-                    } else {
+                    if (listMaKhoa.length > 0) {
                         listMaKhoa.forEach(ma => {
-                            // Kiểm tra tồn tại Mã
                             if (!mapKhoaPhong.hasOwnProperty(ma)) {
                                 errors.push({
                                     stt: stt++, ma: maBHXH, ten: hoTen, 
@@ -146,13 +141,9 @@
                                     goc: rawMaKhoa
                                 });
                             } else {
-                                // Kiểm tra Tên (Nếu chỉ có 1 mã khoa thì kiểm tra tên chặt chẽ hơn)
-                                // Nếu có nhiều mã khoa, việc so khớp tên string rất khó chính xác, nên ta chỉ cảnh báo nếu Tên Khoa trong NV trống
                                 if (listMaKhoa.length === 1) {
                                     const tenKhoaGoc = mapKhoaPhong[ma];
-                                    // So sánh tương đối (bỏ viết hoa/thường)
                                     if (rawTenKhoa && tenKhoaGoc && rawTenKhoa.toLowerCase().trim() !== tenKhoaGoc.toLowerCase().trim()) {
-                                         // Đây là cảnh báo (Warning)
                                          errors.push({
                                             stt: stt++, ma: maBHXH, ten: hoTen, 
                                             loai: "Cảnh báo Tên Khoa", 
@@ -165,23 +156,18 @@
                         });
                     }
 
-                    // --- RULE 2: KIỂM TRA PHẠM VI & CHỨC DANH (Hỗ trợ nhiều phạm vi) ---
+                    // RULE 2: KIỂM TRA PHẠM VI & CHỨC DANH
                     const listPhamVi = splitAndTrim(rawPhamVi);
-                    
                     if (listPhamVi.length > 0) {
-                        let isTitleValid = false; // Cờ kiểm tra chức danh
-                        let validScopeCount = 0;  // Đếm số scope hợp lệ tìm thấy trong JSON
+                        let isTitleValid = false;
+                        let validScopeCount = 0;
                         let invalidScopes = [];
 
-                        // Duyệt qua từng phạm vi chuyên môn của nhân viên
                         listPhamVi.forEach(pv => {
                             if (mapRulesDict.hasOwnProperty(pv)) {
                                 validScopeCount++;
                                 const rule = mapRulesDict[pv];
                                 const ruleMaChucDanh = rule.MA_CHUC_DANH.toString().trim();
-                                
-                                // LOGIC QUAN TRỌNG: 
-                                // Nếu Chức danh NV == Mã chức danh trong JSON của scope này => OK
                                 if (rawChucDanh === ruleMaChucDanh) {
                                     isTitleValid = true;
                                 }
@@ -190,7 +176,6 @@
                             }
                         });
 
-                        // Báo lỗi 1: Có mã phạm vi không tồn tại trong JSON
                         if (invalidScopes.length > 0) {
                             errors.push({
                                 stt: stt++, ma: maBHXH, ten: hoTen, 
@@ -200,10 +185,7 @@
                             });
                         }
 
-                        // Báo lỗi 2: Có phạm vi hợp lệ nhưng Chức danh không khớp với bất kỳ cái nào
-                        // Logic: Nếu tìm thấy ít nhất 1 scope trong JSON, nhưng không scope nào khớp chức danh hiện tại
                         if (validScopeCount > 0 && !isTitleValid) {
-                             // Lấy danh sách các chức danh gợi ý
                              const suggested = listPhamVi
                                 .filter(pv => mapRulesDict[pv])
                                 .map(pv => `${pv}(${mapRulesDict[pv].MA_CHUC_DANH})`)
@@ -217,8 +199,8 @@
                             });
                         }
                     }
-
                 });
+
                 // --- XỬ LÝ LỖI TRÙNG LẶP VỊ TRÍ (SAU KHI QUÉT HẾT FILE) ---
                 if (listQuanLy.length > 1) {
                     listQuanLy.forEach(ql => {
@@ -241,7 +223,7 @@
             }
         }
 
-        // Đọc file Excel thành JSON
+        // Utils
         function readExcel(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -256,12 +238,10 @@
                         reject(err);
                     }
                 };
-                reader.onerror = reject;
                 reader.readAsArrayBuffer(file);
             });
         }
 
-        // Hiển thị kết quả ra bảng
         function renderResult(errors) {
             const resultArea = document.getElementById('resultArea');
             const tableBody = document.getElementById('tableBody');
@@ -279,18 +259,17 @@
             errorCount.innerHTML = `⚠️ Tìm thấy ${errors.length} vấn đề`;
             errorCount.className = "text-red-600";
 
-            window.currentErrors = errors; // Lưu biến toàn cục để lọc
+            window.currentErrors = errors; 
             fillTable(errors);
         }
 
-        // Hàm vẽ bảng (tách riêng để hỗ trợ filter)
         function fillTable(data) {
             const tableBody = document.getElementById('tableBody');
             tableBody.innerHTML = "";
             data.forEach(err => {
-                // Tô màu loại lỗi
                 let colorClass = "text-red-600";
                 if(err.loai.includes("Cảnh báo")) colorClass = "text-yellow-600";
+                if(err.loai.includes("Vị trí")) colorClass = "text-purple-600"; // Màu riêng cho lỗi vị trí
 
                 const row = `
                     <tr class="hover:bg-blue-50 border-b transition">
@@ -306,7 +285,6 @@
             });
         }
 
-        // Hàm lọc bảng
         function filterTable(type) {
             if(!window.currentErrors) return;
             if(type === 'all') {
