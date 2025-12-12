@@ -61,7 +61,8 @@
             NV_MA_BHXH: "MA_BHXH",
             NV_HO_TEN: "HO_TEN",
             NV_PHAM_VI: "PHAMVI_CM",  
-            NV_CDNN: "CHUCDANH_NN",   
+            NV_CDNN: "CHUCDANH_NN",  
+            NV_VI_TRI: "VI_TRI",
             KP_MA_KHOA: "MA_KHOA",
             KP_TEN_KHOA: "TEN_KHOA"
         };
@@ -110,6 +111,8 @@
                 let errors = [];
                 let stt = 1;
 
+                let listQuanLy = [];
+
                 dataNV.forEach(nv => {
                     // Lấy dữ liệu thô
                     const rawMaKhoa = nv[COL.NV_MA_KHOA] || "";
@@ -118,6 +121,14 @@
                     const hoTen = nv[COL.NV_HO_TEN] || "N/A";
                     const rawPhamVi = nv[COL.NV_PHAM_VI] || "";
                     const rawChucDanh = nv[COL.NV_CDNN] ? nv[COL.NV_CDNN].toString().trim() : "";
+
+                    if (rawViTri === "1") {
+                        listQuanLy.push({
+                            ma: maBHXH,
+                            ten: hoTen,
+                            goc: rawViTri
+                        });
+                    }
 
                     // --- RULE 1 & 3: KIỂM TRA KHOA PHÒNG (Hỗ trợ nhiều mã khoa) ---
                     const listMaKhoa = splitAndTrim(rawMaKhoa);
@@ -208,6 +219,19 @@
                     }
 
                 });
+                // --- XỬ LÝ LỖI TRÙNG LẶP VỊ TRÍ (SAU KHI QUÉT HẾT FILE) ---
+                if (listQuanLy.length > 1) {
+                    listQuanLy.forEach(ql => {
+                        errors.push({
+                            stt: stt++, 
+                            ma: ql.ma, 
+                            ten: ql.ten, 
+                            loai: "Lỗi Vị trí", 
+                            chitiet: `Có ${listQuanLy.length} người cùng có Vị trí = 1 (Chỉ được phép tối đa 1 người). Các mã trùng: ${listQuanLy.map(i => i.ma).join(', ')}`, 
+                            goc: "VI_TRI=" + ql.goc
+                        });
+                    });
+                }
 
                 renderResult(errors);
 
