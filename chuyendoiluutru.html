@@ -210,6 +210,7 @@
                     let tenGiayTo = ""; 
                     let soGiayTo = "";
 
+                    // --- LOGIC XỬ LÝ GIẤY TỜ MỚI ---
                     if (row['CMND/ CCCD/ Số định danh (*)']) {
                         loaiGiayTo = "CCCD"; 
                         tenGiayTo = "Căn cước công dân";
@@ -219,10 +220,13 @@
                         tenGiayTo = "Hộ chiếu";
                         soGiayTo = row['Số hộ chiếu (*)'];
                     } else if (row['Giấy tờ khác (*)']) {
-                        loaiGiayTo = "Khác";
-                        tenGiayTo = "Giấy tờ khác";
+                        // Cập nhật theo yêu cầu:
+                        // Nếu CMND rỗng (đã qua if đầu tiên) -> lấy Giấy tờ khác
+                        loaiGiayTo = "Giấy tờ khác"; 
+                        tenGiayTo = "Thẻ BHYT";
                         soGiayTo = row['Giấy tờ khác (*)'];
                     }
+                    // --------------------------------
 
                     let diaChiChiTiet = "";
                     const soNha = row['Địa chỉ – Số nhà'] || "";
@@ -249,9 +253,7 @@
                         "Loại cư trú (*)": "Tạm trú",
                         "Tỉnh/TP (*)": row['Địa chỉ – Tỉnh thành'],
                         
-                        // --- SỬA Ở ĐÂY: LUÔN RỖNG ---
                         "Quận/Huyện_cũ (*)": "", 
-                        // ----------------------------
                         
                         "Phường/Xã/ Đặc khu (*)": row['Địa chỉ – Phường xã'],
                         "Địa chỉ chi tiết (*)": diaChiChiTiet, 
