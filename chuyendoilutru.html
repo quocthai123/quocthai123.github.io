@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chuyển đổi mẫu lưu trú</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --hover-color: #0b5ed7;
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: var(--text-color);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            font-weight: 700;
+            font-size: 24px;
+            text-transform: uppercase;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: #555;
+        }
+
+        input[type="datetime-local"], 
+        input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            background-color: #f9f9f9;
+        }
+
+        input[type="datetime-local"]:focus, 
+        input[type="file"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            background-color: #fff;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            background: white;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2);
+        }
+
+        button:hover {
+            background-color: var(--hover-color);
+            transform: translateY(-2px);
+        }
+
+        #status {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            min-height: 20px;
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .note {
+            font-size: 12px;
+            color: #888;
+            margin-top: 4px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Chuyển đổi mẫu lưu trú</h2>
+    
+    <div class="form-group">
+        <label for="dateIn">Thời gian vào (Từ ngày giờ) <span style="color:red">*</span></label>
+        <input type="datetime-local" id="dateIn">
+    </div>
+
+    <div class="form-group">
+        <label for="dateOut">Thời gian ra (Đến ngày giờ)</label>
+        <input type="datetime-local" id="dateOut">
+    </div>
+
+    <div class="form-group">
+        <label for="upload">Chọn file Excel gốc <span style="color:red">*</span></label>
+        <input type="file" id="upload" accept=".xlsx, .xls">
+        <div class="note">Hỗ trợ định dạng .xlsx, .xls</div>
+    </div>
+
+    <button onclick="processFile()">Xử lý & Tải xuống</button>
+    <p id="status"></p>
+</div>
+
+<script>
+    // --- KHỐI LỆNH MỚI: TỰ ĐỘNG SET GIỜ MẶC ĐỊNH ---
+    window.onload = function() {
+        const now = new Date();
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        // Hàm format thành YYYY-MM-DDTHH:mm để gán vào input
+        function formatInputDate(dateObj) {
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            // Cố định giờ là 16:00
+            return `${year}-${month}-${day}T16:00`;
+        }
+
+        document.getElementById('dateIn').value = formatInputDate(now);
+        document.getElementById('dateOut').value = formatInputDate(tomorrow);
+    };
+    // ------------------------------------------------
+
+    function formatDateTimeVN(dateTimeString) {
+        if (!dateTimeString) return "";
+        const dateObj = new Date(dateTimeString);
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const year = dateObj.getFullYear();
+        const hours = String(dateObj.getHours()).padStart(2, '0');
+        const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+        const seconds = "00"; 
+        return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+    }
+
+    function processFile() {
+        const fileInput = document.getElementById('upload');
+        const dateInInput = document.getElementById('dateIn').value;
+        const dateOutInput = document.getElementById('dateOut').value;
+        const status = document.getElementById('status');
+
+        if (!fileInput.files.length) {
+            alert("Vui lòng chọn file Excel!");
+            return;
+        }
+        if (!dateInInput) {
+            alert("Vui lòng chọn Thời gian vào!");
+            return;
+        }
+
+        status.style.color = "#0d6efd";
+        status.innerText = "⏳ Đang xử lý dữ liệu...";
+
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, {defval: ""});
+                const formattedDateIn = formatDateTimeVN(dateInInput);
+                const formattedDateOut = formatDateTimeVN(dateOutInput);
+
+                const newData = jsonData.map((row, index) => {
+                    let loaiGiayTo = "";
+                    let tenGiayTo = ""; 
+                    let soGiayTo = "";
+
+                    if (row['CMND/ CCCD/ Số định danh (*)']) {
+                        loaiGiayTo = "CCCD"; 
+                        tenGiayTo = "Căn cước công dân";
+                        soGiayTo = row['CMND/ CCCD/ Số định danh (*)'];
+                    } else if (row['Số hộ chiếu (*)']) {
+                        loaiGiayTo = "Hộ chiếu";
+                        tenGiayTo = "Hộ chiếu";
+                        soGiayTo = row['Số hộ chiếu (*)'];
+                    } else if (row['Giấy tờ khác (*)']) {
+                        loaiGiayTo = "Khác";
+                        tenGiayTo = "Giấy tờ khác";
+                        soGiayTo = row['Giấy tờ khác (*)'];
+                    }
+
+                    let diaChiChiTiet = "";
+                    const soNha = row['Địa chỉ – Số nhà'] || "";
+                    const phuongXa = row['Địa chỉ – Phường xã'] || "";
+                    const tinhThanh = row['Địa chỉ – Tỉnh thành'] || "";
+                    
+                    let parts = [];
+                    if(soNha) parts.push(soNha);
+                    if(phuongXa) parts.push(phuongXa);
+                    if(tinhThanh) parts.push(tinhThanh);
+                    diaChiChiTiet = parts.join(", "); 
+
+                    return {
+                        "STT": row['STT'] || (index + 1),
+                        "Họ và tên (*)": row['Họ và tên (*)'],
+                        "Ngày, tháng, năm sinh (*)": row['Ngày, tháng, năm sinh (*)'],
+                        "Giới tính (*)": row['Giới tính (*)'],
+                        "Quốc gia (*)": row['Địa chỉ – Quốc gia (*)'] || "Việt Nam",
+                        "Quốc tịch (*)": row['Quốc tịch (*)'],
+                        "Loại giấy tờ (*)": loaiGiayTo,
+                        "Tên giấy tờ (*)": tenGiayTo,
+                        "Số giấy tờ (*)": soGiayTo,
+                        "Số điện thoại": row['Số điện thoại'],
+                        "Loại cư trú (*)": "Tạm trú",
+                        "Tỉnh/TP (*)": row['Địa chỉ – Tỉnh thành'],
+                        "Quận/Huyện_cũ (*)": row['Địa chỉ – Quận huyện'],
+                        "Phường/Xã/ Đặc khu (*)": row['Địa chỉ – Phường xã'],
+                        "Địa chỉ chi tiết (*)": diaChiChiTiet, 
+                        "Thời gian lưu trú (từ ngày) (*)": formattedDateIn, 
+                        "Thời gian lưu trú (đến ngày)": formattedDateOut, 
+                        "Lý do lưu trú (*)": "Khám chữa bệnh",
+                        "Tên phòng / Khoa (*)": row['Số phòng']
+                    };
+                });
+
+                const newWorksheet = XLSX.utils.json_to_sheet(newData);
+                const newWorkbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, "Data_Moi");
+
+                XLSX.writeFile(newWorkbook, "Danh_sach_KCB_Tamtru.xlsx");
+                
+                status.style.color = "#28a745";
+                status.innerText = "✅ Xử lý thành công! Đang tải xuống.";
+            } catch (error) {
+                console.error(error);
+                status.style.color = "red";
+                status.innerText = "❌ Có lỗi xảy ra. Vui lòng kiểm tra lại file Excel.";
+            }
+        };
+
+        reader.readAsArrayBuffer(fileInput.files[0]);
+    }
+</script>
+
+</body>
+</html>
