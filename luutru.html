@@ -210,21 +210,30 @@
                     let tenGiayTo = ""; 
                     let soGiayTo = "";
 
-                    // --- LOGIC XỬ LÝ GIẤY TỜ MỚI ---
+                    // --- LOGIC XỬ LÝ GIẤY TỜ MỚI (Đã cập nhật thêm SDT) ---
                     if (row['CMND/ CCCD/ Số định danh (*)']) {
+                        // Trường hợp 1: Có CMND/CCCD
                         loaiGiayTo = "CCCD"; 
                         tenGiayTo = "Căn cước công dân";
                         soGiayTo = row['CMND/ CCCD/ Số định danh (*)'];
+
                     } else if (row['Số hộ chiếu (*)']) {
+                        // Trường hợp 2: Có Hộ chiếu
                         loaiGiayTo = "Hộ chiếu";
                         tenGiayTo = "Hộ chiếu";
                         soGiayTo = row['Số hộ chiếu (*)'];
+
                     } else if (row['Giấy tờ khác (*)']) {
-                        // Cập nhật theo yêu cầu:
-                        // Nếu CMND rỗng (đã qua if đầu tiên) -> lấy Giấy tờ khác
+                        // Trường hợp 3: Có Giấy tờ khác
                         loaiGiayTo = "Giấy tờ khác"; 
                         tenGiayTo = "Thẻ BHYT";
                         soGiayTo = row['Giấy tờ khác (*)'];
+
+                    } else if (row['Số điện thoại']) {
+                        // Trường hợp 4: Tất cả cái trên đều rỗng -> Lấy Số điện thoại
+                        loaiGiayTo = "Giấy tờ khác";
+                        tenGiayTo = "Số điện thoại";
+                        soGiayTo = row['Số điện thoại'];
                     }
                     // --------------------------------
 
