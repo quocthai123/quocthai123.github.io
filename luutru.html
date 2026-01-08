@@ -144,7 +144,7 @@
 </div>
 
 <script>
-    // --- TỰ ĐỘNG SET GIỜ MẶC ĐỊNH (16:00) ---
+  
     window.onload = function() {
         const now = new Date();
         const tomorrow = new Date(now);
@@ -160,7 +160,7 @@
         document.getElementById('dateIn').value = formatInputDate(now);
         document.getElementById('dateOut').value = formatInputDate(tomorrow);
     };
-    // ----------------------------------------
+  
 
     function formatDateTimeVN(dateTimeString) {
         if (!dateTimeString) return "";
@@ -210,7 +210,6 @@
                     let tenGiayTo = ""; 
                     let soGiayTo = "";
 
-                    // --- LOGIC XỬ LÝ GIẤY TỜ MỚI (Đã cập nhật thêm SDT) ---
                     if (row['CMND/ CCCD/ Số định danh (*)']) {
                         // Trường hợp 1: Có CMND/CCCD
                         loaiGiayTo = "CCCD"; 
