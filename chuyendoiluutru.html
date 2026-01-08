@@ -144,7 +144,7 @@
 </div>
 
 <script>
-    // --- KHỐI LỆNH: TỰ ĐỘNG SET GIỜ MẶC ĐỊNH (16:00) ---
+    // --- TỰ ĐỘNG SET GIỜ MẶC ĐỊNH (16:00) ---
     window.onload = function() {
         const now = new Date();
         const tomorrow = new Date(now);
@@ -160,7 +160,7 @@
         document.getElementById('dateIn').value = formatInputDate(now);
         document.getElementById('dateOut').value = formatInputDate(tomorrow);
     };
-    // ------------------------------------------------
+    // ----------------------------------------
 
     function formatDateTimeVN(dateTimeString) {
         if (!dateTimeString) return "";
@@ -235,10 +235,6 @@
                     if(tinhThanh) parts.push(tinhThanh);
                     diaChiChiTiet = parts.join(", "); 
 
-                    // Xử lý an toàn cho cột Quận/Huyện để tránh null/undefined
-                    let quanHuyen = row['Địa chỉ – Quận huyện'];
-                    if (!quanHuyen) quanHuyen = "";
-
                     return {
                         "STT": row['STT'] || (index + 1),
                         "Họ và tên (*)": row['Họ và tên (*)'],
@@ -253,8 +249,9 @@
                         "Loại cư trú (*)": "Tạm trú",
                         "Tỉnh/TP (*)": row['Địa chỉ – Tỉnh thành'],
                         
-                        // Đã cập nhật xử lý null
-                        "Quận/Huyện_cũ (*)": quanHuyen,
+                        // --- SỬA Ở ĐÂY: LUÔN RỖNG ---
+                        "Quận/Huyện_cũ (*)": "", 
+                        // ----------------------------
                         
                         "Phường/Xã/ Đặc khu (*)": row['Địa chỉ – Phường xã'],
                         "Địa chỉ chi tiết (*)": diaChiChiTiet, 
