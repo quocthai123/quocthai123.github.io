@@ -144,18 +144,16 @@
 </div>
 
 <script>
-    // --- KHỐI LỆNH MỚI: TỰ ĐỘNG SET GIỜ MẶC ĐỊNH ---
+    // --- KHỐI LỆNH: TỰ ĐỘNG SET GIỜ MẶC ĐỊNH (16:00) ---
     window.onload = function() {
         const now = new Date();
         const tomorrow = new Date(now);
         tomorrow.setDate(tomorrow.getDate() + 1);
 
-        // Hàm format thành YYYY-MM-DDTHH:mm để gán vào input
         function formatInputDate(dateObj) {
             const year = dateObj.getFullYear();
             const month = String(dateObj.getMonth() + 1).padStart(2, '0');
             const day = String(dateObj.getDate()).padStart(2, '0');
-            // Cố định giờ là 16:00
             return `${year}-${month}-${day}T16:00`;
         }
 
@@ -237,6 +235,10 @@
                     if(tinhThanh) parts.push(tinhThanh);
                     diaChiChiTiet = parts.join(", "); 
 
+                    // Xử lý an toàn cho cột Quận/Huyện để tránh null/undefined
+                    let quanHuyen = row['Địa chỉ – Quận huyện'];
+                    if (!quanHuyen) quanHuyen = "";
+
                     return {
                         "STT": row['STT'] || (index + 1),
                         "Họ và tên (*)": row['Họ và tên (*)'],
@@ -250,7 +252,10 @@
                         "Số điện thoại": row['Số điện thoại'],
                         "Loại cư trú (*)": "Tạm trú",
                         "Tỉnh/TP (*)": row['Địa chỉ – Tỉnh thành'],
-                        "Quận/Huyện_cũ (*)": row['Địa chỉ – Quận huyện'],
+                        
+                        // Đã cập nhật xử lý null
+                        "Quận/Huyện_cũ (*)": quanHuyen,
+                        
                         "Phường/Xã/ Đặc khu (*)": row['Địa chỉ – Phường xã'],
                         "Địa chỉ chi tiết (*)": diaChiChiTiet, 
                         "Thời gian lưu trú (từ ngày) (*)": formattedDateIn, 
