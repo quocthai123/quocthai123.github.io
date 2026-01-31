@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiểm tra Mã Máy Pro (Strict Mode)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        body {
+            background-image: var(--primary-gradient);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .main-card {
+            background: var(--glass-bg);
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            border: none;
+            width: 100%;
+            max-width: 1000px;
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .header-title {
+            background: transparent;
+            color: #333;
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 30px;
+        }
+
+        /* Upload Zone Styling */
+        .upload-zone {
+            border: 2px dashed #cbd5e0;
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+            position: relative;
+        }
+
+        .upload-zone:hover {
+            border-color: #764ba2;
+            background: #f0f4ff;
+        }
+
+        .upload-zone i {
+            font-size: 3rem;
+            color: #a0aec0;
+            margin-bottom: 10px;
+        }
+
+        .upload-input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* Stat Cards */
+        .stat-card {
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-total { background-color: #e2e8f0; color: #2d3748; }
+        .stat-valid { background-color: #d1fae5; color: #065f46; }
+        .stat-error { background-color: #fee2e2; color: #991b1b; }
+
+        .stat-number { font-size: 2rem; font-weight: 700; display: block; }
+        .stat-label { font-size: 0.875rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+
+        /* Table Styling */
+        .custom-table-container {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .table thead th {
+            background-color: #2d3748;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            border: none;
+            padding: 15px;
+        }
+
+        .valid-row { background-color: #ffffff !important; }
+        .invalid-row { background-color: #fff1f2 !important; }
+        
+        .badge-status { padding: 8px 12px; border-radius: 30px; font-weight: 600; font-size: 0.8rem; }
+        .badge-ok { background-color: #def7ec; color: #03543f; }
+        .badge-fail { background-color: #fde8e8; color: #9b1c1c; }
+
+        /* Button Export */
+        .btn-grad {
+            background-image: linear-gradient(to right, #1D976C 0%, #93F9B9 51%, #1D976C 100%);
+            margin: 10px;
+            padding: 12px 30px;
+            text-align: center;
+            text-transform: uppercase;
+            transition: 0.5s;
+            background-size: 200% auto;
+            color: white;
+            box-shadow: 0 0 20px #eee;
+            border-radius: 50px;
+            border: none;
+            font-weight: 600;
+            display: block;
+            width: 100%;
+        }
+
+        .btn-grad:hover {
+            background-position: right center;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .loading-spinner {
+            display: none;
+            margin: 20px auto;
+            color: #764ba2;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card main-card p-4 p-md-5">
+    
+    <div class="header-title">
+        <h2 class="fw-bold"><i class="bi bi-shield-lock-fill text-primary"></i> Kiểm Tra Mã Máy</h2>
+        <p class="text-muted mb-0">Hệ thống quét tự động - Chặt chẽ về định dạng & khoảng trắng</p>
+    </div>
+
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-8">
+            <div class="upload-zone">
+                <i class="bi bi-cloud-arrow-up"></i>
+                <h5 class="fw-bold mt-2">Kéo thả hoặc chọn file Excel</h5>
+                <p class="text-muted small mb-0">Hỗ trợ .xlsx, .xls - Tự động tìm cột MA_MAY</p>
+                <input type="file" id="uploadFile" class="upload-input" accept=".xlsx, .xls">
+            </div>
+            
+            <div id="loading" class="text-center loading-spinner">
+                <div class="spinner-border" role="status"></div>
+                <div class="mt-2 fw-bold">Đang phân tích dữ liệu...</div>
+            </div>
+
+            <div id="statusMsg" class="alert alert-danger mt-3 text-center rounded-4 shadow-sm" style="display:none;"></div>
+        </div>
+    </div>
+
+    <div id="statsArea" class="row g-3 mb-4" style="display:none;">
+        <div class="col-md-4">
+            <div class="stat-card stat-total">
+                <span class="stat-number" id="totalCount">0</span>
+                <span class="stat-label">Tổng số dòng</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card stat-valid">
+                <span class="stat-number" id="validCount">0</span>
+                <span class="stat-label">Hợp lệ</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card stat-error">
+                <span class="stat-number" id="errorCount">0</span>
+                <span class="stat-label">Lỗi định dạng</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="resultArea" style="display:none; animation: fadeIn 0.5s;">
+        <div class="row mb-3">
+            <div class="col-md-4 offset-md-4">
+                <button onclick="exportToExcel()" class="btn-grad">
+                    <i class="bi bi-file-earmark-excel-fill"></i> Tải Báo Cáo Lỗi
+                </button>
+            </div>
+        </div>
+
+        <div class="custom-table-container">
+            <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                <table class="table table-hover mb-0">
+                    <thead class="sticky-top">
+                        <tr>
+                            <th class="text-center" style="width: 60px;">STT</th>
+                            <th>Mã Máy</th>
+                            <th class="text-center" style="width: 120px;">Trạng Thái</th>
+                            <th>Chi Tiết Lỗi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let globalRows = [];
+    let detectedColIndex = -1;
+    let detectedHeaderRow = -1;
+    let currentSheetName = "Sheet1";
+
+    const uploadInput = document.getElementById('uploadFile');
+
+    uploadInput.addEventListener('change', handleFileSelect, false);
+
+    function handleFileSelect(evt) {
+        const file = evt.target.files[0];
+        if (!file) return;
+
+        // Reset UI
+        document.getElementById('resultArea').style.display = 'none';
+        document.getElementById('statsArea').style.display = 'none';
+        document.getElementById('statusMsg').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+
+        setTimeout(() => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    currentSheetName = workbook.SheetNames[0];
+                    const firstSheet = workbook.Sheets[currentSheetName];
+                    globalRows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: ""});
+
+                    if (globalRows.length === 0) {
+                        showError("File rỗng! Vui lòng kiểm tra lại.");
+                        return;
+                    }
+                    findAndProcess(globalRows);
+                } catch (err) {
+                    showError("Lỗi đọc file: " + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }, 600);
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('statusMsg');
+        el.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i> ${msg}`;
+        el.style.display = 'block';
+        document.getElementById('loading').style.display = 'none';
+    }
+
+    function findAndProcess(rows) {
+        detectedHeaderRow = -1;
+        detectedColIndex = -1;
+        const scanLimit = Math.min(rows.length, 20);
+
+        for (let r = 0; r < scanLimit; r++) {
+            const rowData = rows[r];
+            if (!rowData) continue;
+            for (let c = 0; c < rowData.length; c++) {
+                // Chuẩn hóa tên cột để tìm MA_MAY (xóa space, uppercase)
+                let cell = String(rowData[c]).replace(/\u00A0/g, " ").trim().toUpperCase();
+                if (cell === 'MA_MAY') {
+                    detectedHeaderRow = r;
+                    detectedColIndex = c;
+                    break;
+                }
+            }
+            if (detectedHeaderRow !== -1) break;
+        }
+
+        if (detectedHeaderRow === -1) {
+            showError("Không tìm thấy cột 'MA_MAY'. Hãy chắc chắn tên cột đúng chính tả.");
+            return;
+        }
+        runValidation();
+    }
+
+    function runValidation() {
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = '';
+        
+        let validCount = 0;
+        let errorCount = 0;
+        let displaySTT = 0;
+
+        for (let i = detectedHeaderRow + 1; i < globalRows.length; i++) {
+            const rowData = globalRows[i];
+            if (!rowData || rowData.length === 0) continue;
+
+            const val = rowData[detectedColIndex];
+            
+            // LƯU Ý: Ở đây ta lấy giá trị thô và chỉ trim đầu cuối để lọc ô trống
+            // Validation sẽ kiểm tra kỹ hơn các khoảng trắng còn lại
+            const maMayStr = (val === undefined || val === null) ? "" : String(val).trim();
+
+            if (maMayStr === "") continue;
+
+            displaySTT++;
+            const check = validateLogic(maMayStr);
+
+            if (check.isValid) validCount++;
+            else errorCount++;
+
+            const tr = document.createElement('tr');
+            tr.className = check.isValid ? 'valid-row' : 'invalid-row';
+            
+            const badgeClass = check.isValid ? 'badge-ok' : 'badge-fail';
+            const badgeText = check.isValid ? 'Hợp lệ' : 'Lỗi';
+            const icon = check.isValid ? '<i class="bi bi-check-circle-fill"></i>' : '<i class="bi bi-x-circle-fill"></i>';
+
+            tr.innerHTML = `
+                <td class="text-center text-muted fw-bold">${displaySTT}</td>
+                <td style="font-family: 'Consolas', monospace; font-weight: 700; color: #333;">${maMayStr.replace(/ /g, "<span style='background:yellow; color:red;'>_</span>")}</td> 
+                <td class="text-center"><span class="badge-status ${badgeClass}">${icon} ${badgeText}</span></td>
+                <td class="text-danger small">${check.message}</td>
+            `;
+            tableBody.appendChild(tr);
+        }
+
+        document.getElementById('totalCount').innerText = displaySTT;
+        document.getElementById('validCount').innerText = validCount;
+        document.getElementById('errorCount').innerText = errorCount;
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('statsArea').style.display = 'flex';
+        document.getElementById('resultArea').style.display = 'block';
+    }
+
+    function exportToExcel() {
+        if (detectedColIndex === -1) return;
+        const headerRow = [...globalRows[detectedHeaderRow], "TRANG_THAI_KIEM_TRA", "CHI_TIET_LOI"];
+        const exportData = [headerRow];
+
+        for (let i = detectedHeaderRow + 1; i < globalRows.length; i++) {
+            const originalRow = globalRows[i];
+            if (!originalRow || originalRow.length === 0) { exportData.push([]); continue; }
+
+            const val = originalRow[detectedColIndex];
+            const maMayStr = (val === undefined || val === null) ? "" : String(val).trim();
+            
+            let status = "Bỏ qua", errorMsg = "Ô trống";
+            if (maMayStr !== "") {
+                const check = validateLogic(maMayStr);
+                status = check.isValid ? "Hợp lệ" : "Lỗi";
+                errorMsg = check.isValid ? "" : check.message;
+            }
+
+            const newRow = [];
+            for(let k=0; k < headerRow.length - 2; k++) {
+                newRow.push(originalRow[k] !== undefined ? originalRow[k] : "");
+            }
+            newRow.push(status, errorMsg);
+            exportData.push(newRow);
+        }
+
+        const ws = XLSX.utils.aoa_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "KetQua");
+        
+        const date = new Date();
+        const fileName = `BaoCao_KiemTra_${date.getHours()}h${date.getMinutes()}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+    }
+
+    function validateLogic(str) {
+        // --- RULE MỚI: CẤM TUYỆT ĐỐI KHOẢNG TRẮNG ---
+        if (str.includes(" ") || /\s/.test(str)) {
+            return { isValid: false, message: "Lỗi: Chứa khoảng trắng (Space)" };
+        }
+
+        const parts = str.split('.');
+        if (parts.length < 3) return { isValid: false, message: "Sai cấu trúc (thiếu dấu chấm)" };
+
+        // XX: 2-3 ký tự
+        const xx = parts[0];
+        if (xx.length < 2 || xx.length > 3) return { isValid: false, message: `Lỗi XX: độ dài ${xx.length} (yêu cầu 2-3)` };
+
+        // n
+        const n = parts[1];
+        let validN = false;
+        if (n === '1' || n === '2') validN = true;
+        else if (n.startsWith('3[') && n.endsWith(']')) {
+             if (n.length > 3) validN = true;
+        }
+        if (!validN) return { isValid: false, message: "Lỗi n: phải là 1, 2 hoặc 3[xxx]" };
+
+        // Z
+        const z = parts.slice(2).join('.');
+        if (z.length < 6) return { isValid: false, message: `Lỗi Serial: quá ngắn (${z.length} ký tự)` };
+
+        return { isValid: true, message: "" };
+    }
+</script>
+
+</body>
+</html>
