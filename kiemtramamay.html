@@ -263,10 +263,11 @@
             }
 
             if(slh) {
-                if(!/^[ABCD]\..+$/.test(slh)) {
-                    errors.push("Số lưu hành sai định dạng (Yêu cầu: A.xxx, B.xxx...)");
-                }
-            }
+   
+    if(!/^[ABCD]\..{4,}$/.test(slh)) {
+        errors.push("Số lưu hành sai định dạng (Yêu cầu: A.xxxx..., B.xxxx... với phần đuôi tối thiểu 4 ký tự)");
+    }
+}
 
             const isValid = errors.length === 0;
             if(isValid) validCnt++; else errCnt++;
