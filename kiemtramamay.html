@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tool Kiểm tra Dữ liệu 3176 (Full)</title>
+    <title>Tool Kiểm tra Dữ liệu 3176 (Fix Dot)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -31,7 +31,7 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.2);
             border: none;
             width: 100%;
-            max-width: 1400px; /* Mở rộng chiều ngang để hiển thị nhiều cột */
+            max-width: 1400px;
             overflow: hidden;
         }
 
@@ -55,14 +55,12 @@
         .upload-zone:hover { border-color: #2a5298; background: #ebf8ff; }
         .upload-input { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; }
 
-        /* Stat Cards */
         .stat-card { border-radius: 12px; padding: 15px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .stat-valid { background: #d1fae5; color: #065f46; }
         .stat-error { background: #fee2e2; color: #991b1b; }
         .stat-number { font-size: 1.5rem; font-weight: 800; display: block; }
         .stat-label { font-size: 0.75rem; text-transform: uppercase; font-weight: 600; }
 
-        /* Table */
         .table-responsive { max-height: 600px; overflow-y: auto; font-size: 0.85rem; }
         .table thead th {
             background-color: #2d3748; color: white;
@@ -90,7 +88,7 @@
 <div class="card main-card p-4">
     <div class="header-title">
         <h3 class="fw-bold text-dark mb-1">KIỂM TRA DỮ LIỆU TBYT (3176)</h3>
-        <p class="text-muted small">Logic: Bắt buộc 9 cột | Cấu trúc Mã máy & Số lưu hành | Check trùng Ký hiệu + Mã máy</p>
+        <p class="text-muted small">Logic: Bắt buộc 9 cột | Cấu trúc Mã máy (Max 2 dấu chấm) | Check trùng Ký hiệu + Mã máy</p>
     </div>
 
     <div class="row justify-content-center mb-3">
@@ -134,7 +132,6 @@
 </div>
 
 <script>
-    // 1. CẤU HÌNH CÁC CỘT BẮT BUỘC
     const REQUIRED_COLS = [
         "TEN_TB", "KY_HIEU", "CONGTY_SX", "NUOC_SX", 
         "NAM_SX", "NAM_SD", "MA_MAY", "SO_LUU_HANH", "TU_NGAY"
@@ -151,7 +148,6 @@
         const file = evt.target.files[0];
         if (!file) return;
         
-        // Reset UI
         document.getElementById('statusMsg').style.display = 'none';
         document.getElementById('resultArea').style.display = 'none';
         document.getElementById('statsArea').style.display = 'none';
@@ -181,11 +177,9 @@
     }
 
     function analyzeAndValidate() {
-        // A. TÌM HEADER
         headerRowIdx = -1;
         colMap = {};
         
-        // Quét 20 dòng đầu để tìm dòng chứa MA_MAY
         for(let r=0; r < Math.min(20, globalRows.length); r++) {
             const row = globalRows[r];
             if(!row) continue;
@@ -211,30 +205,24 @@
             return;
         }
 
-        // Kiểm tra xem file có đủ cột bắt buộc không
         const missing = REQUIRED_COLS.filter(c => colMap[c] === undefined);
         if(missing.length > 0) {
             showMsg(`❌ File thiếu các cột: ${missing.join(", ")}`);
             return;
         }
 
-        // B. XỬ LÝ TRÙNG LẶP (PRE-SCAN)
-        // Tạo Set chứa các key (KY_HIEU + MA_MAY) bị trùng
         const keyCounts = new Map();
         for(let i = headerRowIdx + 1; i < globalRows.length; i++) {
             const row = globalRows[i];
             if(!row) continue;
-            // Chỉ check nếu dòng có dữ liệu
             const kyHieu = String(row[colMap["KY_HIEU"]]||"").trim();
             const maMay = String(row[colMap["MA_MAY"]]||"").trim();
-            
             if(kyHieu && maMay) {
                 const key = `${kyHieu}|${maMay}`;
                 keyCounts.set(key, (keyCounts.get(key) || 0) + 1);
             }
         }
 
-        // C. VALIDATE TỪNG DÒNG
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = "";
         
@@ -245,8 +233,6 @@
         for(let i = headerRowIdx + 1; i < globalRows.length; i++) {
             const row = globalRows[i];
             if(!row) continue;
-            
-            // Bỏ qua dòng trống trơn
             const isEmpty = REQUIRED_COLS.every(c => !String(row[colMap[c]]||"").trim());
             if(isEmpty) continue;
 
@@ -258,14 +244,12 @@
 
             let errors = [];
 
-            // 1. Check bắt buộc
             let missingFields = [];
             REQUIRED_COLS.forEach(col => {
                 if(!String(row[colMap[col]]||"").trim()) missingFields.push(col);
             });
             if(missingFields.length > 0) errors.push(`Thiếu dữ liệu: ${missingFields.join(", ")}`);
 
-            // 2. Check trùng lặp
             if(kyHieu && maMay) {
                 const key = `${kyHieu}|${maMay}`;
                 if(keyCounts.get(key) > 1) {
@@ -273,21 +257,17 @@
                 }
             }
 
-            // 3. Check Cấu trúc Mã Máy (Logic cũ bảo toàn)
             if(maMay) {
                 const mmCheck = validateMaMay(maMay);
                 if(!mmCheck.isValid) errors.push(`Mã máy: ${mmCheck.msg}`);
             }
 
-            // 4. Check Cấu trúc Số Lưu Hành (X.Y)
             if(slh) {
-                // Regex: Bắt đầu bằng A,B,C,D -> dấu chấm -> chuỗi bất kỳ
                 if(!/^[ABCD]\..+$/.test(slh)) {
                     errors.push("Số lưu hành sai định dạng (Yêu cầu: A.xxx, B.xxx...)");
                 }
             }
 
-            // RENDER
             const isValid = errors.length === 0;
             if(isValid) validCnt++; else errCnt++;
 
@@ -312,21 +292,23 @@
         document.getElementById('resultArea').style.display = 'block';
     }
 
-    // --- LOGIC KIỂM TRA MÃ MÁY (Bảo toàn từ code cũ) ---
+    // --- LOGIC KIỂM TRA MÃ MÁY ---
     function validateMaMay(str) {
-        // CẤM TUYỆT ĐỐI KHOẢNG TRẮNG
         if (str.includes(" ") || /\s/.test(str)) {
             return { isValid: false, msg: "Chứa khoảng trắng" };
         }
 
         const parts = str.split('.');
+        
+        // CHECK 1: Ít hơn 2 dấu chấm (tức là < 3 phần)
         if (parts.length < 3) return { isValid: false, msg: "Thiếu dấu chấm (.)" };
+        
+        // CHECK 2: Nhiều hơn 2 dấu chấm (tức là > 3 phần) - YÊU CẦU MỚI
+        if (parts.length > 3) return { isValid: false, msg: "Thừa dấu chấm (chỉ được có 2 dấu chấm)" };
 
-        // XX: 2-3 ký tự
         const xx = parts[0];
         if (xx.length < 2 || xx.length > 3) return { isValid: false, msg: `XX sai độ dài (${xx.length})` };
 
-        // n: 1, 2 hoặc 3[...]
         const n = parts[1];
         let validN = false;
         if (n === '1' || n === '2') validN = true;
@@ -335,8 +317,7 @@
         }
         if (!validN) return { isValid: false, msg: "n sai (phải là 1, 2 hoặc 3[...])" };
 
-        // Z: serial >= 6
-        const z = parts.slice(2).join('.');
+        const z = parts[2]; // Vì đã giới hạn length == 3, serial chắc chắn là phần thứ 3
         if (z.length < 6) return { isValid: false, msg: `Serial quá ngắn (${z.length})` };
 
         return { isValid: true, msg: "" };
@@ -349,12 +330,9 @@
 
     function exportToExcel() {
         if(headerRowIdx === -1) return;
-        
-        // Clone header gốc + thêm cột
         const header = [...globalRows[headerRowIdx], "TRANG_THAI", "CHI_TIET_LOI"];
         const data = [header];
 
-        // Tái tạo logic duplicate để export
         const keyCounts = new Map();
         for(let i = headerRowIdx + 1; i < globalRows.length; i++) {
             const row = globalRows[i];
@@ -376,7 +354,6 @@
 
             let errors = [];
             
-            // Re-run validation logic for export
             REQUIRED_COLS.forEach(c => {
                 if(!String(row[colMap[c]]||"").trim()) errors.push(`Thiếu ${c}`);
             });
@@ -388,13 +365,10 @@
             }
             if(slh && !/^[ABCD]\..+$/.test(slh)) errors.push("Sai định dạng SLH");
 
-            // Fill row
             let newRow = [];
-            // Đảm bảo row có độ dài bằng header gốc
             for(let k=0; k < globalRows[headerRowIdx].length; k++) {
                 newRow.push(row[k] !== undefined ? row[k] : "");
             }
-            
             newRow.push(errors.length === 0 ? "Hợp lệ" : "Lỗi");
             newRow.push(errors.join("; "));
             data.push(newRow);
