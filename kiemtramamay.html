@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kiểm tra Mã Máy</title>
+    <title>Tool Kiểm tra Thiết Bị Y Tế 3176</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -11,8 +11,8 @@
     
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --glass-bg: rgba(255, 255, 255, 0.95);
+            --primary-gradient: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            --glass-bg: rgba(255, 255, 255, 0.98);
         }
 
         body {
@@ -28,10 +28,10 @@
         .main-card {
             background: var(--glass-bg);
             border-radius: 24px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             border: none;
             width: 100%;
-            max-width: 1000px;
+            max-width: 1200px; /* Tăng chiều rộng để hiển thị nhiều thông tin hơn */
             overflow: hidden;
             animation: slideUp 0.5s ease-out;
         }
@@ -42,19 +42,16 @@
         }
 
         .header-title {
-            background: transparent;
-            color: #333;
             text-align: center;
             padding-bottom: 20px;
             border-bottom: 1px solid #eee;
             margin-bottom: 30px;
         }
 
-        /* Upload Zone Styling */
         .upload-zone {
             border: 2px dashed #cbd5e0;
             border-radius: 16px;
-            padding: 40px 20px;
+            padding: 30px 20px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -63,14 +60,8 @@
         }
 
         .upload-zone:hover {
-            border-color: #764ba2;
-            background: #f0f4ff;
-        }
-
-        .upload-zone i {
-            font-size: 3rem;
-            color: #a0aec0;
-            margin-bottom: 10px;
+            border-color: #2c5364;
+            background: #eefcfd;
         }
 
         .upload-input {
@@ -86,130 +77,87 @@
         /* Stat Cards */
         .stat-card {
             border-radius: 16px;
-            padding: 20px;
+            padding: 15px;
             text-align: center;
             border: none;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
         }
         
-        .stat-card:hover { transform: translateY(-5px); }
         .stat-total { background-color: #e2e8f0; color: #2d3748; }
         .stat-valid { background-color: #d1fae5; color: #065f46; }
         .stat-error { background-color: #fee2e2; color: #991b1b; }
+        .stat-number { font-size: 1.8rem; font-weight: 700; display: block; }
+        .stat-label { font-size: 0.8rem; text-transform: uppercase; font-weight: 600; }
 
-        .stat-number { font-size: 2rem; font-weight: 700; display: block; }
-        .stat-label { font-size: 0.875rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
-
-        /* Table Styling */
+        /* Table */
         .custom-table-container {
-            border-radius: 16px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             border: 1px solid #e2e8f0;
         }
-
         .table thead th {
             background-color: #2d3748;
             color: white;
-            font-weight: 600;
-            text-transform: uppercase;
             font-size: 0.85rem;
-            border: none;
             padding: 15px;
+            vertical-align: middle;
         }
-
         .valid-row { background-color: #ffffff !important; }
-        .invalid-row { background-color: #fff1f2 !important; }
+        .invalid-row { background-color: #fff5f5 !important; }
         
-        .badge-status { padding: 8px 12px; border-radius: 30px; font-weight: 600; font-size: 0.8rem; }
+        .badge-status { padding: 6px 10px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; white-space: nowrap; }
         .badge-ok { background-color: #def7ec; color: #03543f; }
         .badge-fail { background-color: #fde8e8; color: #9b1c1c; }
 
-        /* Button Export */
         .btn-grad {
-            background-image: linear-gradient(to right, #1D976C 0%, #93F9B9 51%, #1D976C 100%);
-            margin: 10px;
-            padding: 12px 30px;
-            text-align: center;
-            text-transform: uppercase;
-            transition: 0.5s;
-            background-size: 200% auto;
-            color: white;
-            box-shadow: 0 0 20px #eee;
-            border-radius: 50px;
-            border: none;
-            font-weight: 600;
-            display: block;
-            width: 100%;
+            background-image: linear-gradient(to right, #243B55 0%, #141E30 51%, #243B55 100%);
+            margin: 10px; padding: 12px 30px;
+            text-align: center; text-transform: uppercase;
+            transition: 0.5s; background-size: 200% auto;
+            color: white; box-shadow: 0 0 20px #eee;
+            border-radius: 50px; border: none; font-weight: 600;
+            display: block; width: 100%;
         }
-
-        .btn-grad:hover {
-            background-position: right center;
-            color: #fff;
-            text-decoration: none;
-        }
-
-        .loading-spinner {
-            display: none;
-            margin: 20px auto;
-            color: #764ba2;
-        }
+        .btn-grad:hover { background-position: right center; color: #fff; text-decoration: none; }
     </style>
 </head>
 <body>
 
-<div class="card main-card p-4 p-md-5">
+<div class="card main-card p-4">
     
     <div class="header-title">
-        <h2 class="fw-bold"><i class="bi bi-shield-lock-fill text-primary"></i> Kiểm Tra Mã Máy 3176</h2>
-        <p class="text-muted mb-0">Hệ thống quét tự động</p>
+        <h2 class="fw-bold text-dark"><i class="bi bi-clipboard-data-fill"></i> Kiểm Tra Dữ Liệu TBYT 3176</h2>
+        <p class="text-muted mb-0">Check: Mã máy, Số lưu hành, Dữ liệu bắt buộc & Trùng lặp</p>
     </div>
 
     <div class="row justify-content-center mb-4">
         <div class="col-md-8">
             <div class="upload-zone">
-                <i class="bi bi-cloud-arrow-up"></i>
-                <h5 class="fw-bold mt-2">Kéo thả hoặc chọn file Excel</h5>
-                <p class="text-muted small mb-0">Hỗ trợ .xlsx, .xls - Tự động tìm cột MA_MAY</p>
+                <i class="bi bi-file-earmark-spreadsheet" style="font-size: 2.5rem; color: #718096;"></i>
+                <h6 class="fw-bold mt-2">Chọn file Excel (.xlsx, .xls)</h6>
                 <input type="file" id="uploadFile" class="upload-input" accept=".xlsx, .xls">
             </div>
             
-            <div id="loading" class="text-center loading-spinner">
-                <div class="spinner-border" role="status"></div>
-                <div class="mt-2 fw-bold">Đang phân tích dữ liệu...</div>
+            <div id="loading" class="text-center mt-3" style="display:none; color: #2c5364;">
+                <div class="spinner-border spinner-border-sm" role="status"></div>
+                <span class="ms-2 fw-bold">Đang xử lý dữ liệu...</span>
             </div>
 
-            <div id="statusMsg" class="alert alert-danger mt-3 text-center rounded-4 shadow-sm" style="display:none;"></div>
+            <div id="statusMsg" class="alert alert-danger mt-3 text-center rounded-3 shadow-sm" style="display:none;"></div>
         </div>
     </div>
 
     <div id="statsArea" class="row g-3 mb-4" style="display:none;">
-        <div class="col-md-4">
-            <div class="stat-card stat-total">
-                <span class="stat-number" id="totalCount">0</span>
-                <span class="stat-label">Tổng số dòng</span>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-card stat-valid">
-                <span class="stat-number" id="validCount">0</span>
-                <span class="stat-label">Hợp lệ</span>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-card stat-error">
-                <span class="stat-number" id="errorCount">0</span>
-                <span class="stat-label">Lỗi định dạng</span>
-            </div>
-        </div>
+        <div class="col-md-4"><div class="stat-card stat-total"><span class="stat-number" id="totalCount">0</span><span class="stat-label">Tổng dòng</span></div></div>
+        <div class="col-md-4"><div class="stat-card stat-valid"><span class="stat-number" id="validCount">0</span><span class="stat-label">Hợp lệ</span></div></div>
+        <div class="col-md-4"><div class="stat-card stat-error"><span class="stat-number" id="errorCount">0</span><span class="stat-label">Có lỗi</span></div></div>
     </div>
 
-    <div id="resultArea" style="display:none; animation: fadeIn 0.5s;">
+    <div id="resultArea" style="display:none;">
         <div class="row mb-3">
             <div class="col-md-4 offset-md-4">
                 <button onclick="exportToExcel()" class="btn-grad">
-                    <i class="bi bi-file-earmark-excel-fill"></i> Tải Báo Cáo Lỗi
+                    <i class="bi bi-download"></i> Tải Kết Quả
                 </button>
             </div>
         </div>
@@ -219,14 +167,15 @@
                 <table class="table table-hover mb-0">
                     <thead class="sticky-top">
                         <tr>
-                            <th class="text-center" style="width: 60px;">STT</th>
+                            <th class="text-center" style="width: 50px;">STT</th>
                             <th>Mã Máy</th>
-                            <th class="text-center" style="width: 120px;">Trạng Thái</th>
+                            <th>Ký Hiệu</th>
+                            <th>Số Lưu Hành</th>
+                            <th class="text-center">Trạng Thái</th>
                             <th>Chi Tiết Lỗi</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody">
-                        </tbody>
+                    <tbody id="tableBody"></tbody>
                 </table>
             </div>
         </div>
@@ -235,9 +184,15 @@
 </div>
 
 <script>
+    // --- CẤU HÌNH CÁC CỘT BẮT BUỘC ---
+    const REQUIRED_COLS = [
+        "TEN_TB", "KY_HIEU", "CONGTY_SX", "NUOC_SX", 
+        "NAM_SX", "NAM_SD", "MA_MAY", "SO_LUU_HANH", "TU_NGAY"
+    ];
+
     let globalRows = [];
-    let detectedColIndex = -1;
     let detectedHeaderRow = -1;
+    let colMap = {}; // Lưu index của các cột tìm thấy: { "MA_MAY": 5, "TEN_TB": 2 ... }
     let currentSheetName = "Sheet1";
 
     const uploadInput = document.getElementById('uploadFile');
@@ -248,10 +203,7 @@
         const file = evt.target.files[0];
         if (!file) return;
 
-        // Reset UI
-        document.getElementById('resultArea').style.display = 'none';
-        document.getElementById('statsArea').style.display = 'none';
-        document.getElementById('statusMsg').style.display = 'none';
+        resetUI();
         document.getElementById('loading').style.display = 'block';
 
         setTimeout(() => {
@@ -264,17 +216,22 @@
                     const firstSheet = workbook.Sheets[currentSheetName];
                     globalRows = XLSX.utils.sheet_to_json(firstSheet, {header: 1, defval: ""});
 
-                    if (globalRows.length === 0) {
-                        showError("File rỗng! Vui lòng kiểm tra lại.");
-                        return;
-                    }
-                    findAndProcess(globalRows);
+                    if (globalRows.length === 0) throw new Error("File rỗng!");
+                    
+                    processData(globalRows);
                 } catch (err) {
-                    showError("Lỗi đọc file: " + err.message);
+                    showError("Lỗi: " + err.message);
                 }
             };
             reader.readAsArrayBuffer(file);
-        }, 600);
+        }, 500);
+    }
+
+    function resetUI() {
+        document.getElementById('resultArea').style.display = 'none';
+        document.getElementById('statsArea').style.display = 'none';
+        document.getElementById('statusMsg').style.display = 'none';
+        document.getElementById('tableBody').innerHTML = '';
     }
 
     function showError(msg) {
@@ -284,71 +241,110 @@
         document.getElementById('loading').style.display = 'none';
     }
 
-    function findAndProcess(rows) {
+    function processData(rows) {
+        // 1. Tìm dòng Header và Map cột
         detectedHeaderRow = -1;
-        detectedColIndex = -1;
-        const scanLimit = Math.min(rows.length, 20);
+        colMap = {};
 
-        for (let r = 0; r < scanLimit; r++) {
-            const rowData = rows[r];
-            if (!rowData) continue;
-            for (let c = 0; c < rowData.length; c++) {
-                // Chuẩn hóa tên cột để tìm MA_MAY (xóa space, uppercase)
-                let cell = String(rowData[c]).replace(/\u00A0/g, " ").trim().toUpperCase();
-                if (cell === 'MA_MAY') {
-                    detectedHeaderRow = r;
-                    detectedColIndex = c;
-                    break;
+        // Quét 20 dòng đầu để tìm dòng chứa nhiều tên cột nhất trong danh sách REQUIRED_COLS
+        for (let r = 0; r < Math.min(rows.length, 20); r++) {
+            const row = rows[r];
+            if (!row) continue;
+            
+            let matchCount = 0;
+            let tempMap = {};
+
+            row.forEach((cell, idx) => {
+                const cellStr = String(cell).trim().toUpperCase();
+                if (REQUIRED_COLS.includes(cellStr)) {
+                    tempMap[cellStr] = idx;
+                    matchCount++;
                 }
+            });
+
+            // Nếu tìm thấy ít nhất 1 cột quan trọng (MA_MAY) thì chọn dòng này
+            if (tempMap["MA_MAY"] !== undefined && matchCount > Object.keys(colMap).length) {
+                detectedHeaderRow = r;
+                colMap = tempMap;
             }
-            if (detectedHeaderRow !== -1) break;
         }
 
-        if (detectedHeaderRow === -1) {
-            showError("Không tìm thấy cột 'MA_MAY'. Hãy chắc chắn tên cột đúng chính tả.");
+        if (detectedHeaderRow === -1 || colMap["MA_MAY"] === undefined) {
+            showError("Không tìm thấy dòng tiêu đề chứa cột 'MA_MAY'. Vui lòng kiểm tra tên cột.");
             return;
         }
+
+        // Kiểm tra xem có thiếu cột bắt buộc nào trong file không
+        const missingColsInFile = REQUIRED_COLS.filter(col => colMap[col] === undefined);
+        if (missingColsInFile.length > 0) {
+            showError(`File thiếu các cột sau: ${missingColsInFile.join(", ")}`);
+            return;
+        }
+
         runValidation();
     }
 
     function runValidation() {
         const tableBody = document.getElementById('tableBody');
-        tableBody.innerHTML = '';
-        
         let validCount = 0;
         let errorCount = 0;
         let displaySTT = 0;
+        
+        // Set để kiểm tra trùng lặp (KY_HIEU + MA_MAY)
+        const duplicateSet = new Set();
+        const duplicatesFound = new Set(); // Lưu các key bị trùng để đánh dấu
 
+        // Pass 1: Tìm các key bị trùng trước
         for (let i = detectedHeaderRow + 1; i < globalRows.length; i++) {
-            const rowData = globalRows[i];
-            if (!rowData || rowData.length === 0) continue;
-
-            const val = rowData[detectedColIndex];
+            const row = globalRows[i];
+            if(!row || row.length === 0) continue;
             
-            // LƯU Ý: Ở đây ta lấy giá trị thô và chỉ trim đầu cuối để lọc ô trống
-            // Validation sẽ kiểm tra kỹ hơn các khoảng trắng còn lại
-            const maMayStr = (val === undefined || val === null) ? "" : String(val).trim();
+            const kyHieu = String(row[colMap["KY_HIEU"]] || "").trim();
+            const maMay = String(row[colMap["MA_MAY"]] || "").trim();
+            
+            if(kyHieu && maMay) {
+                const key = `${kyHieu}|${maMay}`;
+                if(duplicateSet.has(key)) {
+                    duplicatesFound.add(key);
+                }
+                duplicateSet.add(key);
+            }
+        }
 
-            if (maMayStr === "") continue;
+        // Pass 2: Validate từng dòng
+        for (let i = detectedHeaderRow + 1; i < globalRows.length; i++) {
+            const row = globalRows[i];
+            if (!row || row.length === 0) continue;
+            
+            // Bỏ qua dòng nếu tất cả các ô bắt buộc đều rỗng (dòng trắng hẳn)
+            const isEmptyRow = REQUIRED_COLS.every(col => !String(row[colMap[col]] || "").trim());
+            if (isEmptyRow) continue;
 
             displaySTT++;
-            const check = validateLogic(maMayStr);
+            
+            const validationResult = validateRow(row, duplicatesFound);
 
-            if (check.isValid) validCount++;
+            if (validationResult.isValid) validCount++;
             else errorCount++;
 
+            // Render Row
+            const maMayVal = String(row[colMap["MA_MAY"]] || "");
+            const kyHieuVal = String(row[colMap["KY_HIEU"]] || "");
+            const slhVal = String(row[colMap["SO_LUU_HANH"]] || "");
+
             const tr = document.createElement('tr');
-            tr.className = check.isValid ? 'valid-row' : 'invalid-row';
+            tr.className = validationResult.isValid ? 'valid-row' : 'invalid-row';
             
-            const badgeClass = check.isValid ? 'badge-ok' : 'badge-fail';
-            const badgeText = check.isValid ? 'Hợp lệ' : 'Lỗi';
-            const icon = check.isValid ? '<i class="bi bi-check-circle-fill"></i>' : '<i class="bi bi-x-circle-fill"></i>';
+            const badgeClass = validationResult.isValid ? 'badge-ok' : 'badge-fail';
+            const icon = validationResult.isValid ? '<i class="bi bi-check-lg"></i>' : '<i class="bi bi-x-lg"></i>';
 
             tr.innerHTML = `
                 <td class="text-center text-muted fw-bold">${displaySTT}</td>
-                <td style="font-family: 'Consolas', monospace; font-weight: 700; color: #333;">${maMayStr.replace(/ /g, "<span style='background:yellow; color:red;'>_</span>")}</td> 
-                <td class="text-center"><span class="badge-status ${badgeClass}">${icon} ${badgeText}</span></td>
-                <td class="text-danger small">${check.message}</td>
+                <td class="font-monospace fw-bold text-dark">${highlightSpace(maMayVal)}</td>
+                <td>${kyHieuVal}</td>
+                <td>${slhVal}</td>
+                <td class="text-center"><span class="badge-status ${badgeClass}">${icon} ${validationResult.isValid ? 'OK' : 'Lỗi'}</span></td>
+                <td class="text-danger small fw-semibold">${validationResult.errors.join("<br>")}</td>
             `;
             tableBody.appendChild(tr);
         }
@@ -362,69 +358,126 @@
         document.getElementById('resultArea').style.display = 'block';
     }
 
+    function validateRow(row, duplicatesSet) {
+        let errors = [];
+
+        // 1. Kiểm tra các cột bắt buộc phải có dữ liệu
+        let missingCols = [];
+        REQUIRED_COLS.forEach(col => {
+            const val = String(row[colMap[col]] || "").trim();
+            if (val === "") {
+                missingCols.push(col);
+            }
+        });
+
+        if (missingCols.length > 0) {
+            errors.push(`Thiếu dữ liệu: ${missingCols.join(", ")}`);
+        }
+
+        // Lấy giá trị để check logic
+        const maMay = String(row[colMap["MA_MAY"]] || "").trim();
+        const kyHieu = String(row[colMap["KY_HIEU"]] || "").trim();
+        const soLuuHanh = String(row[colMap["SO_LUU_HANH"]] || "").trim();
+
+        // 2. Kiểm tra cấu trúc MA_MAY (Logic cũ + cấm khoảng trắng)
+        if (maMay !== "") {
+            if (maMay.includes(" ") || /\s/.test(maMay)) {
+                errors.push("Mã Máy: Chứa khoảng trắng");
+            } else {
+                const parts = maMay.split('.');
+                if (parts.length < 3) errors.push("Mã Máy: Sai cấu trúc (thiếu dấu .)");
+                else {
+                    const xx = parts[0];
+                    const n = parts[1];
+                    const z = parts.slice(2).join('.');
+                    if (xx.length < 2 || xx.length > 3) errors.push(`Mã Máy: XX sai độ dài (${xx})`);
+                    
+                    let validN = (n === '1' || n === '2');
+                    if (!validN && n.startsWith('3[') && n.endsWith(']')) validN = true;
+                    if (!validN) errors.push("Mã Máy: n sai (phải là 1, 2 hoặc 3[...])");
+
+                    if (z.length < 6) errors.push("Mã Máy: Serial quá ngắn");
+                }
+            }
+        }
+
+        // 3. Kiểm tra trùng lặp (KY_HIEU + MA_MAY)
+        if (maMay && kyHieu) {
+            const key = `${kyHieu}|${maMay}`;
+            if (duplicatesSet.has(key)) {
+                errors.push("Trùng cặp Ký Hiệu & Mã Máy");
+            }
+        }
+
+        // 4. Kiểm tra cấu trúc SO_LUU_HANH: X.Y (X thuộc A,B,C,D)
+        if (soLuuHanh !== "") {
+            // Regex: Bắt đầu bằng A,B,C hoặc D, theo sau là dấu chấm, sau đó là bất kỳ ký tự nào (ít nhất 1)
+            const slhRegex = /^[ABCD]\..+$/; 
+            if (!slhRegex.test(soLuuHanh)) {
+                errors.push("Số Lưu Hành: Sai định dạng (Yêu cầu: A.xxx, B.xxx...)");
+            }
+        }
+
+        return {
+            isValid: errors.length === 0,
+            errors: errors
+        };
+    }
+
+    function highlightSpace(str) {
+        if (!str) return "";
+        return str.replace(/ /g, "<span style='background:red;color:white;'>_</span>");
+    }
+
     function exportToExcel() {
-        if (detectedColIndex === -1) return;
-        const headerRow = [...globalRows[detectedHeaderRow], "TRANG_THAI_KIEM_TRA", "CHI_TIET_LOI"];
+        if (detectedHeaderRow === -1) return;
+        
+        // Header mới
+        const originalHeader = globalRows[detectedHeaderRow];
+        const headerRow = [...originalHeader, "TRANG_THAI", "CHI_TIET_LOI"];
         const exportData = [headerRow];
 
+        // Tìm lại duplicate set
+        const duplicateSet = new Set();
+        const duplicatesFound = new Set();
         for (let i = detectedHeaderRow + 1; i < globalRows.length; i++) {
-            const originalRow = globalRows[i];
-            if (!originalRow || originalRow.length === 0) { exportData.push([]); continue; }
+            const row = globalRows[i];
+            if(!row) continue;
+            const kyHieu = String(row[colMap["KY_HIEU"]] || "").trim();
+            const maMay = String(row[colMap["MA_MAY"]] || "").trim();
+            if(kyHieu && maMay) {
+                const key = `${kyHieu}|${maMay}`;
+                if(duplicateSet.has(key)) duplicatesFound.add(key);
+                duplicateSet.add(key);
+            }
+        }
 
-            const val = originalRow[detectedColIndex];
-            const maMayStr = (val === undefined || val === null) ? "" : String(val).trim();
+        for (let i = detectedHeaderRow + 1; i < globalRows.length; i++) {
+            const row = globalRows[i];
+            // Skip dòng rỗng
+            const isEmptyRow = REQUIRED_COLS.every(col => !String(row && row[colMap[col]] || "").trim());
+            if (isEmptyRow) continue;
+
+            const validation = validateRow(row, duplicatesFound);
             
-            let status = "Bỏ qua", errorMsg = "Ô trống";
-            if (maMayStr !== "") {
-                const check = validateLogic(maMayStr);
-                status = check.isValid ? "Hợp lệ" : "Lỗi";
-                errorMsg = check.isValid ? "" : check.message;
-            }
+            const newRow = [...row];
+            // Fill nếu row ngắn hơn header
+            while(newRow.length < originalHeader.length) newRow.push("");
 
-            const newRow = [];
-            for(let k=0; k < headerRow.length - 2; k++) {
-                newRow.push(originalRow[k] !== undefined ? originalRow[k] : "");
-            }
-            newRow.push(status, errorMsg);
+            newRow.push(
+                validation.isValid ? "Hợp lệ" : "Lỗi",
+                validation.errors.join("; ")
+            );
             exportData.push(newRow);
         }
 
         const ws = XLSX.utils.aoa_to_sheet(exportData);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "KetQua");
+        XLSX.utils.book_append_sheet(wb, ws, "KetQuaKiemTra");
         
         const date = new Date();
-        const fileName = `BaoCao_KiemTra_${date.getHours()}h${date.getMinutes()}.xlsx`;
+        const fileName = `Check_TBYT_3176_${date.getHours()}h${date.getMinutes()}.xlsx`;
         XLSX.writeFile(wb, fileName);
-    }
-
-    function validateLogic(str) {
-        // --- RULE MỚI: CẤM TUYỆT ĐỐI KHOẢNG TRẮNG ---
-        if (str.includes(" ") || /\s/.test(str)) {
-            return { isValid: false, message: "Lỗi: Chứa khoảng trắng (Space)" };
-        }
-
-        const parts = str.split('.');
-        if (parts.length < 3) return { isValid: false, message: "Sai cấu trúc (thiếu dấu chấm)" };
-
-        // XX: 2-3 ký tự
-        const xx = parts[0];
-        if (xx.length < 2 || xx.length > 3) return { isValid: false, message: `Lỗi XX: độ dài ${xx.length} (yêu cầu 2-3)` };
-
-        // n
-        const n = parts[1];
-        let validN = false;
-        if (n === '1' || n === '2') validN = true;
-        else if (n.startsWith('3[') && n.endsWith(']')) {
-             if (n.length > 3) validN = true;
-        }
-        if (!validN) return { isValid: false, message: "Lỗi n: phải là 1, 2 hoặc 3[xxx]" };
-
-        // Z
-        const z = parts.slice(2).join('.');
-        if (z.length < 6) return { isValid: false, message: `Lỗi Serial: quá ngắn (${z.length} ký tự)` };
-
-        return { isValid: true, message: "" };
     }
 </script>
 
