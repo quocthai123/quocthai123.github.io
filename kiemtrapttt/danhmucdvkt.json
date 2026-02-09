@@ -1,4 +1,3 @@
-
 {
     "default": { "allowOverlap": false, "minTime": 5, "maxTime": 120 },
     "Điều trị bằng tia hồng ngoại": { "allowOverlap": true, "minTime": 15, "maxTime": 30 },
