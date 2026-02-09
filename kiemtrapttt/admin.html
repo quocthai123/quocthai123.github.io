@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Danh Mục DVKT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #f8f9fa; font-family: system-ui, -apple-system, sans-serif; }
+        .action-btn { cursor: pointer; transition: 0.2s; }
+        .action-btn:hover { opacity: 0.7; }
+        .table-container { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: hidden; }
+        /* Cố định header bảng */
+        thead th { position: sticky; top: 0; background-color: #343a40; color: white; z-index: 10; }
+        .table-responsive { max-height: 70vh; overflow-y: auto; }
+    </style>
+</head>
+<body>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="text-primary fw-bold m-0"><i class="bi bi-gear-fill"></i> QUẢN LÝ DANH MỤC DVKT</h3>
+            <small class="text-muted">Thêm, sửa, xóa quy định thời gian cho các kỹ thuật</small>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="index.html" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Về trang kiểm tra
+            </a>
+            <button class="btn btn-success fw-bold" onclick="exportJson()">
+                <i class="bi bi-download"></i> TẢI FILE JSON (Lưu)
+            </button>
+        </div>
+    </div>
+
+    <div class="card mb-3 border-0 shadow-sm">
+        <div class="card-body d-flex gap-2">
+            <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm tên dịch vụ..." onkeyup="filterTable()">
+            <button class="btn btn-primary text-nowrap" data-bs-toggle="modal" data-bs-target="#editModal" onclick="prepareAdd()">
+                <i class="bi bi-plus-lg"></i> Thêm Mới
+            </button>
+        </div>
+    </div>
+
+    <div class="table-container table-responsive">
+        <table class="table table-hover mb-0 align-middle" id="configTable">
+            <thead>
+                <tr>
+                    <th width="50" class="text-center">#</th>
+                    <th>Tên Dịch Vụ Kỹ Thuật (Trong Excel)</th>
+                    <th width="150" class="text-center">Cho phép trùng</th>
+                    <th width="100" class="text-center">Min (Phút)</th>
+                    <th width="100" class="text-center">Max (Phút)</th>
+                    <th width="120" class="text-center">Hành động</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalTitle">Cập nhật dịch vụ</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    <input type="hidden" id="originalKey"> <div class="mb-3">
+                        <label class="form-label fw-bold">Tên Dịch Vụ (Chính xác như trong Excel)</label>
+                        <textarea class="form-control" id="inputName" rows="2" placeholder="Ví dụ: Điều trị bằng tia hồng ngoại"></textarea>
+                        <div class="form-text text-danger" id="nameWarning" style="display:none;">Dịch vụ này đã tồn tại!</div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Thời gian tối thiểu (Min)</label>
+                            <input type="number" class="form-control" id="inputMin" value="0">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Thời gian tối đa (Max)</label>
+                            <input type="number" class="form-control" id="inputMax" value="0">
+                        </div>
+                    </div>
+
+                    <div class="form-check form-switch bg-light p-3 rounded">
+                        <input class="form-check-input ms-0 me-2" type="checkbox" id="inputOverlap" style="float: none;">
+                        <label class="form-check-label fw-bold" for="inputOverlap">Cho phép làm trùng (Overlap)</label>
+                        <div class="small text-muted mt-1">Bật nếu 1 KTV có thể làm dịch vụ này cho nhiều bệnh nhân cùng lúc (vd: chạy máy).</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="saveData()">Lưu Lại</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Xóa dịch vụ?</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p>Bạn có chắc muốn xóa dịch vụ này không?</p>
+                <b id="deleteItemName" class="text-danger"></b>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Không</button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="confirmDelete()">Xóa ngay</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let currentConfig = {};
+    let deleteKey = null; // Biến tạm lưu key cần xóa
+    const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+    // 1. Tải dữ liệu khi mở trang
+    window.onload = async function() {
+        try {
+            // Thêm timestamp để tránh cache
+            const response = await fetch('./danhmucdvkt.json?v=' + new Date().getTime());
+            if(response.ok) {
+                currentConfig = await response.json();
+                renderTable();
+            } else {
+                alert("Chưa tìm thấy file danhmucdvkt.json, sẽ tạo mới.");
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    // 2. Hiển thị bảng
+    function renderTable() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        
+        // Sắp xếp key A-Z
+        const keys = Object.keys(currentConfig).sort((a, b) => a.localeCompare(b));
+        
+        keys.forEach((key, index) => {
+            if(key === 'default') return; // Ẩn cấu hình mặc định hoặc hiển thị riêng nếu muốn
+            
+            const item = currentConfig[key];
+            const row = document.createElement('tr');
+            
+            row.innerHTML = `
+                <td class="text-center text-muted">${index + 1}</td>
+                <td class="fw-bold text-primary">${key}</td>
+                <td class="text-center">
+                    ${item.allowOverlap 
+                        ? '<span class="badge bg-success"><i class="bi bi-check-circle"></i> Có</span>' 
+                        : '<span class="badge bg-secondary">Không</span>'}
+                </td>
+                <td class="text-center">${item.minTime}</td>
+                <td class="text-center">${item.maxTime}</td>
+                <td class="text-center">
+                    <i class="bi bi-pencil-square text-primary action-btn fs-5 me-2" onclick="prepareEdit('${key.replace(/'/g, "\\'")}')" title="Sửa"></i>
+                    <i class="bi bi-trash text-danger action-btn fs-5" onclick="prepareDelete('${key.replace(/'/g, "\\'")}')" title="Xóa"></i>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // 3. Chuẩn bị Modal Thêm mới
+    function prepareAdd() {
+        document.getElementById('modalTitle').innerText = "Thêm Dịch Vụ Mới";
+        document.getElementById('originalKey').value = ""; // Rỗng = Thêm mới
+        document.getElementById('inputName').value = "";
+        document.getElementById('inputName').disabled = false; // Cho phép nhập tên
+        document.getElementById('inputMin').value = 15;
+        document.getElementById('inputMax').value = 30;
+        document.getElementById('inputOverlap').checked = false;
+        document.getElementById('nameWarning').style.display = 'none';
+    }
+
+    // 4. Chuẩn bị Modal Sửa
+    function prepareEdit(key) {
+        const item = currentConfig[key];
+        document.getElementById('modalTitle').innerText = "Chỉnh Sửa Dịch Vụ";
+        document.getElementById('originalKey').value = key; // Lưu key cũ
+        document.getElementById('inputName').value = key;
+        // Có thể cho sửa tên (bản chất là xóa cũ thêm mới) hoặc khóa tên
+        // Ở đây tôi cho sửa tên để linh hoạt
+        document.getElementById('inputName').disabled = false; 
+        
+        document.getElementById('inputMin').value = item.minTime;
+        document.getElementById('inputMax').value = item.maxTime;
+        document.getElementById('inputOverlap').checked = item.allowOverlap;
+        document.getElementById('nameWarning').style.display = 'none';
+        
+        editModal.show();
+    }
+
+    // 5. Lưu dữ liệu (Xử lý cả Thêm và Sửa)
+    function saveData() {
+        const originalKey = document.getElementById('originalKey').value;
+        const newKey = document.getElementById('inputName').value.trim();
+        const min = parseInt(document.getElementById('inputMin').value) || 0;
+        const max = parseInt(document.getElementById('inputMax').value) || 0;
+        const overlap = document.getElementById('inputOverlap').checked;
+
+        if(!newKey) {
+            alert("Vui lòng nhập tên dịch vụ!");
+            return;
+        }
+
+        // Nếu là thêm mới mà trùng tên -> Báo lỗi
+        if(originalKey === "" && currentConfig[newKey]) {
+            document.getElementById('nameWarning').style.display = 'block';
+            return;
+        }
+        
+        // Nếu là Sửa tên (Rename) -> Xóa key cũ
+        if(originalKey && originalKey !== newKey) {
+            if(currentConfig[newKey] && !confirm("Tên dịch vụ mới đã tồn tại. Bạn có muốn ghi đè không?")) return;
+            delete currentConfig[originalKey];
+        }
+
+        // Cập nhật/Thêm mới vào object
+        currentConfig[newKey] = {
+            "allowOverlap": overlap,
+            "minTime": min,
+            "maxTime": max
+        };
+
+        // Nếu mất 'default', thêm lại cho an toàn (tùy chọn)
+        if(!currentConfig['default']) {
+            currentConfig['default'] = { "allowOverlap": false, "minTime": 5, "maxTime": 120 };
+        }
+
+        editModal.hide();
+        renderTable();
+        
+        // Reset filter
+        document.getElementById('searchInput').value = '';
+        filterTable();
+    }
+
+    // 6. Xóa dữ liệu
+    function prepareDelete(key) {
+        deleteKey = key;
+        document.getElementById('deleteItemName').innerText = key;
+        deleteModal.show();
+    }
+
+    function confirmDelete() {
+        if(deleteKey) {
+            delete currentConfig[deleteKey];
+            deleteKey = null;
+            deleteModal.hide();
+            renderTable();
+        }
+    }
+
+    // 7. Tìm kiếm/Lọc
+    function filterTable() {
+        const filter = document.getElementById('searchInput').value.toUpperCase();
+        const trs = document.querySelectorAll('#tableBody tr');
+        
+        trs.forEach(tr => {
+            const td = tr.getElementsByTagName("td")[1]; // Cột tên
+            if(td) {
+                const txt = td.textContent || td.innerText;
+                tr.style.display = txt.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+            }
+        });
+    }
+
+    // 8. Xuất file JSON
+    function exportJson() {
+        // Format đẹp (indent 4 spaces)
+        const dataStr = JSON.stringify(currentConfig, null, 4);
+        const blob = new Blob([dataStr], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "danhmucdvkt.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        alert("Đã tải file 'danhmucdvkt.json' về máy.\n\nVui lòng upload file này lên GitHub để cập nhật thay đổi!");
+    }
+</script>
+
+</body>
+</html>
