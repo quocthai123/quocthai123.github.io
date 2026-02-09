@@ -89,7 +89,7 @@
         return str.toString().toLowerCase().trim().replace(/\s+/g, ' ');
     }
 
-    function processData() {
+  function processData() {
         const fileInput = document.getElementById('uploadFile');
         if (!fileInput.files.length) { alert("Chưa chọn file!"); return; }
 
@@ -97,7 +97,29 @@
         reader.onload = function(e) {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, {type: 'array'});
-            const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: "" });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+            // --- CẢI TIẾN: TỰ ĐỘNG TÌM DÒNG TIÊU ĐỀ ---
+            // 1. Đọc thử file dưới dạng mảng để quét tìm dòng tiêu đề
+            const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+            let headerRowIndex = 0;
+            
+            for(let i = 0; i < rawData.length; i++) {
+                // Chuyển cả dòng thành chuỗi để tìm kiếm từ khóa
+                const rowStr = JSON.stringify(rawData[i]);
+                // Nếu dòng này chứa tên cột quan trọng
+                if(rowStr.includes("Tên bệnh nhân") && rowStr.includes("PTV/TTV chính")) {
+                    headerRowIndex = i;
+                    console.log("Đã tìm thấy tiêu đề tại dòng:", headerRowIndex + 1);
+                    break;
+                }
+            }
+
+            // 2. Đọc lại dữ liệu chính thức bắt đầu từ dòng tiêu đề tìm được (range)
+            const jsonData = XLSX.utils.sheet_to_json(sheet, { 
+                range: headerRowIndex, // Bỏ qua các dòng tiêu đề thừa ở trên
+                defval: "" 
+            });
             
             analyzeAndRender(jsonData);
         };
