@@ -3,59 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kiểm Tra Dữ Liệu PTTT - Bệnh Viện</title>
+    <title>Kiểm Tra Dữ Liệu PTTT - Configure</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { background-color: #f8f9fa; padding: 20px; }
-        .card { margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .error-row { background-color: #ffe6e6; }
-        .warning-row { background-color: #fff3cd; }
-        #jsonConfig { font-family: monospace; font-size: 13px; height: 300px; }
-        .status-badge { font-size: 0.85rem; }
+        body { background-color: #f0f2f5; padding: 20px; font-size: 14px; }
+        .card { margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border: none; }
+        .config-table-container { max-height: 500px; overflow-y: auto; }
+        .sticky-top-th { position: sticky; top: 0; background: #fff; z-index: 10; box-shadow: 0 2px 2px -1px rgba(0,0,0,0.1); }
+        .error-row { background-color: #ffe6e6 !important; }
+        .warning-row { background-color: #fff3cd !important; }
     </style>
 </head>
 <body>
 
 <div class="container-fluid">
-    <h2 class="text-center text-primary mb-4">CÔNG CỤ RÀ SOÁT DỮ LIỆU PTTT</h2>
+    <header class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="text-primary fw-bold"><i class="bi bi-hospital"></i> RÀ SOÁT DỮ LIỆU PTTT</h3>
+        <button class="btn btn-outline-primary btn-sm" onclick="exportNewJson()">
+            <i class="bi bi-download"></i> Tải file cấu hình (JSON) để lưu
+        </button>
+    </header>
 
     <div class="row">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header bg-dark text-white">
-                    <strong>1. Cấu hình Danh mục & Luật (JSON)</strong>
+        <div class="col-lg-5">
+            <div class="card h-100">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong class="text-dark">1. Cấu hình Luật (Từ danhmucdvkt.json)</strong>
+                        <button class="btn btn-sm btn-info text-white" onclick="loadConfig()">
+                            <i class="bi bi-arrow-clockwise"></i> Tải lại
+                        </button>
+                    </div>
+                    <input type="text" id="searchService" class="form-control form-control-sm" placeholder="Tìm tên dịch vụ..." onkeyup="filterConfigTable()">
                 </div>
-                <div class="card-body">
-                    <p class="small text-muted">Định nghĩa luật cho từng dịch vụ. Tên dịch vụ phải khớp chính xác với cột "Phương pháp PTTT" trong Excel.</p>
-                    <textarea id="jsonConfig" class="form-control mb-3"></textarea>
-                    <button class="btn btn-secondary w-100" onclick="resetConfig()">Khôi phục cấu hình mẫu</button>
+                
+                <div class="card-body p-0 config-table-container">
+                    <table class="table table-hover table-sm mb-0 align-middle" id="configTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="sticky-top-th ps-3">Tên Dịch Vụ</th>
+                                <th class="sticky-top-th text-center" width="80">Overlap</th>
+                                <th class="sticky-top-th text-center" width="70">Min</th>
+                                <th class="sticky-top-th text-center" width="70">Max</th>
+                            </tr>
+                        </thead>
+                        <tbody id="configBody">
+                            </tbody>
+                    </table>
+                </div>
+                <div class="card-footer bg-white">
+                    <small class="text-muted">* Overlap: Cho phép làm trùng giờ với bệnh nhân khác.</small>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-8">
+        <div class="col-lg-7">
             <div class="card">
                 <div class="card-header bg-primary text-white">
-                    <strong>2. Nhập dữ liệu Excel</strong>
+                    <strong>2. Tải lên file Excel cần kiểm tra</strong>
                 </div>
                 <div class="card-body">
-                    <input type="file" id="uploadFile" class="form-control mb-3" accept=".xlsx, .xls" />
-                    <button class="btn btn-success" onclick="processData()">Kiểm tra dữ liệu</button>
+                    <div class="input-group">
+                        <input type="file" id="uploadFile" class="form-control" accept=".xlsx, .xls" />
+                        <button class="btn btn-success" onclick="processData()">
+                            <i class="bi bi-play-fill"></i> Kiểm tra ngay
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <div class="card">
-                <div class="card-header bg-success text-white d-flex justify-content-between">
-                    <strong>3. Kết quả Kiểm tra</strong>
-                    <span id="summary" class="badge bg-light text-dark">Chưa có dữ liệu</span>
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <strong>3. Kết quả chi tiết</strong>
+                    <span id="summary" class="badge bg-secondary">Chưa chạy kiểm tra</span>
                 </div>
-                <div class="card-body table-responsive">
-                    <table class="table table-bordered table-hover" id="resultTable">
-                        <thead class="table-light">
+                <div class="card-body p-0 table-responsive" style="max-height: 600px;">
+                    <table class="table table-bordered table-striped mb-0" id="resultTable">
+                        <thead class="table-light sticky-top-th">
                             <tr>
                                 <th>Loại Lỗi</th>
-                                <th>Nhân viên (PTV/TTV)</th>
+                                <th>Nhân viên</th>
                                 <th>Chi tiết vi phạm</th>
                             </tr>
                         </thead>
@@ -68,53 +97,114 @@
 </div>
 
 <script>
-    // --- 1. CẤU HÌNH MẪU (JSON) ---
-    const defaultConfig = {
-        "default": { "allowOverlap": false, "minTime": 5, "maxTime": 120 },
-        "Điều trị bằng tia hồng ngoại": {
-            "allowOverlap": true, 
-            "minTime": 10,
-            "maxTime": 30
-        },
-        "Điều trị bằng lase công suất thấp nội mạch": {
-            "allowOverlap": true,
-            "minTime": 20,
-            "maxTime": 60
-        },
-        "Tập vận động có trợ giúp": {
-            "allowOverlap": false, 
-            "minTime": 15,
-            "maxTime": 45
-        },
-        "Điện châm (điều trị đau)": {
-            "allowOverlap": true,
-            "minTime": 20,
-            "maxTime": 40
-        }
+    // Biến toàn cục lưu cấu hình
+    let currentConfig = {};
+    const DEFAULT_RULE = { allowOverlap: false, minTime: 5, maxTime: 120 };
+
+    // --- 1. QUẢN LÝ CẤU HÌNH (JSON) ---
+
+    // Khi trang web tải xong, tự động gọi file JSON
+    window.onload = function() {
+        loadConfig();
     };
 
-    // Load config vào textarea
-    document.getElementById('jsonConfig').value = JSON.stringify(defaultConfig, null, 4);
-
-    function resetConfig() {
-        document.getElementById('jsonConfig').value = JSON.stringify(defaultConfig, null, 4);
+    async function loadConfig() {
+        try {
+            // Fetch file từ cùng thư mục trên server/github
+            const response = await fetch('./danhmucdvkt.json'); 
+            if (!response.ok) throw new Error("Không tìm thấy file danhmucdvkt.json");
+            
+            const data = await response.json();
+            currentConfig = data;
+            renderConfigTable(currentConfig);
+        } catch (error) {
+            console.error(error);
+            // Nếu không có file, dùng cấu hình mẫu để demo
+            alert("Lưu ý: Chưa tải được file danhmucdvkt.json. Đang dùng cấu hình mặc định.");
+            currentConfig = {
+                "default": DEFAULT_RULE
+            };
+            renderConfigTable(currentConfig);
+        }
     }
 
-    // --- 2. XỬ LÝ DỮ LIỆU ---
+    function renderConfigTable(data) {
+        const tbody = document.getElementById('configBody');
+        tbody.innerHTML = '';
+
+        // Sắp xếp key để dễ nhìn
+        const keys = Object.keys(data).sort();
+
+        keys.forEach(key => {
+            const rule = data[key];
+            const isDefault = key === 'default';
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="ps-3 fw-bold text-secondary" style="font-size: 0.9em;">
+                    ${key}
+                    ${isDefault ? '<span class="badge bg-info ms-1">Mặc định</span>' : ''}
+                </td>
+                <td class="text-center">
+                    <input type="checkbox" class="form-check-input" 
+                        ${rule.allowOverlap ? 'checked' : ''} 
+                        onchange="updateRule('${key}', 'allowOverlap', this.checked)">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm text-center px-1" 
+                        value="${rule.minTime}" min="0" 
+                        onchange="updateRule('${key}', 'minTime', this.value)">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm text-center px-1" 
+                        value="${rule.maxTime}" min="0" 
+                        onchange="updateRule('${key}', 'maxTime', this.value)">
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function updateRule(key, field, value) {
+        if (!currentConfig[key]) currentConfig[key] = {};
+        
+        if (field === 'minTime' || field === 'maxTime') {
+            value = parseInt(value) || 0;
+        }
+        currentConfig[key][field] = value;
+    }
+
+    function filterConfigTable() {
+        const input = document.getElementById("searchService");
+        const filter = input.value.toUpperCase();
+        const table = document.getElementById("configTable");
+        const tr = table.getElementsByTagName("tr");
+
+        for (let i = 1; i < tr.length; i++) {
+            const td = tr[i].getElementsByTagName("td")[0];
+            if (td) {
+                const txtValue = td.textContent || td.innerText;
+                tr[i].style.display = txtValue.toUpperCase().indexOf(filter) > -1 ? "" : "none";
+            }
+        }
+    }
+
+    // Xuất file JSON mới để người dùng lưu lại
+    function exportNewJson() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentConfig, null, 4));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "danhmucdvkt.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        alert("Đã tải file cấu hình mới. Bạn hãy Upload file này lên GitHub đè lên file cũ để lưu thay đổi vĩnh viễn.");
+    }
+
+    // --- 2. XỬ LÝ EXCEL VÀ KIỂM TRA ---
 
     function processData() {
         const fileInput = document.getElementById('uploadFile');
-        const configText = document.getElementById('jsonConfig').value;
-        let rules;
-
-        // Validate JSON
-        try {
-            rules = JSON.parse(configText);
-        } catch (e) {
-            alert("Lỗi cấu hình JSON không hợp lệ! Vui lòng kiểm tra lại dấu phẩy, ngoặc.");
-            return;
-        }
-
         if (!fileInput.files.length) {
             alert("Vui lòng chọn file Excel!");
             return;
@@ -126,72 +216,71 @@
             const workbook = XLSX.read(data, {type: 'array'});
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
-            
-            // Chuyển Excel thành JSON object
             const jsonData = XLSX.utils.sheet_to_json(worksheet);
             
-            analyzeData(jsonData, rules);
+            analyzeData(jsonData);
         };
         reader.readAsArrayBuffer(fileInput.files[0]);
     }
 
-    function analyzeData(data, rules) {
+    function analyzeData(data) {
         const resultsBody = document.querySelector('#resultTable tbody');
         resultsBody.innerHTML = '';
         let errorCount = 0;
+        let warningCount = 0;
 
-        // Group dữ liệu theo Nhân viên để kiểm tra trùng lặp
         const staffMap = {};
 
-        // --- BƯỚC 1: Chuẩn hóa dữ liệu & Kiểm tra thời gian từng ca ---
         data.forEach((row, index) => {
-            // Lấy dữ liệu các cột quan trọng (tên cột phải khớp file Excel của bạn)
-            const staffName = row['PTV/TTV chính'] || "Không xác định";
-            const serviceName = row['Phương pháp PTTT'];
+            // Tên cột phải khớp chính xác trong Excel
+            const staffName = row['PTV/TTV chính'];
+            const serviceName = row['Phương pháp PTTT']; // Key để tra cứu trong JSON
             const patientName = row['Tên bệnh nhân'];
             
-            // Parse ngày giờ
-            // Lưu ý: Excel có thể trả về chuỗi hoặc số serial. Ở đây giả định định dạng text hoặc date chuẩn
-            const startDateStr = row['Ngày PTTT']; 
-            const startTimeStr = row['Giờ PTTT'];
-            const endDateStr = row['Ngày KTPTTT'];
-            const endTimeStr = row['Giờ KTPTTT'];
+            if (!staffName || !serviceName) return; 
 
-            const startDateTime = combineDateTime(startDateStr, startTimeStr);
-            const endDateTime = combineDateTime(endDateStr, endTimeStr);
-
-            if (!startDateTime || !endDateTime) return; // Bỏ qua nếu lỗi ngày tháng
-
-            const durationMinutes = (endDateTime - startDateTime) / (1000 * 60);
+            // Lấy luật từ Config hiện tại, nếu không có thì lấy default
+            let rule = currentConfig[serviceName];
             
-            // Lấy luật áp dụng
-            const rule = rules[serviceName] || rules["default"];
-
-            // 1.1 Kiểm tra vi phạm thời gian (Quá nhanh hoặc quá lâu)
-            if (durationMinutes < rule.minTime || (rule.maxTime && durationMinutes > rule.maxTime)) {
-                addResultRow("Lỗi Thời Gian", staffName, 
-                    `Bệnh nhân: <b>${patientName}</b><br>` +
-                    `Dịch vụ: ${serviceName}<br>` +
-                    `Thực tế: <b>${durationMinutes} phút</b> (Quy định: ${rule.minTime}-${rule.maxTime} phút)`
-                );
-                errorCount++;
+            // Nếu chưa có trong config, tự động thêm vào config (dưới dạng chưa cấu hình) để người dùng biết
+            if (!rule) {
+                rule = { ...DEFAULT_RULE }; // Copy default
+                // Thêm vào bảng config để lần sau người dùng chỉnh được
+                currentConfig[serviceName] = rule;
+                renderConfigTable(currentConfig); // Vẽ lại bảng
             }
 
-            // Gom nhóm cho bước 2
-            if (!staffMap[staffName]) staffMap[staffName] = [];
-            staffMap[staffName].push({
-                patient: patientName,
-                service: serviceName,
-                start: startDateTime,
-                end: endDateTime,
-                rule: rule,
-                rowId: index + 2 // Dòng trong Excel
-            });
+            // Xử lý thời gian
+            const startDateTime = combineDateTime(row['Ngày PTTT'], row['Giờ PTTT']);
+            const endDateTime = combineDateTime(row['Ngày KTPTTT'], row['Giờ KTPTTT']);
+
+            if (startDateTime && endDateTime) {
+                const durationMinutes = (endDateTime - startDateTime) / (1000 * 60);
+                
+                // 1. Check thời gian
+                if (durationMinutes < rule.minTime || (rule.maxTime > 0 && durationMinutes > rule.maxTime)) {
+                    addResultRow("Sai Thời Gian", staffName, 
+                        `<b>${patientName}</b> - ${serviceName}<br>` +
+                        `Làm trong: <b class="text-danger">${Math.round(durationMinutes)} phút</b> ` +
+                        `(Quy định: ${rule.minTime}-${rule.maxTime})`
+                    );
+                    warningCount++;
+                }
+
+                // Gom nhóm check trùng
+                if (!staffMap[staffName]) staffMap[staffName] = [];
+                staffMap[staffName].push({
+                    patient: patientName,
+                    service: serviceName,
+                    start: startDateTime,
+                    end: endDateTime,
+                    rule: rule
+                });
+            }
         });
 
-        // --- BƯỚC 2: Kiểm tra trùng lặp (Overlap) ---
+        // 2. Check trùng lặp
         for (const [staff, sessions] of Object.entries(staffMap)) {
-            // Sắp xếp các ca làm việc theo giờ bắt đầu
             sessions.sort((a, b) => a.start - b.start);
 
             for (let i = 0; i < sessions.length; i++) {
@@ -199,90 +288,74 @@
                     const ca1 = sessions[i];
                     const ca2 = sessions[j];
 
-                    // Nếu ca sau bắt đầu SAU KHI ca trước kết thúc -> Không trùng, thoát vòng lặp con (vì đã sort)
-                    if (ca2.start >= ca1.end) break;
+                    if (ca2.start >= ca1.end) break; // Hết trùng
 
-                    // Nếu trùng thời gian:
-                    // Kiểm tra xem cả 2 dịch vụ có cho phép "Lồng ghép" (allowOverlap) hay không
-                    // Logic: Chỉ cần 1 trong 2 dịch vụ KHÔNG cho phép overlap -> LỖI
-                    const isAllowed = ca1.rule.allowOverlap && ca2.rule.allowOverlap;
+                    // Kiểm tra luật cho phép
+                    const allowed = ca1.rule.allowOverlap && ca2.rule.allowOverlap;
 
-                    if (!isAllowed) {
-                        // Kiểm tra tên bệnh nhân khác nhau mới báo (tránh trường hợp 1 BN làm 2 thứ cùng lúc)
-                        if (ca1.patient !== ca2.patient) {
-                            addResultRow("Xung Đột Lịch (Trùng giờ)", staff,
-                                `Nhân viên thực hiện cùng lúc cho 2 bệnh nhân:<br>` +
-                                `1. <b>${ca1.patient}</b> (${ca1.service}) <br>` + 
-                                `Time: ${formatTime(ca1.start)} - ${formatTime(ca1.end)}<br>` +
-                                `2. <b>${ca2.patient}</b> (${ca2.service}) <br>` +
-                                `Time: ${formatTime(ca2.start)} - ${formatTime(ca2.end)}`
-                            );
-                            errorCount++;
-                        }
+                    if (!allowed && ca1.patient !== ca2.patient) {
+                        addResultRow("Trùng Lịch Cấm", staff,
+                            `<b>${ca1.patient}</b> (${ca1.service})<br>` + 
+                            `<span class="text-muted small">${formatTime(ca1.start)} - ${formatTime(ca1.end)}</span><br>` +
+                            `⚡ TRÙNG VỚI ⚡<br>` +
+                            `<b>${ca2.patient}</b> (${ca2.service})<br>` +
+                            `<span class="text-muted small">${formatTime(ca2.start)} - ${formatTime(ca2.end)}</span>`
+                        );
+                        errorCount++;
                     }
                 }
             }
         }
 
-        document.getElementById('summary').innerText = `Tìm thấy ${errorCount} vấn đề`;
-        if(errorCount === 0) {
-            resultsBody.innerHTML = '<tr><td colspan="3" class="text-center text-success">Không phát hiện vi phạm nào!</td></tr>';
+        // Cập nhật trạng thái
+        const summaryEl = document.getElementById('summary');
+        if (errorCount + warningCount === 0) {
+            summaryEl.className = "badge bg-success";
+            summaryEl.innerText = "Dữ liệu hợp lệ 100%";
+            resultsBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-4">Không tìm thấy lỗi nào.</td></tr>';
+        } else {
+            summaryEl.className = "badge bg-danger";
+            summaryEl.innerText = `Phát hiện: ${errorCount} lỗi trùng, ${warningCount} lỗi thời gian`;
         }
     }
 
-    // --- HÀM HỖ TRỢ ---
-
-    function addResultRow(type, staff, details) {
+    // --- TIỆN ÍCH ---
+    function addResultRow(type, staff, htmlDetails) {
         const tbody = document.querySelector('#resultTable tbody');
         const tr = document.createElement('tr');
         tr.className = type.includes("Thời Gian") ? "warning-row" : "error-row";
-        
         tr.innerHTML = `
             <td><span class="badge ${type.includes("Thời Gian") ? "bg-warning text-dark" : "bg-danger"}">${type}</span></td>
             <td><b>${staff}</b></td>
-            <td>${details}</td>
+            <td>${htmlDetails}</td>
         `;
         tbody.appendChild(tr);
     }
 
-    // Hàm xử lý ngày giờ từ Excel (Xử lý cả dạng chuỗi Text và dạng Serial Number của Excel)
     function combineDateTime(dateVal, timeVal) {
-        // Đây là hàm xử lý phức tạp vì Excel có thể trả về nhiều định dạng
-        // Giả định đơn giản: DateVal là chuỗi DD/MM/YYYY hoặc Date object
-        
+        if (!dateVal) return null;
         let dateObj = null;
-
-        // Helper parse chuỗi DD/MM/YYYY
-        const parseDateStr = (str) => {
-            if(!str) return null;
-            if (str instanceof Date) return str;
-            const parts = str.split('/');
-            if(parts.length === 3) return new Date(parts[2], parts[1]-1, parts[0]);
-            return null;
-        }
-
-        // Helper parse chuỗi HH:mm
-        const parseTimeStr = (str, baseDate) => {
-            if(!str) return baseDate;
-            // Nếu timeVal là số thập phân (Excel time serial: 0.5 = 12h trưa)
-            if (typeof str === 'number') {
-                const totalSeconds = Math.floor(str * 86400);
-                baseDate.setSeconds(baseDate.getSeconds() + totalSeconds);
-                return baseDate;
-            }
-            // Nếu là chuỗi
-            const parts = str.split(':');
-            if(parts.length >= 2) {
-                baseDate.setHours(parseInt(parts[0]), parseInt(parts[1]), 0);
-            }
-            return baseDate;
-        }
-
-        dateObj = parseDateStr(dateVal);
-        if (dateObj && timeVal) {
-            dateObj = parseTimeStr(timeVal, dateObj);
+        
+        // Parse Date
+        if (dateVal instanceof Date) {
+            dateObj = new Date(dateVal.getTime());
+        } else if (typeof dateVal === 'string') {
+            const parts = dateVal.split('/');
+            if(parts.length === 3) dateObj = new Date(parts[2], parts[1]-1, parts[0]);
         }
         
+        if (!dateObj) return null;
+
+        // Parse Time
+        if (typeof timeVal === 'number') {
+            // Excel time fraction
+            const totalSeconds = Math.round(timeVal * 86400);
+            dateObj.setSeconds(dateObj.getSeconds() + totalSeconds);
+        } else if (typeof timeVal === 'string') {
+            const parts = timeVal.split(':');
+            if(parts.length >= 2) dateObj.setHours(parts[0], parts[1], 0);
+        }
+
         return dateObj;
     }
 
