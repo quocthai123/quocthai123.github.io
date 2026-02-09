@@ -8,15 +8,18 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { background-color: #f4f6f9; font-size: 13px; }
-        .table-responsive { max-height: 75vh; overflow-y: auto; border: 1px solid #dee2e6; }
-        thead th { position: sticky; top: 0; background-color: #0d6efd; color: white; z-index: 10; }
+        body { background-color: #f4f6f9; font-size: 12.5px; } /* Giảm font nhẹ để vừa bảng */
+        .table-responsive { max-height: 80vh; overflow-y: auto; border: 1px solid #dee2e6; }
+        thead th { position: sticky; top: 0; background-color: #0d6efd; color: white; z-index: 10; white-space: nowrap; }
+        td { vertical-align: middle; }
         
         /* Màu sắc trạng thái */
-        .status-ok { background-color: #d1e7dd; color: #0f5132; } /* Xanh lá */
-        .status-error { background-color: #f8d7da; color: #842029; font-weight: bold; } /* Đỏ */
-        .status-warning { background-color: #fff3cd; color: #664d03; } /* Vàng */
-        .status-unknown { background-color: #e2e3e5; color: #41464b; } /* Xám */
+        .status-ok { background-color: #d1e7dd; color: #0f5132; }
+        .status-error { background-color: #f8d7da; color: #842029; font-weight: bold; }
+        .status-warning { background-color: #fff3cd; color: #664d03; }
+        .status-unknown { background-color: #e2e3e5; color: #41464b; }
+        
+        .info-col { font-size: 0.9em; color: #555; }
     </style>
 </head>
 <body>
@@ -24,7 +27,7 @@
 <div class="container-fluid py-3">
     <div class="card shadow-sm mb-3">
         <div class="card-body py-2 d-flex justify-content-between align-items-center">
-            <h4 class="m-0 text-primary"><i class="bi bi-table"></i> BẢNG ĐỐI CHIẾU DỮ LIỆU PTTT</h4>
+            <h4 class="m-0 text-primary"><i class="bi bi-table"></i> ĐỐI CHIẾU DỮ LIỆU PTTT</h4>
             <div class="d-flex gap-2">
                 <button class="btn btn-outline-secondary btn-sm" onclick="loadConfig()">
                     <i class="bi bi-arrow-repeat"></i> Tải lại Cấu hình
@@ -49,18 +52,21 @@
             <thead>
                 <tr>
                     <th width="40">STT</th>
-                    <th>Ngày</th>
+                    <th>Ngày PTTT</th>
+                    <th>Mã HS</th>
                     <th>Bệnh nhân</th>
+                    <th>Ngày sinh</th>
+                    <th>Vào/Ra Viện</th>
                     <th>Dịch vụ (DVKT)</th>
                     <th>KTV thực hiện</th>
-                    <th width="100">Bắt đầu</th>
-                    <th width="100">Kết thúc</th>
-                    <th width="80">Phút</th>
+                    <th>Bắt đầu</th>
+                    <th>Kết thúc</th>
+                    <th>Phút</th>
                     <th>Trạng thái & Lỗi</th>
                 </tr>
             </thead>
             <tbody>
-                <tr><td colspan="9" class="text-center py-5 text-muted">Vui lòng chọn file Excel để xem chi tiết toàn bộ dữ liệu.</td></tr>
+                <tr><td colspan="12" class="text-center py-5 text-muted">Vui lòng chọn file Excel để xem chi tiết.</td></tr>
             </tbody>
         </table>
     </div>
@@ -89,7 +95,7 @@
         return str.toString().toLowerCase().trim().replace(/\s+/g, ' ');
     }
 
-  function processData() {
+    function processData() {
         const fileInput = document.getElementById('uploadFile');
         if (!fileInput.files.length) { alert("Chưa chọn file!"); return; }
 
@@ -99,25 +105,20 @@
             const workbook = XLSX.read(data, {type: 'array'});
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-            // --- CẢI TIẾN: TỰ ĐỘNG TÌM DÒNG TIÊU ĐỀ ---
-            // 1. Đọc thử file dưới dạng mảng để quét tìm dòng tiêu đề
+            // Tự động tìm dòng tiêu đề
             const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
             let headerRowIndex = 0;
             
             for(let i = 0; i < rawData.length; i++) {
-                // Chuyển cả dòng thành chuỗi để tìm kiếm từ khóa
                 const rowStr = JSON.stringify(rawData[i]);
-                // Nếu dòng này chứa tên cột quan trọng
                 if(rowStr.includes("Tên bệnh nhân") && rowStr.includes("PTV/TTV chính")) {
                     headerRowIndex = i;
-                    console.log("Đã tìm thấy tiêu đề tại dòng:", headerRowIndex + 1);
                     break;
                 }
             }
 
-            // 2. Đọc lại dữ liệu chính thức bắt đầu từ dòng tiêu đề tìm được (range)
             const jsonData = XLSX.utils.sheet_to_json(sheet, { 
-                range: headerRowIndex, // Bỏ qua các dòng tiêu đề thừa ở trên
+                range: headerRowIndex, 
                 defval: "" 
             });
             
@@ -131,17 +132,22 @@
         tableBody.innerHTML = '';
         
         let stats = { total: 0, valid: 0, error: 0, warning: 0 };
-        const staffMap = {}; // Dùng để check trùng
+        const staffMap = {}; 
         
-        // Chuẩn hóa key config để tra cứu nhanh
         const configMap = {};
         for (let key in currentConfig) configMap[normalizeName(key)] = currentConfig[key];
 
-        // --- BƯỚC 1: Duyệt qua danh sách, tính toán cơ bản ---
+        // --- BƯỚC 1: XỬ LÝ DỮ LIỆU ---
         const processedRows = data.map((row, index) => {
             const result = {
                 id: index + 1,
                 rowExcel: index + 2,
+                // Các trường dữ liệu mới
+                maHoSo: (row['Mã hồ sơ'] || "").toString().trim(),
+                ngaySinh: (row['Ngày sinh'] || "").toString().trim(),
+                ngayVao: (row['Ngày vào viện'] || "").toString().trim(),
+                ngayRa: (row['Ngày ra viện'] || "").toString().trim(),
+                
                 patient: (row['Tên bệnh nhân'] || "").toString().trim(),
                 service: (row['Phương pháp PTTT'] || "").toString().trim(),
                 staff: (row['PTV/TTV chính'] || "").toString().trim(),
@@ -150,14 +156,13 @@
                 dateOut: (row['Ngày KTPTTT'] || "").toString().trim(),
                 timeOut: row['Giờ KTPTTT'],
                 duration: 0,
-                status: "OK", // OK, ERROR, WARNING, UNKNOWN
+                status: "OK", 
                 messages: []
             };
 
-            // Bỏ qua dòng trống
             if (!result.staff || !result.service) return null;
 
-            // 1. Check ngày
+            // 1. Check ngày PTTT
             if (result.dateIn !== result.dateOut) {
                 result.status = "ERROR";
                 result.messages.push(`Sai ngày (Vào: ${result.dateIn}, Ra: ${result.dateOut})`);
@@ -167,7 +172,7 @@
             const startObj = combineDateTime(result.dateIn, result.timeIn);
             const endObj = combineDateTime(result.dateOut, result.timeOut);
             
-            result.startObj = startObj; // Lưu object để tính trùng sau này
+            result.startObj = startObj;
             result.endObj = endObj;
 
             if (startObj && endObj) {
@@ -176,41 +181,38 @@
                 
                 if (result.duration <= 0) {
                     result.status = "ERROR";
-                    result.messages.push("Thời gian âm hoặc bằng 0");
+                    result.messages.push("Thời gian lỗi (<= 0)");
                 }
             } else {
                 result.status = "ERROR";
                 result.messages.push("Lỗi định dạng giờ");
             }
 
-            // 3. Check cấu hình (Min/Max)
+            // 3. Check Min/Max
             const normService = normalizeName(result.service);
             let rule = configMap[normService];
             
             if (!rule) {
-                result.status = result.status === "ERROR" ? "ERROR" : "UNKNOWN"; // Nếu chưa lỗi thì là Unknown
-                result.messages.push("Chưa cấu hình JSON");
-                rule = { ...DEFAULT_RULE, isDefault: true }; // Dùng tạm để check trùng
+                result.status = result.status === "ERROR" ? "ERROR" : "UNKNOWN";
+                result.messages.push("Chưa cấu hình");
+                rule = { ...DEFAULT_RULE, isDefault: true };
             } else {
-                // Nếu có cấu hình thì check Min/Max
                 if (result.duration < rule.minTime || (rule.maxTime > 0 && result.duration > rule.maxTime)) {
                     if (result.status !== "ERROR") result.status = "WARNING";
-                    result.messages.push(`Sai thời gian (Quy định: ${rule.minTime}-${rule.maxTime})`);
+                    result.messages.push(`Lỗi thời gian (QĐ: ${rule.minTime}-${rule.maxTime})`);
                 }
             }
-            result.rule = rule; // Lưu rule để dùng cho bước check trùng
+            result.rule = rule;
 
-            // Gom nhóm theo nhân viên
             if (!staffMap[result.staff]) staffMap[result.staff] = [];
             staffMap[result.staff].push(result);
 
             return result;
         }).filter(item => item !== null);
 
-        // --- BƯỚC 2: Check trùng lặp (Overlap) ---
+        // --- BƯỚC 2: CHECK TRÙNG LẶP NÂNG CAO ---
         for (const staff in staffMap) {
             const sessions = staffMap[staff];
-            // Sort theo giờ bắt đầu
             sessions.sort((a, b) => (a.startObj || 0) - (b.startObj || 0));
 
             for (let i = 0; i < sessions.length; i++) {
@@ -221,22 +223,41 @@
                     // Nếu ca sau bắt đầu sau khi ca trước kết thúc -> Hết trùng
                     if (!ca2.startObj || !ca1.endObj || ca2.startObj >= ca1.endObj) break;
 
-                    // Nếu trùng thời gian -> Check luật allowOverlap
-                    const allowed = !ca1.rule.isDefault && !ca2.rule.isDefault && ca1.rule.allowOverlap && ca2.rule.allowOverlap;
+                    // --- LOGIC MỚI: KIỂM TRA TRÙNG KHỚP HOÀN TOÀN ---
+                    const isExactMatch = (ca1.startObj.getTime() === ca2.startObj.getTime()) && 
+                                         (ca1.endObj.getTime() === ca2.endObj.getTime());
 
-                    if (!allowed && ca1.patient !== ca2.patient) {
-                        // Đánh dấu cả 2 ca là LỖI
-                        ca1.status = "ERROR";
-                        ca1.messages.push(`⛔ Trùng giờ với: ${ca2.patient} (${formatSimpleTime(ca2.startObj)}-${formatSimpleTime(ca2.endObj)})`);
-                        
-                        ca2.status = "ERROR";
-                        ca2.messages.push(`⛔ Trùng giờ với: ${ca1.patient} (${formatSimpleTime(ca1.startObj)}-${formatSimpleTime(ca1.endObj)})`);
+                    // Check luật allowOverlap từ JSON
+                    const isConfigAllowed = !ca1.rule.isDefault && !ca2.rule.isDefault && 
+                                            ca1.rule.allowOverlap && ca2.rule.allowOverlap;
+
+                    if (ca1.patient !== ca2.patient) {
+                        let isViolation = false;
+                        let msg = "";
+
+                        if (isExactMatch) {
+                            // Trường hợp 1: Trùng khớp 100% thời gian -> LUÔN LUÔN LỖI (Bất kể cấu hình)
+                            isViolation = true;
+                            msg = `⛔ Trùng 100% thời gian với ${ca2.patient} (Không được phép)`;
+                        } else if (!isConfigAllowed) {
+                            // Trường hợp 2: Có overlap nhưng không được cấu hình cho phép
+                            isViolation = true;
+                            msg = `⛔ Trùng giờ với ${ca2.patient} (DVKT không cho phép gối đầu)`;
+                        }
+
+                        if (isViolation) {
+                            ca1.status = "ERROR";
+                            ca1.messages.push(msg.replace(ca2.patient, ca2.patient)); // Hack để dùng chuỗi msg linh động
+                            
+                            ca2.status = "ERROR";
+                            ca2.messages.push(msg.replace(ca2.patient, ca1.patient));
+                        }
                     }
                 }
             }
         }
 
-        // --- BƯỚC 3: Hiển thị ra bảng ---
+        // --- BƯỚC 3: HIỂN THỊ ---
         stats.total = processedRows.length;
 
         processedRows.forEach(row => {
@@ -249,7 +270,7 @@
                 stats.valid++;
             } else if (row.status === "ERROR") {
                 rowClass = "status-error";
-                statusBadge = `<span class="badge bg-danger">Lỗi nghiêm trọng</span>`;
+                statusBadge = `<span class="badge bg-danger">Lỗi</span>`;
                 stats.error++;
             } else if (row.status === "WARNING") {
                 rowClass = "status-warning";
@@ -257,7 +278,7 @@
                 stats.warning++;
             } else {
                 rowClass = "status-unknown";
-                statusBadge = `<span class="badge bg-secondary">Chưa cấu hình</span>`;
+                statusBadge = `<span class="badge bg-secondary">Chưa rõ</span>`;
             }
 
             const tr = document.createElement('tr');
@@ -265,21 +286,28 @@
             tr.innerHTML = `
                 <td class="text-center">${row.id}</td>
                 <td>${row.dateIn}</td>
+                
+                <td class="info-col">${row.maHoSo}</td>
                 <td class="fw-bold">${row.patient}</td>
+                <td class="info-col">${row.ngaySinh}</td>
+                <td class="info-col small">
+                    Vào: ${row.ngayVao}<br>
+                    Ra: ${row.ngayRa}
+                </td>
+                
                 <td>${row.service}</td>
                 <td>${row.staff}</td>
                 <td class="text-center">${formatSimpleTime(row.startObj)}</td>
                 <td class="text-center">${formatSimpleTime(row.endObj)}</td>
-                <td class="text-center fw-bold fs-6">${row.duration}'</td>
+                <td class="text-center fw-bold text-primary">${row.duration}'</td>
                 <td>
                     ${statusBadge}
-                    <div class="small mt-1">${row.messages.join('<br>')}</div>
+                    <div class="small mt-1 text-danger">${row.messages.join('<br>')}</div>
                 </td>
             `;
             tableBody.appendChild(tr);
         });
 
-        // Cập nhật thanh thống kê
         document.getElementById('statsBar').classList.remove('d-none');
         document.getElementById('totalCount').innerText = stats.total;
         document.getElementById('validCount').innerText = stats.valid;
@@ -287,7 +315,7 @@
         document.getElementById('warningCount').innerText = stats.warning;
     }
 
-    // --- Utility Functions ---
+    // --- UTILS ---
     function combineDateTime(dateStr, timeVal) {
         if (!dateStr) return null;
         let d = new Date();
