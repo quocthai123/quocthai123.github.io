@@ -1,5 +1,5 @@
 {
-    "default": { "allowOverlap": false, "minTime": 5, "maxTime": 120 },
+    "default": { "allowOverlap": false, "minTime": 5, "maxTime": 5 },
     "Điều trị bằng tia hồng ngoại": { "allowOverlap": true, "minTime": 15, "maxTime": 30 },
     "Điện châm": { "allowOverlap": true, "minTime": 20, "maxTime": 45 },
     "Xoa bóp bấm huyệt": { "allowOverlap": false, "minTime": 30, "maxTime": 60 }
