@@ -111,7 +111,8 @@
     async function loadConfig() {
         try {
             // Fetch file từ cùng thư mục trên server/github
-            const response = await fetch('./danhmucdvkt.json'); 
+            // Thêm ?v=... để trình duyệt biết đây là phiên bản mới, không dùng bản cũ
+const response = await fetch('./danhmucdvkt.json?v=' + new Date().getTime());
             if (!response.ok) throw new Error("Không tìm thấy file danhmucdvkt.json");
             
             const data = await response.json();
