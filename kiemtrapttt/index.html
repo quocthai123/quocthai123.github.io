@@ -233,22 +233,31 @@ const response = await fetch('./danhmucdvkt.json?v=' + new Date().getTime());
         const staffMap = {};
 
         data.forEach((row, index) => {
-            // Tên cột phải khớp chính xác trong Excel
-            const staffName = row['PTV/TTV chính'];
-            const serviceName = row['Phương pháp PTTT']; // Key để tra cứu trong JSON
-            const patientName = row['Tên bệnh nhân'];
+            // --- SỬA LỖI Ở ĐÂY: Thêm .trim() để cắt khoảng trắng thừa ---
+            // Nếu ô trống thì gán là chuỗi rỗng "" rồi trim()
+            const staffName = (row['PTV/TTV chính'] || "").toString().trim();
+            const serviceName = (row['Phương pháp PTTT'] || "").toString().trim(); 
+            const patientName = (row['Tên bệnh nhân'] || "").toString().trim();
             
             if (!staffName || !serviceName) return; 
 
-            // Lấy luật từ Config hiện tại, nếu không có thì lấy default
+            // Lấy luật từ Config
             let rule = currentConfig[serviceName];
             
-            // Nếu chưa có trong config, tự động thêm vào config (dưới dạng chưa cấu hình) để người dùng biết
+            // Nếu chưa có trong config
             if (!rule) {
-                rule = { ...DEFAULT_RULE }; // Copy default
-                // Thêm vào bảng config để lần sau người dùng chỉnh được
-                currentConfig[serviceName] = rule;
-                renderConfigTable(currentConfig); // Vẽ lại bảng
+                // Thử tìm kiếm không phân biệt hoa thường (Case insensitive search) để chắc chắn hơn
+                const keyFound = Object.keys(currentConfig).find(key => key.toLowerCase() === serviceName.toLowerCase());
+                if (keyFound) {
+                    rule = currentConfig[keyFound];
+                } else {
+                    // Nếu vẫn không thấy thì dùng mặc định
+                    console.log(`Không tìm thấy cấu hình cho: "${serviceName}". Đang dùng mặc định.`);
+                    rule = { ...DEFAULT_RULE }; 
+                    // Thêm vào bảng config để người dùng biết là có dịch vụ lạ
+                    currentConfig[serviceName] = rule;
+                    renderConfigTable(currentConfig); 
+                }
             }
 
             // Xử lý thời gian
@@ -259,7 +268,10 @@ const response = await fetch('./danhmucdvkt.json?v=' + new Date().getTime());
                 const durationMinutes = (endDateTime - startDateTime) / (1000 * 60);
                 
                 // 1. Check thời gian
-                if (durationMinutes < rule.minTime || (rule.maxTime > 0 && durationMinutes > rule.maxTime)) {
+                // Làm tròn thời gian để tránh lỗi số lẻ (ví dụ 59.999 giây)
+                const durationRounded = Math.round(durationMinutes * 100) / 100;
+
+                if (durationRounded < rule.minTime || (rule.maxTime > 0 && durationRounded > rule.maxTime)) {
                     addResultRow("Sai Thời Gian", staffName, 
                         `<b>${patientName}</b> - ${serviceName}<br>` +
                         `Làm trong: <b class="text-danger">${Math.round(durationMinutes)} phút</b> ` +
