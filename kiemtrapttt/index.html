@@ -119,6 +119,7 @@
             top: 0;
             z-index: 10;
             border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap;
         }
 
         .table tbody td {
@@ -169,6 +170,7 @@
         
         .info-col { color: #64748b; font-size: 0.85em; }
         .fw-medium { font-weight: 500; }
+        .sub-text { font-size: 0.8em; color: #888; display: block; }
     </style>
 </head>
 <body>
@@ -230,9 +232,9 @@
                     <thead>
                         <tr>
                             <th class="text-center" width="50">STT</th>
-                            <th>Ngày Thực Hiện</th>
-                            <th>Thông Tin Bệnh Nhân</th>
-                            <th>Ngày Điều Trị</th>
+                            <th>Ngày TH</th>
+                            <th>Mã Phiếu/Hồ Sơ</th>
+                            <th>Bệnh Nhân / Bảo Hiểm</th>
                             <th>Dịch vụ (DVKT)</th>
                             <th>KTV Thực Hiện</th>
                             <th class="text-center">Bắt Đầu</th>
@@ -257,7 +259,7 @@
     <footer>
         <div class="container">
             <div class="fw-bold text-primary mb-1">BỆNH VIỆN PHỤC HỒI CHỨC NĂNG</div>
-            <small>&copy; 2026 - Phát triển bởi Lê Quốc Thái. Phiên bản 2.5</small>
+            <small>&copy; 2026 - Phát triển bởi Lê Quốc Thái. Phiên bản 2.6</small>
         </div>
     </footer>
 
@@ -325,8 +327,11 @@
             const processedRows = data.map((row, index) => {
                 const result = {
                     id: index + 1,
+                    maPhieu: (row['Mã phiếu'] || "").toString().trim(), // Mới
                     maHoSo: (row['Mã hồ sơ'] || "").toString().trim(),
+                    theBHYT: (row['Thẻ bảo hiểm'] || "").toString().trim(), // Mới
                     ngaySinh: (row['Ngày sinh'] || "").toString().trim(),
+                    
                     ngayVao: (row['Ngày vào viện'] || "").toString().trim(),
                     ngayRa: (row['Ngày ra viện'] || "").toString().trim(),
                     patient: (row['Tên bệnh nhân'] || "").toString().trim(),
@@ -493,12 +498,12 @@
                     <td class="text-center fw-bold text-secondary">${row.id}</td>
                     <td>${row.dateIn}</td>
                     <td>
-                        <div class="fw-bold text-dark">${row.patient}</div>
-                        <div class="info-col">HS: ${row.maHoSo} | NS: ${row.ngaySinh}</div>
+                        <div class="fw-bold text-dark" style="font-size:0.9em;">MP: ${row.maPhieu}</div>
+                        <div class="info-col">HS: ${row.maHoSo}</div>
                     </td>
-                    <td class="info-col">
-                        <i class="bi bi-box-arrow-in-right text-success"></i> ${row.ngayVao}<br>
-                        <i class="bi bi-box-arrow-right text-danger"></i> ${row.ngayRa}
+                    <td>
+                        <div class="fw-bold text-dark">${row.patient}</div>
+                        <div class="info-col">NS: ${row.ngaySinh} <br> <span class="text-primary small">${row.theBHYT}</span></div>
                     </td>
                     <td class="fw-medium text-primary">${row.service}</td>
                     <td class="fw-medium">${row.staff}</td>
