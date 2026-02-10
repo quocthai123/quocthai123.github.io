@@ -17,7 +17,6 @@
     <style>
         :root {
             --primary-color: #4361ee;
-            --primary-hover: #3a0ca3;
             --bg-color: #f8f9fa;
             --card-bg: #ffffff;
             --text-main: #2b2d42;
@@ -40,7 +39,7 @@
             min-height: 100vh;
         }
 
-        /* --- Header Section --- */
+        /* Header */
         .app-header {
             background: linear-gradient(135deg, var(--primary-color), #4cc9f0);
             color: white;
@@ -60,37 +59,27 @@
             backdrop-filter: blur(10px);
         }
 
-        /* --- Stats Cards --- */
+        /* Stats Cards */
         .stat-card {
             background: var(--card-bg);
-            border: none;
             border-radius: 12px;
             padding: 15px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             box-shadow: 0 2px 5px rgba(0,0,0,0.03);
             border: 1px solid transparent;
             height: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
         }
-
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.08);
-        }
-
-        .stat-card.active {
-            border-color: var(--primary-color);
-            background-color: #eef2ff;
-        }
-
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.08); }
+        .stat-card.active { border-color: var(--primary-color); background-color: #eef2ff; }
         .stat-value { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
-        .stat-label { font-size: 0.8rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; color: var(--text-muted); margin-top: 5px; }
+        .stat-label { font-size: 0.8rem; text-transform: uppercase; font-weight: 600; color: var(--text-muted); margin-top: 5px; }
 
-        /* --- Table Styling --- */
+        /* Table */
         .table-container {
             background: var(--card-bg);
             border-radius: 12px;
@@ -101,19 +90,13 @@
             flex-direction: column;
             border: 1px solid #e5e7eb;
         }
-
-        .table-responsive {
-            max-height: 65vh; /* Điều chỉnh chiều cao bảng */
-            overflow-y: auto;
-        }
-
+        .table-responsive { max-height: 65vh; overflow-y: auto; }
         .table thead th {
             background-color: #f1f5f9;
             color: #475569;
             font-weight: 600;
             text-transform: uppercase;
             font-size: 0.75rem;
-            letter-spacing: 0.5px;
             padding: 12px 10px;
             position: sticky;
             top: 0;
@@ -121,56 +104,28 @@
             border-bottom: 2px solid #e2e8f0;
             white-space: nowrap;
         }
+        .table tbody td { padding: 10px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; }
+        .table-hover tbody tr:hover { background-color: #f8fafc; }
 
-        .table tbody td {
-            padding: 10px;
-            vertical-align: middle;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: #f8fafc;
-        }
-
-        /* Status Badges */
-        .status-badge {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.75rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
+        /* Badges & Highlights */
+        .status-badge { padding: 5px 10px; border-radius: 20px; font-weight: 600; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 5px; }
         .status-ok { background-color: var(--success-bg); color: var(--success-text); }
         .status-error { background-color: var(--error-bg); color: var(--error-text); }
         .status-warning { background-color: var(--warning-bg); color: var(--warning-text); }
         .status-unknown { background-color: #f3f4f6; color: #4b5563; }
-
-        /* Row Highlights */
+        
         tr.row-error { background-color: #fff1f2 !important; }
         tr.row-warning { background-color: #fffbeb !important; }
 
-        /* --- Footer --- */
-        footer {
-            margin-top: auto;
-            padding: 20px;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            border-top: 1px solid #e5e7eb;
-            background: white;
-        }
-
+        footer { margin-top: auto; padding: 20px; text-align: center; color: var(--text-muted); font-size: 0.8rem; border-top: 1px solid #e5e7eb; background: white; }
+        
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
         
         .info-col { color: #64748b; font-size: 0.85em; }
         .fw-medium { font-weight: 500; }
-        .sub-text { font-size: 0.8em; color: #888; display: block; }
     </style>
 </head>
 <body>
@@ -259,7 +214,7 @@
     <footer>
         <div class="container">
             <div class="fw-bold text-primary mb-1">BỆNH VIỆN PHỤC HỒI CHỨC NĂNG</div>
-            <small>&copy; 2026 - Phát triển bởi Lê Quốc Thái. Phiên bản 2.6</small>
+            <small>&copy; 2026 - Phát triển bởi Lê Quốc Thái. Phiên bản 2.7</small>
         </div>
     </footer>
 
@@ -321,15 +276,16 @@
         function analyzeData(data) {
             let stats = { total: 0, valid: 0, error: 0, warning: 0 };
             const staffMap = {}; 
+            const patientMap = {}; // Map để check trùng bệnh nhân
             const configMap = {};
             for (let key in currentConfig) configMap[normalizeName(key)] = currentConfig[key];
 
             const processedRows = data.map((row, index) => {
                 const result = {
                     id: index + 1,
-                    maPhieu: (row['Mã phiếu'] || "").toString().trim(), // Mới
+                    maPhieu: (row['Mã phiếu'] || "").toString().trim(),
                     maHoSo: (row['Mã hồ sơ'] || "").toString().trim(),
-                    theBHYT: (row['Thẻ bảo hiểm'] || "").toString().trim(), // Mới
+                    theBHYT: (row['Thẻ bảo hiểm'] || "").toString().trim(),
                     ngaySinh: (row['Ngày sinh'] || "").toString().trim(),
                     
                     ngayVao: (row['Ngày vào viện'] || "").toString().trim(),
@@ -347,6 +303,9 @@
                 };
 
                 if (!result.staff || !result.service) return null;
+
+                // --- KEY ĐỊNH DANH BỆNH NHÂN (Dùng Mã Hồ Sơ, nếu ko có thì dùng Tên + Ngày Sinh) ---
+                result.patientKey = result.maHoSo ? result.maHoSo : (result.patient + "_" + result.ngaySinh);
 
                 if (result.dateIn !== result.dateOut) {
                     result.status = "ERROR";
@@ -385,13 +344,41 @@
                 }
                 result.rule = rule;
 
+                // Group cho Staff
                 if (!staffMap[result.staff]) staffMap[result.staff] = [];
                 staffMap[result.staff].push(result);
+
+                // Group cho Patient
+                if (!patientMap[result.patientKey]) patientMap[result.patientKey] = [];
+                patientMap[result.patientKey].push(result);
 
                 return result;
             }).filter(item => item !== null);
 
-            // Check trùng lặp
+            // --- 1. CHECK TRÙNG LẶP: 1 BỆNH NHÂN LÀM > 1 VIỆC CÙNG LÚC ---
+            for (const pKey in patientMap) {
+                const sessions = patientMap[pKey];
+                sessions.sort((a, b) => (a.startObj || 0) - (b.startObj || 0));
+
+                for (let i = 0; i < sessions.length; i++) {
+                    for (let j = i + 1; j < sessions.length; j++) {
+                        const ca1 = sessions[i];
+                        const ca2 = sessions[j];
+                        
+                        // Nếu ca sau bắt đầu sau khi ca trước kết thúc -> Hết trùng
+                        if (!ca2.startObj || !ca1.endObj || ca2.startObj >= ca1.endObj) break;
+
+                        // Có overlap trong cùng 1 bệnh nhân -> LỖI
+                        ca1.status = "ERROR";
+                        ca1.messages.push(`⛔ Bệnh nhân làm cùng lúc dịch vụ: ${ca2.service} (${formatSimpleTime(ca2.startObj)}-${formatSimpleTime(ca2.endObj)})`);
+                        
+                        ca2.status = "ERROR";
+                        ca2.messages.push(`⛔ Bệnh nhân làm cùng lúc dịch vụ: ${ca1.service} (${formatSimpleTime(ca1.startObj)}-${formatSimpleTime(ca1.endObj)})`);
+                    }
+                }
+            }
+
+            // --- 2. CHECK TRÙNG LẶP: 1 KTV LÀM > 1 NGƯỜI CÙNG LÚC ---
             for (const staff in staffMap) {
                 const sessions = staffMap[staff];
                 sessions.sort((a, b) => (a.startObj || 0) - (b.startObj || 0));
@@ -407,21 +394,23 @@
                         const isConfigAllowed = !ca1.rule.isDefault && !ca2.rule.isDefault && 
                                                 ca1.rule.allowOverlap && ca2.rule.allowOverlap;
 
-                        if (ca1.patient !== ca2.patient) {
+                        // Chỉ check nếu khác bệnh nhân (vì cùng bệnh nhân đã check ở trên rồi)
+                        if (ca1.patientKey !== ca2.patientKey) {
                             let isViolation = false;
                             let msg = "";
                             if (isExactMatch) {
                                 isViolation = true;
-                                msg = `Trùng 100% thời gian với ${ca2.patient}`;
+                                msg = `⛔ Trùng 100% thời gian với ${ca2.patient}`;
                             } else if (!isConfigAllowed) {
                                 isViolation = true;
-                                msg = `Trùng giờ với ${ca2.patient} (Không được phép gối đầu)`;
+                                msg = `⛔ Trùng giờ với ${ca2.patient} (Không được phép gối đầu)`;
                             }
 
                             if (isViolation) {
-                                ca1.status = "ERROR";
+                                if(ca1.status !== "ERROR") ca1.status = "ERROR"; // Ưu tiên giữ lỗi nặng hơn nếu đã có
                                 ca1.messages.push(msg.replace(ca2.patient, ca2.patient)); 
-                                ca2.status = "ERROR";
+                                
+                                if(ca2.status !== "ERROR") ca2.status = "ERROR";
                                 ca2.messages.push(msg.replace(ca2.patient, ca1.patient));
                             }
                         }
@@ -429,7 +418,11 @@
                 }
             }
 
+            // Thống kê
             processedRows.forEach(row => {
+                // Lọc trùng lặp tin nhắn lỗi (để bảng gọn hơn)
+                row.messages = [...new Set(row.messages)]; 
+                
                 if (row.status === "OK") stats.valid++;
                 else if (row.status === "ERROR") stats.error++;
                 else if (row.status === "WARNING") stats.warning++;
