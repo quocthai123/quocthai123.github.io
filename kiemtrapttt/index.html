@@ -3,394 +3,537 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kiểm Tra PTTT - Chi Tiết Toàn Bộ</title>
+    <title>Rà Soát Dữ Liệu PTTT</title>
+    
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3063/3063176.png" type="image/png">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <style>
-        body { background-color: #f4f6f9; font-size: 13px; display: flex; flex-direction: column; min-height: 100vh; }
-        .main-content { flex: 1; }
-        .table-responsive { max-height: 72vh; overflow-y: auto; border: 1px solid #dee2e6; background: white; }
-        thead th { position: sticky; top: 0; background-color: #0d6efd; color: white; z-index: 10; white-space: nowrap; }
-        td { vertical-align: middle; }
-        
-        /* Màu sắc trạng thái */
-        .status-ok { background-color: #d1e7dd; color: #0f5132; }
-        .status-error { background-color: #f8d7da; color: #842029; font-weight: bold; }
-        .status-warning { background-color: #fff3cd; color: #664d03; }
-        .status-unknown { background-color: #e2e3e5; color: #41464b; }
-        .info-col { font-size: 0.9em; color: #555; }
-
-        /* Stats Bar Interactive */
-        .stat-card {
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            background: white;
-            position: relative;
-            overflow: hidden;
+        :root {
+            --primary-color: #4361ee;
+            --primary-hover: #3a0ca3;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-main: #2b2d42;
+            --text-muted: #8d99ae;
+            --success-bg: #d1fae5;
+            --success-text: #065f46;
+            --error-bg: #fee2e2;
+            --error-text: #991b1b;
+            --warning-bg: #fef3c7;
+            --warning-text: #92400e;
         }
-        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .stat-card.active { border: 2px solid #0d6efd; background-color: #e9ecef; }
-        .stat-value { font-size: 1.2rem; font-weight: bold; }
-        .stat-label { font-size: 0.85rem; text-transform: uppercase; color: #6c757d; }
 
-        /* Footer */
-        footer { margin-top: auto; padding: 15px 0; background: #fff; border-top: 1px solid #e9ecef; color: #6c757d; font-size: 0.85rem; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-size: 13.5px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- Header Section --- */
+        .app-header {
+            background: linear-gradient(135deg, var(--primary-color), #4cc9f0);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.2);
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }
+        
+        .upload-area {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: inline-block;
+            backdrop-filter: blur(10px);
+        }
+
+        /* --- Stats Cards --- */
+        .stat-card {
+            background: var(--card-bg);
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            border: 1px solid transparent;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+        }
+
+        .stat-card.active {
+            border-color: var(--primary-color);
+            background-color: #eef2ff;
+        }
+
+        .stat-value { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
+        .stat-label { font-size: 0.8rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; color: var(--text-muted); margin-top: 5px; }
+
+        /* --- Table Styling --- */
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.04);
+            overflow: hidden;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e5e7eb;
+        }
+
+        .table-responsive {
+            max-height: 65vh; /* Điều chỉnh chiều cao bảng */
+            overflow-y: auto;
+        }
+
+        .table thead th {
+            background-color: #f1f5f9;
+            color: #475569;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            padding: 12px 10px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .table tbody td {
+            padding: 10px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .status-ok { background-color: var(--success-bg); color: var(--success-text); }
+        .status-error { background-color: var(--error-bg); color: var(--error-text); }
+        .status-warning { background-color: var(--warning-bg); color: var(--warning-text); }
+        .status-unknown { background-color: #f3f4f6; color: #4b5563; }
+
+        /* Row Highlights */
+        tr.row-error { background-color: #fff1f2 !important; }
+        tr.row-warning { background-color: #fffbeb !important; }
+
+        /* --- Footer --- */
+        footer {
+            margin-top: auto;
+            padding: 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            border-top: 1px solid #e5e7eb;
+            background: white;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+        
+        .info-col { color: #64748b; font-size: 0.85em; }
+        .fw-medium { font-weight: 500; }
     </style>
 </head>
 <body>
 
-<div class="container-fluid py-3 main-content">
-    
-    <div class="text-center mb-4">
-        <h2 class="text-primary fw-bold text-uppercase mb-3">
-            <i class="bi bi-hospital"></i> Đối Chiếu Dữ Liệu PTTT
-        </h2>
+    <header class="app-header text-center">
+        <div class="container">
+            <h2 class="fw-bold mb-1"><i class="bi bi-shield-check me-2"></i>RÀ SOÁT DỮ LIỆU PTTT</h2>
+            <p class="opacity-75 mb-3 small">Công cụ hỗ trợ kiểm tra quy chế chuyên môn & thời gian thực hiện</p>
+            
+            <div class="upload-area">
+                <div class="mb-2 text-primary small fw-semibold">
+                    <i class="bi bi-file-earmark-excel-fill"></i> File: Báo cáo tổng hợp &rarr; 2. Danh sách bệnh nhân PTTT
+                </div>
+                <div class="d-flex gap-2 justify-content-center align-items-center">
+                    <input type="file" id="uploadFile" class="form-control form-control-sm border-secondary" style="width: 300px;" accept=".xlsx, .xls" />
+                    <button class="btn btn-primary btn-sm px-4 fw-bold shadow-sm" onclick="processData()">
+                        <i class="bi bi-search me-1"></i> KIỂM TRA
+                    </button>
+                    <a href="admin.html" class="btn btn-outline-secondary btn-sm" title="Cấu hình danh mục">
+                        <i class="bi bi-gear-fill"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
 
-        <div class="mb-2 text-muted">
-            <i class="bi bi-info-circle"></i> Chọn file: <b>Báo cáo tổng hợp &rarr; 2. Danh sách bệnh nhân phẫu thuật thủ thuật BVĐK TMI</b>
+    <div class="container-fluid px-4 main-content">
+        
+        <div id="statsBar" class="row g-3 mb-3 d-none">
+            <div class="col-6 col-md-3">
+                <div class="stat-card active" onclick="filterTable('ALL', this)">
+                    <div class="stat-value text-dark" id="totalCount">0</div>
+                    <div class="stat-label"><i class="bi bi-list-ul me-1"></i> Tổng số ca</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card" onclick="filterTable('OK', this)">
+                    <div class="stat-value text-success" id="validCount">0</div>
+                    <div class="stat-label"><i class="bi bi-check-circle me-1"></i> Hợp lệ</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card" onclick="filterTable('ERROR', this)">
+                    <div class="stat-value text-danger" id="errorCount">0</div>
+                    <div class="stat-label"><i class="bi bi-x-octagon me-1"></i> Lỗi nghiêm trọng</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card" onclick="filterTable('WARNING', this)">
+                    <div class="stat-value text-warning" id="warningCount">0</div>
+                    <div class="stat-label"><i class="bi bi-exclamation-triangle me-1"></i> Cảnh báo</div>
+                </div>
+            </div>
         </div>
 
-        <div class="d-flex justify-content-center gap-2">
-            <input type="file" id="uploadFile" class="form-control form-control-sm" style="width: 350px;" accept=".xlsx, .xls" />
-            <button class="btn btn-primary btn-sm px-4 fw-bold" onclick="processData()">
-                <i class="bi bi-search"></i> KIỂM TRA
-            </button>
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="mainTable">
+                    <thead>
+                        <tr>
+                            <th class="text-center" width="50">STT</th>
+                            <th>Ngày Thực Hiện</th>
+                            <th>Thông Tin Bệnh Nhân</th>
+                            <th>Ngày Điều Trị</th>
+                            <th>Dịch vụ (DVKT)</th>
+                            <th>KTV Thực Hiện</th>
+                            <th class="text-center">Bắt Đầu</th>
+                            <th class="text-center">Kết Thúc</th>
+                            <th class="text-center">Phút</th>
+                            <th>Trạng Thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="10" class="text-center py-5">
+                                <img src="https://cdn-icons-png.flaticon.com/512/748/748637.png" width="60" class="mb-3 opacity-50" alt="No Data"><br>
+                                <span class="text-muted fw-medium">Vui lòng chọn file Excel để bắt đầu kiểm tra.</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
-    <div id="statsBar" class="row g-3 mb-3 d-none">
-        <div class="col-md-3 col-6">
-            <div class="stat-card p-2 text-center" onclick="filterTable('ALL', this)">
-                <div class="stat-value text-dark" id="totalCount">0</div>
-                <div class="stat-label">Tổng số ca</div>
-            </div>
+    <footer>
+        <div class="container">
+            <div class="fw-bold text-primary mb-1">BỆNH VIỆN PHỤC HỒI CHỨC NĂNG</div>
+            <small>&copy; 2026 - Phát triển bởi Lê Quốc Thái. Phiên bản 2.5</small>
         </div>
-        <div class="col-md-3 col-6">
-            <div class="stat-card p-2 text-center" onclick="filterTable('OK', this)">
-                <div class="stat-value text-success" id="validCount">0</div>
-                <div class="stat-label">Hợp lệ</div>
-            </div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="stat-card p-2 text-center" onclick="filterTable('ERROR', this)">
-                <div class="stat-value text-danger" id="errorCount">0</div>
-                <div class="stat-label">Lỗi nghiêm trọng</div>
-            </div>
-        </div>
-        <div class="col-md-3 col-6">
-            <div class="stat-card p-2 text-center" onclick="filterTable('WARNING', this)">
-                <div class="stat-value text-warning" id="warningCount">0</div>
-                <div class="stat-label">Cảnh báo thời gian</div>
-            </div>
-        </div>
-    </div>
+    </footer>
 
-    <div class="table-responsive shadow-sm">
-        <table class="table table-bordered table-hover mb-0" id="mainTable">
-            <thead>
-                <tr>
-                    <th width="40">STT</th>
-                    <th>Ngày PTTT</th>
-                    <th>Mã HS</th>
-                    <th>Bệnh nhân</th>
-                    <th>Ngày sinh</th>
-                    <th>Vào/Ra Viện</th>
-                    <th>Dịch vụ (DVKT)</th>
-                    <th>KTV thực hiện</th>
-                    <th>Bắt đầu</th>
-                    <th>Kết thúc</th>
-                    <th>Phút</th>
-                    <th>Trạng thái & Lỗi</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td colspan="12" class="text-center py-5 text-muted">Vui lòng chọn file Excel để bắt đầu.</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
+    <script>
+        let currentConfig = {};
+        const DEFAULT_RULE = { allowOverlap: false, minTime: 5, maxTime: 120 };
+        let globalProcessedData = []; 
 
-<footer class="text-center">
-    <div class="container">
-        <strong>&copy; 2026 - Bệnh viện phục hồi chức năng</strong><br>
-        <small>Lê Quốc Thái</small>
-    </div>
-</footer>
+        window.onload = loadConfig;
 
-<script>
-    let currentConfig = {};
-    const DEFAULT_RULE = { allowOverlap: false, minTime: 5, maxTime: 120 };
-    let globalProcessedData = []; 
-
-    window.onload = loadConfig;
-
-    async function loadConfig() {
-        try {
-            const response = await fetch('./danhmucdvkt.json?v=' + new Date().getTime());
-            if (!response.ok) throw new Error("404");
-            currentConfig = await response.json();
-            console.log("Cấu hình đã tải:", currentConfig);
-        } catch (e) {
-            alert("⚠️ Không tải được file cấu hình. Đang dùng chế độ mặc định.");
-            currentConfig = { "default": DEFAULT_RULE };
+        async function loadConfig() {
+            try {
+                const response = await fetch('./danhmucdvkt.json?v=' + new Date().getTime());
+                if (!response.ok) throw new Error("404");
+                currentConfig = await response.json();
+                console.log("Cấu hình đã tải:", currentConfig);
+            } catch (e) {
+                alert("⚠️ Không tải được file cấu hình. Đang dùng chế độ mặc định.");
+                currentConfig = { "default": DEFAULT_RULE };
+            }
         }
-    }
 
-    function normalizeName(str) {
-        if (!str) return "";
-        return str.toString().toLowerCase().trim().replace(/\s+/g, ' ');
-    }
+        function normalizeName(str) {
+            if (!str) return "";
+            return str.toString().toLowerCase().trim().replace(/\s+/g, ' ');
+        }
 
-    function processData() {
-        const fileInput = document.getElementById('uploadFile');
-        if (!fileInput.files.length) { alert("Chưa chọn file!"); return; }
+        function processData() {
+            const fileInput = document.getElementById('uploadFile');
+            if (!fileInput.files.length) { alert("Chưa chọn file!"); return; }
 
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-            // Tự động tìm dòng tiêu đề
-            const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-            let headerRowIndex = 0;
-            
-            for(let i = 0; i < rawData.length; i++) {
-                const rowStr = JSON.stringify(rawData[i]);
-                if(rowStr.includes("Tên bệnh nhân") && rowStr.includes("PTV/TTV chính")) {
-                    headerRowIndex = i;
-                    break;
+                const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                let headerRowIndex = 0;
+                
+                for(let i = 0; i < rawData.length; i++) {
+                    const rowStr = JSON.stringify(rawData[i]);
+                    if(rowStr.includes("Tên bệnh nhân") && rowStr.includes("PTV/TTV chính")) {
+                        headerRowIndex = i;
+                        break;
+                    }
                 }
-            }
 
-            const jsonData = XLSX.utils.sheet_to_json(sheet, { 
-                range: headerRowIndex, 
-                defval: "" 
-            });
-            
-            analyzeData(jsonData);
-        };
-        reader.readAsArrayBuffer(fileInput.files[0]);
-    }
-
-    function analyzeData(data) {
-        let stats = { total: 0, valid: 0, error: 0, warning: 0 };
-        const staffMap = {}; 
-        const configMap = {};
-        for (let key in currentConfig) configMap[normalizeName(key)] = currentConfig[key];
-
-        const processedRows = data.map((row, index) => {
-            const result = {
-                id: index + 1,
-                maHoSo: (row['Mã hồ sơ'] || "").toString().trim(),
-                ngaySinh: (row['Ngày sinh'] || "").toString().trim(),
-                ngayVao: (row['Ngày vào viện'] || "").toString().trim(),
-                ngayRa: (row['Ngày ra viện'] || "").toString().trim(),
-                patient: (row['Tên bệnh nhân'] || "").toString().trim(),
-                service: (row['Phương pháp PTTT'] || "").toString().trim(),
-                staff: (row['PTV/TTV chính'] || "").toString().trim(),
-                dateIn: (row['Ngày PTTT'] || "").toString().trim(),
-                timeIn: row['Giờ PTTT'],
-                dateOut: (row['Ngày KTPTTT'] || "").toString().trim(),
-                timeOut: row['Giờ KTPTTT'],
-                duration: 0,
-                status: "OK", 
-                messages: []
+                const jsonData = XLSX.utils.sheet_to_json(sheet, { 
+                    range: headerRowIndex, 
+                    defval: "" 
+                });
+                
+                analyzeData(jsonData);
             };
+            reader.readAsArrayBuffer(fileInput.files[0]);
+        }
 
-            if (!result.staff || !result.service) return null;
+        function analyzeData(data) {
+            let stats = { total: 0, valid: 0, error: 0, warning: 0 };
+            const staffMap = {}; 
+            const configMap = {};
+            for (let key in currentConfig) configMap[normalizeName(key)] = currentConfig[key];
 
-            if (result.dateIn !== result.dateOut) {
-                result.status = "ERROR";
-                result.messages.push(`Sai ngày (${result.dateIn} - ${result.dateOut})`);
-            }
+            const processedRows = data.map((row, index) => {
+                const result = {
+                    id: index + 1,
+                    maHoSo: (row['Mã hồ sơ'] || "").toString().trim(),
+                    ngaySinh: (row['Ngày sinh'] || "").toString().trim(),
+                    ngayVao: (row['Ngày vào viện'] || "").toString().trim(),
+                    ngayRa: (row['Ngày ra viện'] || "").toString().trim(),
+                    patient: (row['Tên bệnh nhân'] || "").toString().trim(),
+                    service: (row['Phương pháp PTTT'] || "").toString().trim(),
+                    staff: (row['PTV/TTV chính'] || "").toString().trim(),
+                    dateIn: (row['Ngày PTTT'] || "").toString().trim(),
+                    timeIn: row['Giờ PTTT'],
+                    dateOut: (row['Ngày KTPTTT'] || "").toString().trim(),
+                    timeOut: row['Giờ KTPTTT'],
+                    duration: 0,
+                    status: "OK", 
+                    messages: []
+                };
 
-            const startObj = combineDateTime(result.dateIn, result.timeIn);
-            const endObj = combineDateTime(result.dateOut, result.timeOut);
-            
-            result.startObj = startObj;
-            result.endObj = endObj;
+                if (!result.staff || !result.service) return null;
 
-            if (startObj && endObj) {
-                let minutes = (endObj - startObj) / 60000;
-                result.duration = Math.round(minutes * 100) / 100;
-                if (result.duration <= 0) {
+                if (result.dateIn !== result.dateOut) {
                     result.status = "ERROR";
-                    result.messages.push("Thời gian lỗi (<= 0)");
+                    result.messages.push(`Sai ngày (${result.dateIn} - ${result.dateOut})`);
                 }
-            } else {
-                result.status = "ERROR";
-                result.messages.push("Lỗi định dạng giờ");
-            }
 
-            const normService = normalizeName(result.service);
-            let rule = configMap[normService];
-            if (!rule) {
-                result.status = result.status === "ERROR" ? "ERROR" : "UNKNOWN";
-                result.messages.push("Chưa cấu hình");
-                rule = { ...DEFAULT_RULE, isDefault: true };
-            } else {
-                if (result.duration < rule.minTime || (rule.maxTime > 0 && result.duration > rule.maxTime)) {
-                    if (result.status !== "ERROR") result.status = "WARNING";
-                    result.messages.push(`Lỗi thời gian (QĐ: ${rule.minTime}-${rule.maxTime})`);
+                const startObj = combineDateTime(result.dateIn, result.timeIn);
+                const endObj = combineDateTime(result.dateOut, result.timeOut);
+                
+                result.startObj = startObj;
+                result.endObj = endObj;
+
+                if (startObj && endObj) {
+                    let minutes = (endObj - startObj) / 60000;
+                    result.duration = Math.round(minutes * 100) / 100;
+                    if (result.duration <= 0) {
+                        result.status = "ERROR";
+                        result.messages.push("Thời gian lỗi (<= 0)");
+                    }
+                } else {
+                    result.status = "ERROR";
+                    result.messages.push("Lỗi định dạng giờ");
                 }
-            }
-            result.rule = rule;
 
-            if (!staffMap[result.staff]) staffMap[result.staff] = [];
-            staffMap[result.staff].push(result);
+                const normService = normalizeName(result.service);
+                let rule = configMap[normService];
+                if (!rule) {
+                    result.status = result.status === "ERROR" ? "ERROR" : "UNKNOWN";
+                    result.messages.push("Chưa cấu hình");
+                    rule = { ...DEFAULT_RULE, isDefault: true };
+                } else {
+                    if (result.duration < rule.minTime || (rule.maxTime > 0 && result.duration > rule.maxTime)) {
+                        if (result.status !== "ERROR") result.status = "WARNING";
+                        result.messages.push(`Lỗi thời gian (QĐ: ${rule.minTime}-${rule.maxTime})`);
+                    }
+                }
+                result.rule = rule;
 
-            return result;
-        }).filter(item => item !== null);
+                if (!staffMap[result.staff]) staffMap[result.staff] = [];
+                staffMap[result.staff].push(result);
 
-        // Check trùng lặp
-        for (const staff in staffMap) {
-            const sessions = staffMap[staff];
-            sessions.sort((a, b) => (a.startObj || 0) - (b.startObj || 0));
+                return result;
+            }).filter(item => item !== null);
 
-            for (let i = 0; i < sessions.length; i++) {
-                for (let j = i + 1; j < sessions.length; j++) {
-                    const ca1 = sessions[i];
-                    const ca2 = sessions[j];
-                    if (!ca2.startObj || !ca1.endObj || ca2.startObj >= ca1.endObj) break;
+            // Check trùng lặp
+            for (const staff in staffMap) {
+                const sessions = staffMap[staff];
+                sessions.sort((a, b) => (a.startObj || 0) - (b.startObj || 0));
 
-                    const isExactMatch = (ca1.startObj.getTime() === ca2.startObj.getTime()) && 
-                                         (ca1.endObj.getTime() === ca2.endObj.getTime());
-                    const isConfigAllowed = !ca1.rule.isDefault && !ca2.rule.isDefault && 
-                                            ca1.rule.allowOverlap && ca2.rule.allowOverlap;
+                for (let i = 0; i < sessions.length; i++) {
+                    for (let j = i + 1; j < sessions.length; j++) {
+                        const ca1 = sessions[i];
+                        const ca2 = sessions[j];
+                        if (!ca2.startObj || !ca1.endObj || ca2.startObj >= ca1.endObj) break;
 
-                    if (ca1.patient !== ca2.patient) {
-                        let isViolation = false;
-                        let msg = "";
-                        if (isExactMatch) {
-                            isViolation = true;
-                            msg = `⛔ Trùng 100% thời gian với ${ca2.patient}`;
-                        } else if (!isConfigAllowed) {
-                            isViolation = true;
-                            msg = `⛔ Trùng giờ với ${ca2.patient} (Không được phép gối đầu)`;
-                        }
+                        const isExactMatch = (ca1.startObj.getTime() === ca2.startObj.getTime()) && 
+                                             (ca1.endObj.getTime() === ca2.endObj.getTime());
+                        const isConfigAllowed = !ca1.rule.isDefault && !ca2.rule.isDefault && 
+                                                ca1.rule.allowOverlap && ca2.rule.allowOverlap;
 
-                        if (isViolation) {
-                            ca1.status = "ERROR";
-                            ca1.messages.push(msg.replace(ca2.patient, ca2.patient)); 
-                            ca2.status = "ERROR";
-                            ca2.messages.push(msg.replace(ca2.patient, ca1.patient));
+                        if (ca1.patient !== ca2.patient) {
+                            let isViolation = false;
+                            let msg = "";
+                            if (isExactMatch) {
+                                isViolation = true;
+                                msg = `Trùng 100% thời gian với ${ca2.patient}`;
+                            } else if (!isConfigAllowed) {
+                                isViolation = true;
+                                msg = `Trùng giờ với ${ca2.patient} (Không được phép gối đầu)`;
+                            }
+
+                            if (isViolation) {
+                                ca1.status = "ERROR";
+                                ca1.messages.push(msg.replace(ca2.patient, ca2.patient)); 
+                                ca2.status = "ERROR";
+                                ca2.messages.push(msg.replace(ca2.patient, ca1.patient));
+                            }
                         }
                     }
                 }
             }
-        }
 
-        processedRows.forEach(row => {
-            if (row.status === "OK") stats.valid++;
-            else if (row.status === "ERROR") stats.error++;
-            else if (row.status === "WARNING") stats.warning++;
-        });
-        stats.total = processedRows.length;
-
-        document.getElementById('statsBar').classList.remove('d-none');
-        document.getElementById('totalCount').innerText = stats.total;
-        document.getElementById('validCount').innerText = stats.valid;
-        document.getElementById('errorCount').innerText = stats.error;
-        document.getElementById('warningCount').innerText = stats.warning;
-
-        globalProcessedData = processedRows;
-        // Mặc định hiện tất cả và active nút tổng
-        filterTable('ALL', document.querySelector('#statsBar .col-md-3:first-child .stat-card'));
-    }
-
-    function filterTable(filterType, element) {
-        // Highlight active card
-        if(element) {
-            document.querySelectorAll('.stat-card').forEach(el => el.classList.remove('active'));
-            element.classList.add('active');
-        }
-
-        let filteredData = [];
-        if (filterType === 'ALL') {
-            filteredData = globalProcessedData;
-        } else {
-            filteredData = globalProcessedData.filter(row => {
-                if (filterType === 'OK') return row.status === 'OK';
-                if (filterType === 'ERROR') return row.status === 'ERROR';
-                if (filterType === 'WARNING') return row.status === 'WARNING';
-                return false;
+            processedRows.forEach(row => {
+                if (row.status === "OK") stats.valid++;
+                else if (row.status === "ERROR") stats.error++;
+                else if (row.status === "WARNING") stats.warning++;
             });
+            stats.total = processedRows.length;
+
+            document.getElementById('statsBar').classList.remove('d-none');
+            document.getElementById('totalCount').innerText = stats.total;
+            document.getElementById('validCount').innerText = stats.valid;
+            document.getElementById('errorCount').innerText = stats.error;
+            document.getElementById('warningCount').innerText = stats.warning;
+
+            globalProcessedData = processedRows;
+            filterTable('ALL', document.querySelector('#statsBar .col-6:first-child .stat-card'));
         }
-        renderTable(filteredData);
-    }
 
-    function renderTable(dataRows) {
-        const tableBody = document.querySelector('#mainTable tbody');
-        tableBody.innerHTML = '';
-
-        if(dataRows.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="12" class="text-center py-4 text-muted">Không tìm thấy dữ liệu phù hợp.</td></tr>';
-            return;
-        }
-
-        dataRows.forEach(row => {
-            let rowClass = "";
-            let statusBadge = "";
-
-            if (row.status === "OK") {
-                rowClass = "status-ok";
-                statusBadge = `<span class="badge bg-success">Hợp lệ</span>`;
-            } else if (row.status === "ERROR") {
-                rowClass = "status-error";
-                statusBadge = `<span class="badge bg-danger">Lỗi</span>`;
-            } else if (row.status === "WARNING") {
-                rowClass = "status-warning";
-                statusBadge = `<span class="badge bg-warning text-dark">Cảnh báo</span>`;
-            } else {
-                rowClass = "status-unknown";
-                statusBadge = `<span class="badge bg-secondary">Chưa rõ</span>`;
+        function filterTable(filterType, element) {
+            if(element) {
+                document.querySelectorAll('.stat-card').forEach(el => el.classList.remove('active'));
+                element.classList.add('active');
             }
 
-            const tr = document.createElement('tr');
-            tr.className = rowClass;
-            tr.innerHTML = `
-                <td class="text-center">${row.id}</td>
-                <td>${row.dateIn}</td>
-                <td class="info-col">${row.maHoSo}</td>
-                <td class="fw-bold">${row.patient}</td>
-                <td class="info-col">${row.ngaySinh}</td>
-                <td class="info-col small">Vào: ${row.ngayVao}<br>Ra: ${row.ngayRa}</td>
-                <td>${row.service}</td>
-                <td>${row.staff}</td>
-                <td class="text-center">${formatSimpleTime(row.startObj)}</td>
-                <td class="text-center">${formatSimpleTime(row.endObj)}</td>
-                <td class="text-center fw-bold text-primary">${row.duration}'</td>
-                <td>
-                    ${statusBadge}
-                    <div class="small mt-1 text-danger">${row.messages.join('<br>')}</div>
-                </td>
-            `;
-            tableBody.appendChild(tr);
-        });
-    }
-
-    function combineDateTime(dateStr, timeVal) {
-        if (!dateStr) return null;
-        let d = new Date();
-        const parts = dateStr.split('/');
-        if (parts.length === 3) d = new Date(parts[2], parts[1] - 1, parts[0]);
-        if (typeof timeVal === 'number') d.setSeconds(d.getSeconds() + Math.round(timeVal * 86400));
-        else if (typeof timeVal === 'string') {
-            const t = timeVal.split(':');
-            if (t.length >= 2) d.setHours(t[0], t[1], 0);
+            let filteredData = [];
+            if (filterType === 'ALL') {
+                filteredData = globalProcessedData;
+            } else {
+                filteredData = globalProcessedData.filter(row => {
+                    if (filterType === 'OK') return row.status === 'OK';
+                    if (filterType === 'ERROR') return row.status === 'ERROR';
+                    if (filterType === 'WARNING') return row.status === 'WARNING';
+                    return false;
+                });
+            }
+            renderTable(filteredData);
         }
-        return d;
-    }
 
-    function formatSimpleTime(dateObj) {
-        if (!dateObj) return "-";
-        return dateObj.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
-    }
-</script>
+        function renderTable(dataRows) {
+            const tableBody = document.querySelector('#mainTable tbody');
+            tableBody.innerHTML = '';
+
+            if(dataRows.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="10" class="text-center py-5 text-muted">Không tìm thấy dữ liệu phù hợp.</td></tr>';
+                return;
+            }
+
+            dataRows.forEach(row => {
+                let statusBadge = "";
+                let rowClass = "";
+
+                if (row.status === "OK") {
+                    statusBadge = `<span class="status-badge status-ok"><i class="bi bi-check2"></i> Hợp lệ</span>`;
+                } else if (row.status === "ERROR") {
+                    rowClass = "row-error";
+                    statusBadge = `<span class="status-badge status-error"><i class="bi bi-x-circle"></i> Lỗi</span>`;
+                } else if (row.status === "WARNING") {
+                    rowClass = "row-warning";
+                    statusBadge = `<span class="status-badge status-warning"><i class="bi bi-exclamation-circle"></i> Cảnh báo</span>`;
+                } else {
+                    statusBadge = `<span class="status-badge status-unknown"><i class="bi bi-question-circle"></i> Chưa rõ</span>`;
+                }
+
+                const tr = document.createElement('tr');
+                if(rowClass) tr.className = rowClass;
+                
+                tr.innerHTML = `
+                    <td class="text-center fw-bold text-secondary">${row.id}</td>
+                    <td>${row.dateIn}</td>
+                    <td>
+                        <div class="fw-bold text-dark">${row.patient}</div>
+                        <div class="info-col">HS: ${row.maHoSo} | NS: ${row.ngaySinh}</div>
+                    </td>
+                    <td class="info-col">
+                        <i class="bi bi-box-arrow-in-right text-success"></i> ${row.ngayVao}<br>
+                        <i class="bi bi-box-arrow-right text-danger"></i> ${row.ngayRa}
+                    </td>
+                    <td class="fw-medium text-primary">${row.service}</td>
+                    <td class="fw-medium">${row.staff}</td>
+                    <td class="text-center">${formatSimpleTime(row.startObj)}</td>
+                    <td class="text-center">${formatSimpleTime(row.endObj)}</td>
+                    <td class="text-center">
+                        <span class="badge bg-light text-dark border">${row.duration}p</span>
+                    </td>
+                    <td>
+                        ${statusBadge}
+                        ${row.messages.length > 0 ? `<div class="mt-1 small text-danger"><i class="bi bi-dot"></i> ${row.messages.join('<br><i class="bi bi-dot"></i> ')}</div>` : ''}
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function combineDateTime(dateStr, timeVal) {
+            if (!dateStr) return null;
+            let d = new Date();
+            const parts = dateStr.split('/');
+            if (parts.length === 3) d = new Date(parts[2], parts[1] - 1, parts[0]);
+            if (typeof timeVal === 'number') d.setSeconds(d.getSeconds() + Math.round(timeVal * 86400));
+            else if (typeof timeVal === 'string') {
+                const t = timeVal.split(':');
+                if (t.length >= 2) d.setHours(t[0], t[1], 0);
+            }
+            return d;
+        }
+
+        function formatSimpleTime(dateObj) {
+            if (!dateObj) return "-";
+            return dateObj.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+        }
+    </script>
 
 </body>
 </html>
