@@ -8,8 +8,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { background-color: #f4f6f9; font-size: 12.5px; } /* Giảm font nhẹ để vừa bảng */
-        .table-responsive { max-height: 80vh; overflow-y: auto; border: 1px solid #dee2e6; }
+        body { background-color: #f4f6f9; font-size: 13px; display: flex; flex-direction: column; min-height: 100vh; }
+        .main-content { flex: 1; }
+        .table-responsive { max-height: 75vh; overflow-y: auto; border: 1px solid #dee2e6; background: white; }
         thead th { position: sticky; top: 0; background-color: #0d6efd; color: white; z-index: 10; white-space: nowrap; }
         td { vertical-align: middle; }
         
@@ -18,36 +19,72 @@
         .status-error { background-color: #f8d7da; color: #842029; font-weight: bold; }
         .status-warning { background-color: #fff3cd; color: #664d03; }
         .status-unknown { background-color: #e2e3e5; color: #41464b; }
-        
         .info-col { font-size: 0.9em; color: #555; }
+
+        /* Stats Bar Interactive */
+        .stat-card {
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            background: white;
+        }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .stat-card.active { ring: 2px solid #0d6efd; background-color: #e9ecef; }
+        .stat-value { font-size: 1.2rem; font-weight: bold; }
+        .stat-label { font-size: 0.85rem; text-transform: uppercase; color: #6c757d; }
+
+        /* Footer */
+        footer { margin-top: auto; padding: 15px 0; background: #fff; border-top: 1px solid #e9ecef; color: #6c757d; font-size: 0.85rem; }
     </style>
 </head>
 <body>
 
-<div class="container-fluid py-3">
-    <div class="card shadow-sm mb-3">
-        <div class="card-body py-2 d-flex justify-content-between align-items-center">
-            <h4 class="m-0 text-primary"><i class="bi bi-table"></i> ĐỐI CHIẾU DỮ LIỆU PTTT</h4>
-            <div class="d-flex gap-2">
-                <button class="btn btn-outline-secondary btn-sm" onclick="loadConfig()">
-                    <i class="bi bi-arrow-repeat"></i> Tải lại Cấu hình
-                </button>
-                <input type="file" id="uploadFile" class="form-control form-control-sm" style="width: 250px;" accept=".xlsx, .xls" />
-                <button class="btn btn-success btn-sm" onclick="processData()">
-                    <i class="bi bi-play-circle"></i> KIỂM TRA
-                </button>
+<div class="container-fluid py-3 main-content">
+    
+    <div class="text-center mb-4">
+        <h2 class="text-primary fw-bold text-uppercase mb-2">
+            <i class="bi bi-hospital"></i> Đối Chiếu Dữ Liệu PTTT
+        </h2>
+        <div class="d-flex justify-content-center gap-2">
+            <button class="btn btn-outline-secondary btn-sm" onclick="loadConfig()">
+                <i class="bi bi-arrow-repeat"></i> Tải lại Cấu hình
+            </button>
+            <input type="file" id="uploadFile" class="form-control form-control-sm" style="width: 300px;" accept=".xlsx, .xls" />
+            <button class="btn btn-primary btn-sm px-4 fw-bold" onclick="processData()">
+                <i class="bi bi-search"></i> KIỂM TRA
+            </button>
+        </div>
+    </div>
+
+    <div id="statsBar" class="row g-3 mb-3 d-none">
+        <div class="col-md-3 col-6">
+            <div class="stat-card p-2 text-center" onclick="filterTable('ALL')">
+                <div class="stat-value text-dark" id="totalCount">0</div>
+                <div class="stat-label">Tổng số ca</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card p-2 text-center" onclick="filterTable('OK')">
+                <div class="stat-value text-success" id="validCount">0</div>
+                <div class="stat-label">Hợp lệ</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card p-2 text-center" onclick="filterTable('ERROR')">
+                <div class="stat-value text-danger" id="errorCount">0</div>
+                <div class="stat-label">Lỗi nghiêm trọng</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="stat-card p-2 text-center" onclick="filterTable('WARNING')">
+                <div class="stat-value text-warning" id="warningCount">0</div>
+                <div class="stat-label">Cảnh báo thời gian</div>
             </div>
         </div>
     </div>
 
-    <div id="statsBar" class="alert alert-light border d-flex justify-content-around py-2 mb-3 d-none">
-        <span>Tổng số ca: <b id="totalCount">0</b></span>
-        <span class="text-success">Hợp lệ: <b id="validCount">0</b></span>
-        <span class="text-danger">Lỗi nghiêm trọng: <b id="errorCount">0</b></span>
-        <span class="text-warning">Cảnh báo thời gian: <b id="warningCount">0</b></span>
-    </div>
-
-    <div class="table-responsive bg-white shadow-sm">
+    <div class="table-responsive shadow-sm">
         <table class="table table-bordered table-hover mb-0" id="mainTable">
             <thead>
                 <tr>
@@ -66,15 +103,23 @@
                 </tr>
             </thead>
             <tbody>
-                <tr><td colspan="12" class="text-center py-5 text-muted">Vui lòng chọn file Excel để xem chi tiết.</td></tr>
+                <tr><td colspan="12" class="text-center py-5 text-muted">Vui lòng chọn file Excel để bắt đầu.</td></tr>
             </tbody>
         </table>
     </div>
 </div>
 
+<footer class="text-center">
+    <div class="container">
+        <strong>Phần mềm Hỗ trợ Rà soát dữ liệu PTTT &copy; 2026</strong><br>
+        <small>Phát triển bởi [Tên của bạn/Đơn vị của bạn]. Phiên bản 2.0</small>
+    </div>
+</footer>
+
 <script>
     let currentConfig = {};
     const DEFAULT_RULE = { allowOverlap: false, minTime: 5, maxTime: 120 };
+    let globalProcessedData = []; // Lưu trữ dữ liệu toàn cục để lọc
 
     window.onload = loadConfig;
 
@@ -122,18 +167,14 @@
                 defval: "" 
             });
             
-            analyzeAndRender(jsonData);
+            analyzeData(jsonData);
         };
         reader.readAsArrayBuffer(fileInput.files[0]);
     }
 
-    function analyzeAndRender(data) {
-        const tableBody = document.querySelector('#mainTable tbody');
-        tableBody.innerHTML = '';
-        
+    function analyzeData(data) {
         let stats = { total: 0, valid: 0, error: 0, warning: 0 };
         const staffMap = {}; 
-        
         const configMap = {};
         for (let key in currentConfig) configMap[normalizeName(key)] = currentConfig[key];
 
@@ -141,13 +182,10 @@
         const processedRows = data.map((row, index) => {
             const result = {
                 id: index + 1,
-                rowExcel: index + 2,
-                // Các trường dữ liệu mới
                 maHoSo: (row['Mã hồ sơ'] || "").toString().trim(),
                 ngaySinh: (row['Ngày sinh'] || "").toString().trim(),
                 ngayVao: (row['Ngày vào viện'] || "").toString().trim(),
                 ngayRa: (row['Ngày ra viện'] || "").toString().trim(),
-                
                 patient: (row['Tên bệnh nhân'] || "").toString().trim(),
                 service: (row['Phương pháp PTTT'] || "").toString().trim(),
                 staff: (row['PTV/TTV chính'] || "").toString().trim(),
@@ -162,13 +200,13 @@
 
             if (!result.staff || !result.service) return null;
 
-            // 1. Check ngày PTTT
+            // Check ngày
             if (result.dateIn !== result.dateOut) {
                 result.status = "ERROR";
-                result.messages.push(`Sai ngày (Vào: ${result.dateIn}, Ra: ${result.dateOut})`);
+                result.messages.push(`Sai ngày (${result.dateIn} - ${result.dateOut})`);
             }
 
-            // 2. Tính thời gian
+            // Tính thời gian
             const startObj = combineDateTime(result.dateIn, result.timeIn);
             const endObj = combineDateTime(result.dateOut, result.timeOut);
             
@@ -178,7 +216,6 @@
             if (startObj && endObj) {
                 let minutes = (endObj - startObj) / 60000;
                 result.duration = Math.round(minutes * 100) / 100;
-                
                 if (result.duration <= 0) {
                     result.status = "ERROR";
                     result.messages.push("Thời gian lỗi (<= 0)");
@@ -188,10 +225,9 @@
                 result.messages.push("Lỗi định dạng giờ");
             }
 
-            // 3. Check Min/Max
+            // Check Min/Max
             const normService = normalizeName(result.service);
             let rule = configMap[normService];
-            
             if (!rule) {
                 result.status = result.status === "ERROR" ? "ERROR" : "UNKNOWN";
                 result.messages.push("Chưa cấu hình");
@@ -210,7 +246,7 @@
             return result;
         }).filter(item => item !== null);
 
-        // --- BƯỚC 2: CHECK TRÙNG LẶP NÂNG CAO ---
+        // --- BƯỚC 2: CHECK TRÙNG LẶP ---
         for (const staff in staffMap) {
             const sessions = staffMap[staff];
             sessions.sort((a, b) => (a.startObj || 0) - (b.startObj || 0));
@@ -219,36 +255,27 @@
                 for (let j = i + 1; j < sessions.length; j++) {
                     const ca1 = sessions[i];
                     const ca2 = sessions[j];
-
-                    // Nếu ca sau bắt đầu sau khi ca trước kết thúc -> Hết trùng
                     if (!ca2.startObj || !ca1.endObj || ca2.startObj >= ca1.endObj) break;
 
-                    // --- LOGIC MỚI: KIỂM TRA TRÙNG KHỚP HOÀN TOÀN ---
                     const isExactMatch = (ca1.startObj.getTime() === ca2.startObj.getTime()) && 
                                          (ca1.endObj.getTime() === ca2.endObj.getTime());
-
-                    // Check luật allowOverlap từ JSON
                     const isConfigAllowed = !ca1.rule.isDefault && !ca2.rule.isDefault && 
                                             ca1.rule.allowOverlap && ca2.rule.allowOverlap;
 
                     if (ca1.patient !== ca2.patient) {
                         let isViolation = false;
                         let msg = "";
-
                         if (isExactMatch) {
-                            // Trường hợp 1: Trùng khớp 100% thời gian -> LUÔN LUÔN LỖI (Bất kể cấu hình)
                             isViolation = true;
-                            msg = `⛔ Trùng 100% thời gian với ${ca2.patient} (Không được phép)`;
+                            msg = `⛔ Trùng 100% thời gian với ${ca2.patient}`;
                         } else if (!isConfigAllowed) {
-                            // Trường hợp 2: Có overlap nhưng không được cấu hình cho phép
                             isViolation = true;
-                            msg = `⛔ Trùng giờ với ${ca2.patient} (DVKT không cho phép gối đầu)`;
+                            msg = `⛔ Trùng giờ với ${ca2.patient} (Không được phép gối đầu)`;
                         }
 
                         if (isViolation) {
                             ca1.status = "ERROR";
-                            ca1.messages.push(msg.replace(ca2.patient, ca2.patient)); // Hack để dùng chuỗi msg linh động
-                            
+                            ca1.messages.push(msg.replace(ca2.patient, ca2.patient)); 
                             ca2.status = "ERROR";
                             ca2.messages.push(msg.replace(ca2.patient, ca1.patient));
                         }
@@ -257,25 +284,64 @@
             }
         }
 
-        // --- BƯỚC 3: HIỂN THỊ ---
+        // Thống kê
+        processedRows.forEach(row => {
+            if (row.status === "OK") stats.valid++;
+            else if (row.status === "ERROR") stats.error++;
+            else if (row.status === "WARNING") stats.warning++;
+        });
         stats.total = processedRows.length;
 
-        processedRows.forEach(row => {
+        // Cập nhật UI Thống kê
+        document.getElementById('statsBar').classList.remove('d-none');
+        document.getElementById('totalCount').innerText = stats.total;
+        document.getElementById('validCount').innerText = stats.valid;
+        document.getElementById('errorCount').innerText = stats.error;
+        document.getElementById('warningCount').innerText = stats.warning;
+
+        // Lưu dữ liệu toàn cục và hiển thị
+        globalProcessedData = processedRows;
+        renderTable(globalProcessedData);
+    }
+
+    // --- CHỨC NĂNG LỌC VÀ HIỂN THỊ ---
+    function filterTable(filterType) {
+        let filteredData = [];
+        if (filterType === 'ALL') {
+            filteredData = globalProcessedData;
+        } else {
+            filteredData = globalProcessedData.filter(row => {
+                if (filterType === 'OK') return row.status === 'OK';
+                if (filterType === 'ERROR') return row.status === 'ERROR';
+                if (filterType === 'WARNING') return row.status === 'WARNING';
+                return false;
+            });
+        }
+        renderTable(filteredData);
+    }
+
+    function renderTable(dataRows) {
+        const tableBody = document.querySelector('#mainTable tbody');
+        tableBody.innerHTML = '';
+
+        if(dataRows.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="12" class="text-center py-4 text-muted">Không tìm thấy dữ liệu phù hợp.</td></tr>';
+            return;
+        }
+
+        dataRows.forEach(row => {
             let rowClass = "";
             let statusBadge = "";
 
             if (row.status === "OK") {
                 rowClass = "status-ok";
                 statusBadge = `<span class="badge bg-success">Hợp lệ</span>`;
-                stats.valid++;
             } else if (row.status === "ERROR") {
                 rowClass = "status-error";
                 statusBadge = `<span class="badge bg-danger">Lỗi</span>`;
-                stats.error++;
             } else if (row.status === "WARNING") {
                 rowClass = "status-warning";
                 statusBadge = `<span class="badge bg-warning text-dark">Cảnh báo</span>`;
-                stats.warning++;
             } else {
                 rowClass = "status-unknown";
                 statusBadge = `<span class="badge bg-secondary">Chưa rõ</span>`;
@@ -286,15 +352,10 @@
             tr.innerHTML = `
                 <td class="text-center">${row.id}</td>
                 <td>${row.dateIn}</td>
-                
                 <td class="info-col">${row.maHoSo}</td>
                 <td class="fw-bold">${row.patient}</td>
                 <td class="info-col">${row.ngaySinh}</td>
-                <td class="info-col small">
-                    Vào: ${row.ngayVao}<br>
-                    Ra: ${row.ngayRa}
-                </td>
-                
+                <td class="info-col small">Vào: ${row.ngayVao}<br>Ra: ${row.ngayRa}</td>
                 <td>${row.service}</td>
                 <td>${row.staff}</td>
                 <td class="text-center">${formatSimpleTime(row.startObj)}</td>
@@ -307,12 +368,6 @@
             `;
             tableBody.appendChild(tr);
         });
-
-        document.getElementById('statsBar').classList.remove('d-none');
-        document.getElementById('totalCount').innerText = stats.total;
-        document.getElementById('validCount').innerText = stats.valid;
-        document.getElementById('errorCount').innerText = stats.error;
-        document.getElementById('warningCount').innerText = stats.warning;
     }
 
     // --- UTILS ---
@@ -321,10 +376,8 @@
         let d = new Date();
         const parts = dateStr.split('/');
         if (parts.length === 3) d = new Date(parts[2], parts[1] - 1, parts[0]);
-        
-        if (typeof timeVal === 'number') {
-            d.setSeconds(d.getSeconds() + Math.round(timeVal * 86400));
-        } else if (typeof timeVal === 'string') {
+        if (typeof timeVal === 'number') d.setSeconds(d.getSeconds() + Math.round(timeVal * 86400));
+        else if (typeof timeVal === 'string') {
             const t = timeVal.split(':');
             if (t.length >= 2) d.setHours(t[0], t[1], 0);
         }
