@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kiểm Tra PTTT</title>
+    <title>Kiểm Tra PTTT - Chi Tiết Toàn Bộ</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { background-color: #f4f6f9; font-size: 13px; display: flex; flex-direction: column; min-height: 100vh; }
         .main-content { flex: 1; }
-        .table-responsive { max-height: 75vh; overflow-y: auto; border: 1px solid #dee2e6; background: white; }
+        .table-responsive { max-height: 72vh; overflow-y: auto; border: 1px solid #dee2e6; background: white; }
         thead th { position: sticky; top: 0; background-color: #0d6efd; color: white; z-index: 10; white-space: nowrap; }
         td { vertical-align: middle; }
         
@@ -28,9 +28,11 @@
             border: 1px solid #dee2e6;
             border-radius: 8px;
             background: white;
+            position: relative;
+            overflow: hidden;
         }
         .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .stat-card.active { ring: 2px solid #0d6efd; background-color: #e9ecef; }
+        .stat-card.active { border: 2px solid #0d6efd; background-color: #e9ecef; }
         .stat-value { font-size: 1.2rem; font-weight: bold; }
         .stat-label { font-size: 0.85rem; text-transform: uppercase; color: #6c757d; }
 
@@ -43,14 +45,16 @@
 <div class="container-fluid py-3 main-content">
     
     <div class="text-center mb-4">
-        <h2 class="text-primary fw-bold text-uppercase mb-2">
+        <h2 class="text-primary fw-bold text-uppercase mb-3">
             <i class="bi bi-hospital"></i> Đối Chiếu Dữ Liệu PTTT
         </h2>
+
+        <div class="mb-2 text-muted">
+            <i class="bi bi-info-circle"></i> Chọn file: <b>Báo cáo tổng hợp &rarr; 2. Danh sách bệnh nhân phẫu thuật thủ thuật BVĐK TMI</b>
+        </div>
+
         <div class="d-flex justify-content-center gap-2">
-            <button class="btn btn-outline-secondary btn-sm" onclick="loadConfig()">
-                <i class="bi bi-arrow-repeat"></i> Tải lại Cấu hình
-            </button>
-            <input type="file" id="uploadFile" class="form-control form-control-sm" style="width: 300px;" accept=".xlsx, .xls" />
+            <input type="file" id="uploadFile" class="form-control form-control-sm" style="width: 350px;" accept=".xlsx, .xls" />
             <button class="btn btn-primary btn-sm px-4 fw-bold" onclick="processData()">
                 <i class="bi bi-search"></i> KIỂM TRA
             </button>
@@ -59,25 +63,25 @@
 
     <div id="statsBar" class="row g-3 mb-3 d-none">
         <div class="col-md-3 col-6">
-            <div class="stat-card p-2 text-center" onclick="filterTable('ALL')">
+            <div class="stat-card p-2 text-center" onclick="filterTable('ALL', this)">
                 <div class="stat-value text-dark" id="totalCount">0</div>
                 <div class="stat-label">Tổng số ca</div>
             </div>
         </div>
         <div class="col-md-3 col-6">
-            <div class="stat-card p-2 text-center" onclick="filterTable('OK')">
+            <div class="stat-card p-2 text-center" onclick="filterTable('OK', this)">
                 <div class="stat-value text-success" id="validCount">0</div>
                 <div class="stat-label">Hợp lệ</div>
             </div>
         </div>
         <div class="col-md-3 col-6">
-            <div class="stat-card p-2 text-center" onclick="filterTable('ERROR')">
+            <div class="stat-card p-2 text-center" onclick="filterTable('ERROR', this)">
                 <div class="stat-value text-danger" id="errorCount">0</div>
                 <div class="stat-label">Lỗi nghiêm trọng</div>
             </div>
         </div>
         <div class="col-md-3 col-6">
-            <div class="stat-card p-2 text-center" onclick="filterTable('WARNING')">
+            <div class="stat-card p-2 text-center" onclick="filterTable('WARNING', this)">
                 <div class="stat-value text-warning" id="warningCount">0</div>
                 <div class="stat-label">Cảnh báo thời gian</div>
             </div>
@@ -112,14 +116,14 @@
 <footer class="text-center">
     <div class="container">
         <strong>Phần mềm Hỗ trợ Rà soát dữ liệu PTTT &copy; 2026</strong><br>
-        <small>Phát triển bởi Lê Quốc Thái - Bệnh viện Phục hồi chức năng. Phiên bản 1.0</small>
+        <small>Phiên bản 2.1</small>
     </div>
 </footer>
 
 <script>
     let currentConfig = {};
     const DEFAULT_RULE = { allowOverlap: false, minTime: 5, maxTime: 120 };
-    let globalProcessedData = []; // Lưu trữ dữ liệu toàn cục để lọc
+    let globalProcessedData = []; 
 
     window.onload = loadConfig;
 
@@ -178,7 +182,6 @@
         const configMap = {};
         for (let key in currentConfig) configMap[normalizeName(key)] = currentConfig[key];
 
-        // --- BƯỚC 1: XỬ LÝ DỮ LIỆU ---
         const processedRows = data.map((row, index) => {
             const result = {
                 id: index + 1,
@@ -200,13 +203,11 @@
 
             if (!result.staff || !result.service) return null;
 
-            // Check ngày
             if (result.dateIn !== result.dateOut) {
                 result.status = "ERROR";
                 result.messages.push(`Sai ngày (${result.dateIn} - ${result.dateOut})`);
             }
 
-            // Tính thời gian
             const startObj = combineDateTime(result.dateIn, result.timeIn);
             const endObj = combineDateTime(result.dateOut, result.timeOut);
             
@@ -225,7 +226,6 @@
                 result.messages.push("Lỗi định dạng giờ");
             }
 
-            // Check Min/Max
             const normService = normalizeName(result.service);
             let rule = configMap[normService];
             if (!rule) {
@@ -246,7 +246,7 @@
             return result;
         }).filter(item => item !== null);
 
-        // --- BƯỚC 2: CHECK TRÙNG LẶP ---
+        // Check trùng lặp
         for (const staff in staffMap) {
             const sessions = staffMap[staff];
             sessions.sort((a, b) => (a.startObj || 0) - (b.startObj || 0));
@@ -284,7 +284,6 @@
             }
         }
 
-        // Thống kê
         processedRows.forEach(row => {
             if (row.status === "OK") stats.valid++;
             else if (row.status === "ERROR") stats.error++;
@@ -292,20 +291,24 @@
         });
         stats.total = processedRows.length;
 
-        // Cập nhật UI Thống kê
         document.getElementById('statsBar').classList.remove('d-none');
         document.getElementById('totalCount').innerText = stats.total;
         document.getElementById('validCount').innerText = stats.valid;
         document.getElementById('errorCount').innerText = stats.error;
         document.getElementById('warningCount').innerText = stats.warning;
 
-        // Lưu dữ liệu toàn cục và hiển thị
         globalProcessedData = processedRows;
-        renderTable(globalProcessedData);
+        // Mặc định hiện tất cả và active nút tổng
+        filterTable('ALL', document.querySelector('#statsBar .col-md-3:first-child .stat-card'));
     }
 
-    // --- CHỨC NĂNG LỌC VÀ HIỂN THỊ ---
-    function filterTable(filterType) {
+    function filterTable(filterType, element) {
+        // Highlight active card
+        if(element) {
+            document.querySelectorAll('.stat-card').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+        }
+
         let filteredData = [];
         if (filterType === 'ALL') {
             filteredData = globalProcessedData;
@@ -370,7 +373,6 @@
         });
     }
 
-    // --- UTILS ---
     function combineDateTime(dateStr, timeVal) {
         if (!dateStr) return null;
         let d = new Date();
