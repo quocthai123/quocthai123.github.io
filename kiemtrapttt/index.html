@@ -16,13 +16,19 @@
 
     <style>
         :root {
-            --primary-color: #4361ee;
-            --bg-color: #f8f9fa;
+            /* Tông màu Xanh lá cây nhạt / Teal */
+            --primary-color: #0f766e; /* Teal sậm */
+            --primary-light: #14b8a6; /* Teal nhạt */
+            --primary-hover: #0d9488;
+            
+            --bg-color: #f0fdf4; /* Xanh lá cực nhạt làm nền */
             --card-bg: #ffffff;
-            --text-main: #2b2d42;
-            --text-muted: #8d99ae;
-            --success-bg: #d1fae5;
-            --success-text: #065f46;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            
+            /* Trạng thái */
+            --success-bg: #dcfce7;
+            --success-text: #166534;
             --error-bg: #fee2e2;
             --error-text: #991b1b;
             --warning-bg: #fef3c7;
@@ -41,11 +47,12 @@
 
         /* Header */
         .app-header {
-            background: linear-gradient(135deg, var(--primary-color), #4cc9f0);
+            /* Gradient xanh ngọc */
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
             color: white;
             padding: 20px 0;
             margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.2);
+            box-shadow: 0 4px 15px rgba(20, 184, 166, 0.2);
             border-bottom-left-radius: 20px;
             border-bottom-right-radius: 20px;
         }
@@ -54,9 +61,19 @@
             background: rgba(255, 255, 255, 0.95);
             padding: 15px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
             display: inline-block;
             backdrop-filter: blur(10px);
+        }
+
+        /* Customize Bootstrap Primary Button to match new color */
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
         }
 
         /* Stats Cards */
@@ -74,8 +91,8 @@
             align-items: center;
             justify-content: center;
         }
-        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.08); }
-        .stat-card.active { border-color: var(--primary-color); background-color: #eef2ff; }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(20, 184, 166, 0.1); }
+        .stat-card.active { border-color: var(--primary-color); background-color: #f0fdfa; }
         .stat-value { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
         .stat-label { font-size: 0.8rem; text-transform: uppercase; font-weight: 600; color: var(--text-muted); margin-top: 5px; }
 
@@ -88,11 +105,11 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            border: 1px solid #e5e7eb;
+            border: 1px solid #e2e8f0;
         }
         .table-responsive { max-height: 65vh; overflow-y: auto; }
         .table thead th {
-            background-color: #f1f5f9;
+            background-color: #f8fafc;
             color: #475569;
             font-weight: 600;
             text-transform: uppercase;
@@ -105,27 +122,31 @@
             white-space: nowrap;
         }
         .table tbody td { padding: 10px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; }
-        .table-hover tbody tr:hover { background-color: #f8fafc; }
+        .table-hover tbody tr:hover { background-color: #f0fdfa; } /* Màu hover xanh nhạt */
 
         /* Badges & Highlights */
         .status-badge { padding: 5px 10px; border-radius: 20px; font-weight: 600; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 5px; }
         .status-ok { background-color: var(--success-bg); color: var(--success-text); }
         .status-error { background-color: var(--error-bg); color: var(--error-text); }
         .status-warning { background-color: var(--warning-bg); color: var(--warning-text); }
-        .status-unknown { background-color: #f3f4f6; color: #4b5563; }
+        .status-unknown { background-color: #f1f5f9; color: #475569; }
         
         tr.row-error { background-color: #fff1f2 !important; }
         tr.row-warning { background-color: #fffbeb !important; }
 
-        footer { margin-top: auto; padding: 20px; text-align: center; color: var(--text-muted); font-size: 0.8rem; border-top: 1px solid #e5e7eb; background: white; }
+        footer { margin-top: auto; padding: 20px; text-align: center; color: var(--text-muted); font-size: 0.8rem; border-top: 1px solid #e2e8f0; background: white; }
         
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
         .info-col { color: #64748b; font-size: 0.85em; }
         .fw-medium { font-weight: 500; }
+        
+        /* Chỉnh màu chữ riêng cho tên dịch vụ trong bảng */
+        .text-service { color: var(--primary-color); }
     </style>
 </head>
 <body>
@@ -136,23 +157,23 @@
             <p class="opacity-75 mb-3 small">Công cụ hỗ trợ kiểm tra quy chế chuyên môn & thời gian thực hiện</p>
             
             <div class="upload-area">
-                <div class="mb-2 text-primary small fw-semibold">
-                    <i class="bi bi-file-earmark-excel-fill"></i> File: Báo cáo tổng hợp &rarr; Phẫu thuật thủ thuật &rarr; 2. Danh sách bệnh nhân phẫu thuật thủ thuật BVĐK TMI
+                <div class="mb-2 small fw-semibold" style="color: var(--primary-color);">
+                    <i class="bi bi-file-earmark-excel-fill"></i> File: Báo cáo tổng hợp &rarr; Phẫu thuật thủ thuật &rarr; 2. Danh sách bệnh nhân PTTT
                 </div>
                 <div class="d-flex gap-2 justify-content-center align-items-center">
-    <input type="file" id="uploadFile" class="form-control form-control-sm border-secondary" style="width: 300px;" accept=".xlsx, .xls" />
-    <button class="btn btn-primary btn-sm px-4 fw-bold shadow-sm" onclick="processData()">
-        <i class="bi bi-search me-1"></i> KIỂM TRA
-    </button>
-    
-    <a href="admin.html" class="btn btn-outline-light btn-sm bg-white text-dark border-0 shadow-sm" title="Cấu hình danh mục">
-        <i class="bi bi-gear-fill"></i>
-    </a>
-    
-    <a href="about.html" class="btn btn-outline-light btn-sm bg-white text-primary border-0 shadow-sm" title="Hướng dẫn sử dụng">
-        <i class="bi bi-question-circle-fill"></i>
-    </a>
-</div>
+                    <input type="file" id="uploadFile" class="form-control form-control-sm border-secondary" style="width: 300px;" accept=".xlsx, .xls" />
+                    <button class="btn btn-primary btn-sm px-4 fw-bold shadow-sm" onclick="processData()">
+                        <i class="bi bi-search me-1"></i> KIỂM TRA
+                    </button>
+                    
+                    <a href="admin.html" class="btn btn-outline-light btn-sm bg-white text-dark border-0 shadow-sm" title="Cấu hình danh mục">
+                        <i class="bi bi-gear-fill"></i>
+                    </a>
+                    
+                    <a href="about.html" class="btn btn-outline-light btn-sm bg-white border-0 shadow-sm" style="color: var(--primary-color);" title="Hướng dẫn sử dụng">
+                        <i class="bi bi-question-circle-fill"></i>
+                    </a>
+                </div>
             </div>
         </div>
     </header>
@@ -218,7 +239,7 @@
 
     <footer>
         <div class="container">
-            <div class="fw-bold text-primary mb-1">BỆNH VIỆN PHỤC HỒI CHỨC NĂNG</div>
+            <div class="fw-bold mb-1" style="color: var(--primary-color);">BỆNH VIỆN PHỤC HỒI CHỨC NĂNG</div>
             <small>&copy; 2026 - Phát triển bởi Lê Quốc Thái. Phiên bản 2.7</small>
         </div>
     </footer>
@@ -235,7 +256,6 @@
                 const response = await fetch('./danhmucdvkt.json?v=' + new Date().getTime());
                 if (!response.ok) throw new Error("404");
                 currentConfig = await response.json();
-                console.log("Cấu hình đã tải:", currentConfig);
             } catch (e) {
                 alert("⚠️ Không tải được file cấu hình. Đang dùng chế độ mặc định.");
                 currentConfig = { "default": DEFAULT_RULE };
@@ -281,7 +301,7 @@
         function analyzeData(data) {
             let stats = { total: 0, valid: 0, error: 0, warning: 0 };
             const staffMap = {}; 
-            const patientMap = {}; // Map để check trùng bệnh nhân
+            const patientMap = {}; 
             const configMap = {};
             for (let key in currentConfig) configMap[normalizeName(key)] = currentConfig[key];
 
@@ -309,7 +329,6 @@
 
                 if (!result.staff || !result.service) return null;
 
-                // --- KEY ĐỊNH DANH BỆNH NHÂN (Dùng Mã Hồ Sơ, nếu ko có thì dùng Tên + Ngày Sinh) ---
                 result.patientKey = result.maHoSo ? result.maHoSo : (result.patient + "_" + result.ngaySinh);
 
                 if (result.dateIn !== result.dateOut) {
@@ -349,18 +368,16 @@
                 }
                 result.rule = rule;
 
-                // Group cho Staff
                 if (!staffMap[result.staff]) staffMap[result.staff] = [];
                 staffMap[result.staff].push(result);
 
-                // Group cho Patient
                 if (!patientMap[result.patientKey]) patientMap[result.patientKey] = [];
                 patientMap[result.patientKey].push(result);
 
                 return result;
             }).filter(item => item !== null);
 
-            // --- 1. CHECK TRÙNG LẶP: 1 BỆNH NHÂN LÀM > 1 VIỆC CÙNG LÚC ---
+            // 1. CHECK BỆNH NHÂN LÀM TRÙNG
             for (const pKey in patientMap) {
                 const sessions = patientMap[pKey];
                 sessions.sort((a, b) => (a.startObj || 0) - (b.startObj || 0));
@@ -370,20 +387,17 @@
                         const ca1 = sessions[i];
                         const ca2 = sessions[j];
                         
-                        // Nếu ca sau bắt đầu sau khi ca trước kết thúc -> Hết trùng
                         if (!ca2.startObj || !ca1.endObj || ca2.startObj >= ca1.endObj) break;
 
-                        // Có overlap trong cùng 1 bệnh nhân -> LỖI
                         ca1.status = "ERROR";
                         ca1.messages.push(`⛔ Bệnh nhân làm cùng lúc dịch vụ: ${ca2.service} (${formatSimpleTime(ca2.startObj)}-${formatSimpleTime(ca2.endObj)})`);
-                        
                         ca2.status = "ERROR";
                         ca2.messages.push(`⛔ Bệnh nhân làm cùng lúc dịch vụ: ${ca1.service} (${formatSimpleTime(ca1.startObj)}-${formatSimpleTime(ca1.endObj)})`);
                     }
                 }
             }
 
-            // --- 2. CHECK TRÙNG LẶP: 1 KTV LÀM > 1 NGƯỜI CÙNG LÚC ---
+            // 2. CHECK KTV LÀM TRÙNG
             for (const staff in staffMap) {
                 const sessions = staffMap[staff];
                 sessions.sort((a, b) => (a.startObj || 0) - (b.startObj || 0));
@@ -399,7 +413,6 @@
                         const isConfigAllowed = !ca1.rule.isDefault && !ca2.rule.isDefault && 
                                                 ca1.rule.allowOverlap && ca2.rule.allowOverlap;
 
-                        // Chỉ check nếu khác bệnh nhân (vì cùng bệnh nhân đã check ở trên rồi)
                         if (ca1.patientKey !== ca2.patientKey) {
                             let isViolation = false;
                             let msg = "";
@@ -412,9 +425,8 @@
                             }
 
                             if (isViolation) {
-                                if(ca1.status !== "ERROR") ca1.status = "ERROR"; // Ưu tiên giữ lỗi nặng hơn nếu đã có
+                                if(ca1.status !== "ERROR") ca1.status = "ERROR";
                                 ca1.messages.push(msg.replace(ca2.patient, ca2.patient)); 
-                                
                                 if(ca2.status !== "ERROR") ca2.status = "ERROR";
                                 ca2.messages.push(msg.replace(ca2.patient, ca1.patient));
                             }
@@ -423,11 +435,8 @@
                 }
             }
 
-            // Thống kê
             processedRows.forEach(row => {
-                // Lọc trùng lặp tin nhắn lỗi (để bảng gọn hơn)
                 row.messages = [...new Set(row.messages)]; 
-                
                 if (row.status === "OK") stats.valid++;
                 else if (row.status === "ERROR") stats.error++;
                 else if (row.status === "WARNING") stats.warning++;
@@ -501,9 +510,9 @@
                     </td>
                     <td>
                         <div class="fw-bold text-dark">${row.patient}</div>
-                        <div class="info-col">NS: ${row.ngaySinh} <br> <span class="text-primary small">${row.theBHYT}</span></div>
+                        <div class="info-col">NS: ${row.ngaySinh} <br> <span class="small" style="color: var(--primary-color);">${row.theBHYT}</span></div>
                     </td>
-                    <td class="fw-medium text-primary">${row.service}</td>
+                    <td class="fw-medium text-service">${row.service}</td>
                     <td class="fw-medium">${row.staff}</td>
                     <td class="text-center">${formatSimpleTime(row.startObj)}</td>
                     <td class="text-center">${formatSimpleTime(row.endObj)}</td>
