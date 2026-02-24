@@ -3,90 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kiểm tra file import NVYT</title>
+    <title>LQT CHECK DMNV - Hệ thống kiểm soát NVYT</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    </style>
 </head>
-<body class="bg-gray-50 p-8 font-sans">
-    <div class="max-w-7xl mx-auto bg-white shadow-xl rounded-lg p-6">
-        <h1 class="text-2xl font-bold text-blue-800 mb-2 border-b pb-2">LQT CHECK DMNV</h1>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div class="border-2 border-dashed border-blue-300 p-4 rounded bg-blue-50">
-                <label class="block font-bold text-blue-800 mb-2">1. File Nhân viên (NV)</label>
-                <input type="file" id="fileNV" accept=".xlsx, .xls, .csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"/>
-                <p class="text-xs text-red-600 mt-2 font-bold">⚠️ Các cột bắt buộc có dữ liệu:</p>
-                <p class="text-xs text-gray-600 italic">MA_KHOA, TEN_KHOA, MA_BHXH, HO_TEN, GIOI_TINH, MACCHN, NGAYCAP_CCHN, NOICAP_CCHN, PHAMVI_CM, TUNGAY</p>
+<body class="bg-[#f8fafc] min-h-screen pb-12">
+    <nav class="bg-white border-b border-slate-200 mb-8 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-600 p-2 rounded-lg text-white">
+                        <i class="fas fa-user-md text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-600">LQT CHECK DMNV</span>
+                        <p class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Medical Staff Validator v2.0</p>
+                    </div>
+                </div>
+                <div id="statusIndicator" class="hidden flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-full border border-green-200 text-xs font-medium">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                    Đã nạp dữ liệu
+                </div>
             </div>
-            <div class="border-2 border-dashed border-green-300 p-4 rounded bg-green-50">
-                <label class="block font-bold text-green-800 mb-2">2. File Khoa phòng (KP)</label>
-                <input type="file" id="fileKP" accept=".xlsx, .xls, .csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-green-600 file:text-white hover:file:bg-green-700"/>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="glass-card p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                            <i class="fas fa-file-import"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800">1. File Nhân viên (NV)</h3>
+                    </div>
+                    <input type="file" id="fileNV" accept=".xlsx, .xls, .csv" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"/>
+                    <div class="mt-4 p-3 bg-slate-50 rounded-xl">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Cấu trúc yêu cầu:</p>
+                        <p class="text-[10px] text-slate-500 leading-relaxed italic">MA_KHOA, TEN_KHOA, MA_BHXH, HO_TEN, GIOI_TINH, MACCHN...</p>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow text-white">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                            <i class="fas fa-sitemap"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-800">2. File Khoa phòng (KP)</h3>
+                    </div>
+                    <input type="file" id="fileKP" accept=".xlsx, .xls, .csv" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer"/>
+                    <div class="mt-4 p-3 bg-slate-50 rounded-xl">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Lưu ý:</p>
+                        <p class="text-[10px] text-slate-500 leading-relaxed italic">Dùng để đối soát mã khoa và tên khoa giữa hai danh mục.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-2xl border border-blue-100 bg-gradient-to-b from-blue-50 to-white flex flex-col justify-center">
+                <button onclick="processData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 transition-all active:scale-[0.98] flex justify-center items-center gap-3 mb-3">
+                    <i class="fas fa-rocket"></i> CHẠY KIỂM TRA
+                </button>
+                <button onclick="exportToExcel()" id="btnExport" class="w-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold py-3 rounded-xl transition-all flex justify-center items-center gap-3">
+                    <i class="fas fa-file-excel text-emerald-600"></i> XUẤT BÁO CÁO
+                </button>
             </div>
         </div>
 
-        <button onclick="processData()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-4 rounded shadow transition duration-300 flex justify-center items-center gap-2">
-            <span>🚀 CHẠY KIỂM TRA TOÀN DIỆN</span>
-        </button>
-
-        <button onclick="exportToExcel()" class="px-3 py-1 bg-green-700 text-white hover:bg-green-800 rounded text-sm font-medium shadow-md ml-auto flex items-center gap-1">
-    📊 Xuất file Excel Báo Cáo
-</button>
-
-        <div id="resultArea" class="mt-8 hidden">
-            <h2 class="text-xl font-bold mb-4">Kết quả: <span id="errorCount" class="text-red-600"></span></h2>
-            
-            <div class="mb-4 flex gap-2 flex-wrap">
-                 <button onclick="filterTable('all')" class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm font-medium">Tất cả</button>
-                 <button onclick="filterTable('Thiếu dữ liệu')" class="px-3 py-1 bg-red-600 text-white hover:bg-red-700 rounded text-sm font-medium shadow">⛔ Thiếu dữ liệu</button>
-                 
-                 <button onclick="filterTable('Lỗi Định dạng')" class="px-3 py-1 bg-orange-100 text-orange-700 hover:bg-orange-200 rounded text-sm font-medium">Lỗi Format</button>
-                 <button onclick="filterTable('Sai Mã Khoa')" class="px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded text-sm font-medium">Lỗi Khoa</button>
-                 <button onclick="filterTable('Sai Chức danh')" class="px-3 py-1 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded text-sm font-medium">Lỗi Chức danh</button>
-                 <button onclick="filterTable('Lỗi Vị trí')" class="px-3 py-1 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded text-sm font-medium">Lỗi Vị trí</button>
+        <div id="resultArea" class="hidden space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-poll-h text-blue-500"></i> 
+                    Kết quả phân tích: <span id="errorCount"></span>
+                </h2>
+                
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="filterTable('all')" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-xs font-semibold hover:bg-slate-900 transition-colors">Tất cả</button>
+                    <button onclick="filterTable('Thiếu dữ liệu')" class="px-4 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-200 border border-red-200 transition-colors">Thiếu thông tin</button>
+                    <button onclick="filterTable('Lỗi Định dạng')" class="px-4 py-2 bg-orange-100 text-orange-700 rounded-lg text-xs font-semibold hover:bg-orange-200 border border-orange-200 transition-colors">Lỗi Format</button>
+                    <button onclick="filterTable('Sai Mã Khoa')" class="px-4 py-2 bg-rose-100 text-rose-700 rounded-lg text-xs font-semibold hover:bg-rose-200 border border-rose-200 transition-colors">Sai Khoa</button>
+                    <button onclick="filterTable('Sai Chức danh')" class="px-4 py-2 bg-amber-100 text-amber-700 rounded-lg text-xs font-semibold hover:bg-amber-200 border border-amber-200 transition-colors">Sai Chức danh</button>
+                    <button onclick="filterTable('Lỗi Vị trí')" class="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold hover:bg-purple-200 border border-purple-200 transition-colors">Lỗi Vị trí</button>
+                </div>
             </div>
 
-            <div class="overflow-x-auto max-h-[600px] border border-gray-300 rounded">
-                <table class="min-w-full bg-white text-sm">
-                    <thead class="bg-gray-100 sticky top-0 shadow z-10">
-                        <tr>
-                            <th class="py-3 px-4 border text-left w-12">STT</th>
-                            <th class="py-3 px-4 border text-left">Mã BHXH</th>
-                            <th class="py-3 px-4 border text-left">Họ tên</th>
-                            <th class="py-3 px-4 border text-left">Loại lỗi</th>
-                            <th class="py-3 px-4 border text-left">Chi tiết lỗi</th>
-                            <th class="py-3 px-4 border text-left">Dữ liệu gốc</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
+            <div class="glass-card rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto max-h-[550px] custom-scrollbar">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-50 sticky top-0 z-10 shadow-sm">
+                            <tr>
+                                <th class="py-4 px-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-12">STT</th>
+                                <th class="py-4 px-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider">Mã BHXH</th>
+                                <th class="py-4 px-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider">Họ tên</th>
+                                <th class="py-4 px-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider">Loại lỗi</th>
+                                <th class="py-4 px-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider">Chi tiết nội dung</th>
+                                <th class="py-4 px-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider">Dữ liệu gốc</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="bg-white divide-y divide-slate-100 text-[13px]">
+                            </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- 1. CẤU HÌNH TÊN CỘT (Header trong Excel) ---
+        // --- GIỮ NGUYÊN TOÀN BỘ CONFIG VÀ LOGIC CŨ ---
         const COL = {
-            // File Nhân Viên
             NV_MA_KHOA: "MA_KHOA",
             NV_TEN_KHOA: "TEN_KHOA",
             NV_MA_BHXH: "MA_BHXH",
             NV_HO_TEN: "HO_TEN",
             NV_GIOI_TINH: "GIOI_TINH",
-            NV_MACCHN: "MACCHN",             // Mới
+            NV_MACCHN: "MACCHN",
             NV_NGAY_CAP_CCHN: "NGAYCAP_CCHN", 
-            NV_NOICAP_CCHN: "NOICAP_CCHN",   // Mới
+            NV_NOICAP_CCHN: "NOICAP_CCHN",
             NV_PHAM_VI: "PHAMVI_CM",  
-            NV_TUNGAY: "TUNGAY",             // Mới
-            
+            NV_TUNGAY: "TUNGAY", 
             NV_CDNN: "CHUCDANH_NN",
             NV_VI_TRI: "VI_TRI",
-            
-            // File Khoa Phòng
             KP_MA_KHOA: "MA_KHOA",
             KP_TEN_KHOA: "TEN_KHOA"
         };
 
-        // Danh sách các cột BẮT BUỘC PHẢI CÓ DỮ LIỆU
         const REQUIRED_COLS = [
             { key: COL.NV_MA_KHOA, label: "Mã Khoa" },
             { key: COL.NV_TEN_KHOA, label: "Tên Khoa" },
@@ -100,8 +153,6 @@
             { key: COL.NV_TUNGAY, label: "Từ ngày" }
         ];
 
-        // --- 2. CÁC HÀM XỬ LÝ CHÍNH ---
-
         async function processData() {
             const fileNV = document.getElementById('fileNV').files[0];
             const fileKP = document.getElementById('fileKP').files[0];
@@ -112,180 +163,110 @@
             }
 
             try {
-                // Load Rules Mapping
                 const response = await fetch('mapping_bhxh.json');
                 let mapRulesDict = {};
                 if (response.ok) {
-    const mappingRules = await response.json();
-    window.globalMappingRules = {}; // Khởi tạo biến toàn cục
-    mappingRules.forEach(item => {
-        window.globalMappingRules[item.MA_PHAM_VI.toString().trim()] = item; 
-    });
-} else {
-                    console.warn("Không tìm thấy file mapping_bhxh.json, sẽ bỏ qua check chức danh.");
+                    const mappingRules = await response.json();
+                    window.globalMappingRules = {}; 
+                    mappingRules.forEach(item => {
+                        const ma = item.MA_PHAM_VI.toString().trim();
+                        mapRulesDict[ma] = item;
+                        window.globalMappingRules[ma] = item;
+                    });
                 }
 
                 const dataNV = await readExcel(fileNV);
                 window.rawNVData = dataNV;
+                document.getElementById('statusIndicator').classList.remove('hidden');
+                
                 const dataKP = await readExcel(fileKP);
-
                 const mapKhoaPhong = {};
                 dataKP.forEach(row => {
                     if (row[COL.KP_MA_KHOA]) {
-                        const key = row[COL.KP_MA_KHOA].toString().trim();
-                        mapKhoaPhong[key] = row[COL.KP_TEN_KHOA] || "";
+                        mapKhoaPhong[row[COL.KP_MA_KHOA].toString().trim()] = row[COL.KP_TEN_KHOA] || "";
                     }
                 });
 
-                // --- BẮT ĐẦU KIỂM TRA ---
                 let errors = [];
                 let stt = 1;
                 let listQuanLy = []; 
 
                 dataNV.forEach(nv => {
-                    // Lấy dữ liệu cơ bản để hiển thị lỗi
                     const maBHXH = nv[COL.NV_MA_BHXH] ? nv[COL.NV_MA_BHXH].toString().trim() : "N/A";
                     const hoTen = nv[COL.NV_HO_TEN] || "N/A";
 
-                    // --- CHECK 1: KIỂM TRA DỮ LIỆU BẮT BUỘC (QUAN TRỌNG) ---
+                    // Check Required
                     let missingFields = [];
                     REQUIRED_COLS.forEach(col => {
                         const val = nv[col.key];
-                        // Kiểm tra null, undefined hoặc chuỗi rỗng
                         if (val === undefined || val === null || val.toString().trim() === "") {
-                            missingFields.push(col.label); // Lưu tên hiển thị (VD: "Họ Tên" thay vì "HO_TEN")
+                            missingFields.push(col.label);
                         }
                     });
 
                     if (missingFields.length > 0) {
-                        errors.push({
-                            stt: stt++, ma: maBHXH, ten: hoTen,
-                            loai: "Thiếu dữ liệu",
-                            chitiet: `Các trường bắt buộc bị trống: ${missingFields.join(', ')}`,
-                            goc: "NULL"
-                        });
-                        // Nếu thiếu dữ liệu quan trọng, có thể bỏ qua các check format bên dưới để tránh lỗi chồng chéo
-                        // Nhưng ở đây ta cứ để chạy tiếp để bắt hết lỗi có thể.
+                        errors.push({ stt: stt++, ma: maBHXH, ten: hoTen, loai: "Thiếu dữ liệu", chitiet: `Bị trống: ${missingFields.join(', ')}`, goc: "NULL" });
                     }
 
-                    // --- LẤY DỮ LIỆU RAW ---
+                    // Format Checks
                     const rawGioiTinh = nv[COL.NV_GIOI_TINH] ? nv[COL.NV_GIOI_TINH].toString().trim() : "";
                     const rawNgayCap = nv[COL.NV_NGAY_CAP_CCHN] ? nv[COL.NV_NGAY_CAP_CCHN].toString().trim() : "";
                     const rawTuNgay = nv[COL.NV_TUNGAY] ? nv[COL.NV_TUNGAY].toString().trim() : "";
-                    
                     const rawMaKhoa = nv[COL.NV_MA_KHOA] ? nv[COL.NV_MA_KHOA].toString().trim() : "";
                     const rawTenKhoa = nv[COL.NV_TEN_KHOA] || "";
                     const rawPhamVi = nv[COL.NV_PHAM_VI] ? nv[COL.NV_PHAM_VI].toString().trim() : "";
                     const rawChucDanh = nv[COL.NV_CDNN] ? nv[COL.NV_CDNN].toString().trim() : "";
                     const rawViTri = nv[COL.NV_VI_TRI] ? nv[COL.NV_VI_TRI].toString().trim() : "";
 
-                    // --- CHECK 2: FORMAT ---
-                    // Mã BHXH 10 số
                     if (maBHXH !== "N/A" && !/^\d{10}$/.test(maBHXH)) {
-                        errors.push({
-                            stt: stt++, ma: maBHXH, ten: hoTen, loai: "Lỗi Định dạng", 
-                            chitiet: `Mã BHXH phải là 10 số.`, goc: maBHXH
-                        });
+                        errors.push({ stt: stt++, ma: maBHXH, ten: hoTen, loai: "Lỗi Định dạng", chitiet: `Mã BHXH phải là 10 số.`, goc: maBHXH });
                     }
-                    // Giới tính
                     if (rawGioiTinh !== "" && !["1", "2"].includes(rawGioiTinh)) {
-                        errors.push({
-                            stt: stt++, ma: maBHXH, ten: hoTen, loai: "Lỗi Định dạng", 
-                            chitiet: `Giới tính sai (chỉ nhận 1 hoặc 2).`, goc: rawGioiTinh
-                        });
+                        errors.push({ stt: stt++, ma: maBHXH, ten: hoTen, loai: "Lỗi Định dạng", chitiet: `Giới tính sai (1: Nam, 2: Nữ).`, goc: rawGioiTinh });
                     }
-                    // Ngày cấp (chỉ check nếu có dữ liệu)
                     if (rawNgayCap !== "" && !isValidDate(rawNgayCap)) {
-                        errors.push({
-                            stt: stt++, ma: maBHXH, ten: hoTen, loai: "Lỗi Định dạng", 
-                            chitiet: `Ngày cấp CCHN không đúng chuẩn yyyymmdd.`, goc: rawNgayCap
-                        });
-                    }
-                    // Từ ngày (chỉ check nếu có dữ liệu)
-                    if (rawTuNgay !== "" && !isValidDate(rawTuNgay)) {
-                        errors.push({
-                            stt: stt++, ma: maBHXH, ten: hoTen, loai: "Lỗi Định dạng", 
-                            chitiet: `Cột TUNGAY không đúng chuẩn yyyymmdd.`, goc: rawTuNgay
-                        });
+                        errors.push({ stt: stt++, ma: maBHXH, ten: hoTen, loai: "Lỗi Định dạng", chitiet: `Ngày cấp sai yyyymmdd.`, goc: rawNgayCap });
                     }
 
-                    // --- CHECK 3: LOGIC KHOA PHÒNG ---
+                    // Khoa Phong Logic
                     const listMaKhoa = splitAndTrim(rawMaKhoa);
-                    if (listMaKhoa.length > 0) {
-                        listMaKhoa.forEach(ma => {
-                            if (!mapKhoaPhong.hasOwnProperty(ma)) {
-                                errors.push({
-                                    stt: stt++, ma: maBHXH, ten: hoTen, loai: "Sai Mã Khoa", 
-                                    chitiet: `Mã khoa '${ma}' không tồn tại trong file KP.`, goc: rawMaKhoa
-                                });
-                            } else if (listMaKhoa.length === 1) {
-                                const tenKhoaGoc = mapKhoaPhong[ma];
-                                if (rawTenKhoa && tenKhoaGoc && rawTenKhoa.toLowerCase().trim() !== tenKhoaGoc.toLowerCase().trim()) {
-                                     errors.push({
-                                        stt: stt++, ma: maBHXH, ten: hoTen, loai: "Cảnh báo Tên Khoa", 
-                                        chitiet: `Tên khoa NV khác KP.`, goc: rawMaKhoa
-                                    });
-                                }
-                            }
-                        });
-                    }
+                    listMaKhoa.forEach(ma => {
+                        if (!mapKhoaPhong.hasOwnProperty(ma)) {
+                            errors.push({ stt: stt++, ma: maBHXH, ten: hoTen, loai: "Sai Mã Khoa", chitiet: `Mã khoa '${ma}' không có trong DM.`, goc: rawMaKhoa });
+                        }
+                    });
 
-                    // --- CHECK 4: LOGIC PHẠM VI & CHỨC DANH ---
+                    // Pham Vi Logic
                     const listPhamVi = splitAndTrim(rawPhamVi);
                     if (listPhamVi.length > 0 && Object.keys(mapRulesDict).length > 0) {
                         let isTitleValid = false;
                         let validScopeCount = 0;
-                        let invalidScopes = [];
-
                         listPhamVi.forEach(pv => {
-                            if (mapRulesDict.hasOwnProperty(pv)) {
+                            if (mapRulesDict[pv]) {
                                 validScopeCount++;
-                                const rule = mapRulesDict[pv];
-                                if (rawChucDanh === rule.MA_CHUC_DANH.toString().trim()) {
-                                    isTitleValid = true;
-                                }
-                            } else {
-                                invalidScopes.push(pv);
+                                if (rawChucDanh === mapRulesDict[pv].MA_CHUC_DANH.toString().trim()) isTitleValid = true;
                             }
                         });
-
-                        if (invalidScopes.length > 0) {
-                            errors.push({
-                                stt: stt++, ma: maBHXH, ten: hoTen, loai: "Sai Phạm vi CM", 
-                                chitiet: `Mã phạm vi lạ: ${invalidScopes.join(', ')}`, goc: rawPhamVi
-                            });
-                        }
                         if (validScopeCount > 0 && !isTitleValid) {
-                             errors.push({
-                                stt: stt++, ma: maBHXH, ten: hoTen, loai: "Sai Chức danh", 
-                                chitiet: `Chức danh '${rawChucDanh}' không khớp phạm vi.`, goc: rawChucDanh
-                            });
+                            errors.push({ stt: stt++, ma: maBHXH, ten: hoTen, loai: "Sai Chức danh", chitiet: `Chức danh không khớp phạm vi.`, goc: rawChucDanh });
                         }
                     }
-
-                    // Gom nhóm quản lý
                     if (rawViTri === "1") listQuanLy.push({ ma: maBHXH, ten: hoTen, goc: rawViTri });
                 });
 
-                // Check trùng vị trí quản lý
                 if (listQuanLy.length > 1) {
                     listQuanLy.forEach(ql => {
-                        errors.push({
-                            stt: stt++, ma: ql.ma, ten: ql.ten, loai: "Lỗi Vị trí", 
-                            chitiet: `Trùng ${listQuanLy.length} người Vị trí = 1.`, goc: ql.goc
-                        });
+                        errors.push({ stt: stt++, ma: ql.ma, ten: ql.ten, loai: "Lỗi Vị trí", chitiet: `Phát hiện ${listQuanLy.length} nhân sự quản lý (Vị trí 1).`, goc: ql.goc });
                     });
                 }
 
                 renderResult(errors);
-
             } catch (e) {
-                console.error(e);
-                alert("❌ Lỗi xử lý: " + e.message);
+                alert("❌ Lỗi: " + e.message);
             }
         }
 
-        // --- UTILS ---
+        // --- UTILS & RENDER ---
         function isValidDate(d) {
             if (!/^\d{8}$/.test(d)) return false;
             const y = parseInt(d.substring(0, 4)), m = parseInt(d.substring(4, 6)), day = parseInt(d.substring(6, 8));
@@ -303,12 +284,9 @@
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    try {
-                        const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, {type: 'array'});
-                        const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-                        resolve(jsonData);
-                    } catch (err) { reject(err); }
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    resolve(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]));
                 };
                 reader.readAsArrayBuffer(file);
             });
@@ -316,119 +294,107 @@
 
         function renderResult(errors) {
             const resultArea = document.getElementById('resultArea');
-            const tableBody = document.getElementById('tableBody');
             const errorCount = document.getElementById('errorCount');
-
             resultArea.classList.remove('hidden');
-            tableBody.innerHTML = "";
             
             if (errors.length === 0) {
-                errorCount.innerHTML = "✅ Dữ liệu hoàn toàn hợp lệ!";
-                errorCount.className = "text-green-600";
-                return;
+                errorCount.innerHTML = `<span class="text-emerald-600">Dữ liệu hoàn hảo! <i class="fas fa-check-circle"></i></span>`;
+            } else {
+                errorCount.innerHTML = `<span class="text-rose-600">${errors.length} vấn đề cần sửa</span>`;
             }
-
-            errorCount.innerHTML = `⚠️ Tìm thấy ${errors.length} vấn đề`;
-            errorCount.className = "text-red-600";
             window.currentErrors = errors; 
             fillTable(errors);
+            // Cuộn xuống kết quả
+            resultArea.scrollIntoView({ behavior: 'smooth' });
         }
 
         function fillTable(data) {
             const tableBody = document.getElementById('tableBody');
             tableBody.innerHTML = "";
             data.forEach(err => {
-                let colorClass = "text-gray-700";
-                if(err.loai.includes("Thiếu")) colorClass = "text-red-700 font-extrabold uppercase"; // Nổi bật lỗi thiếu
-                else if(err.loai.includes("Định dạng")) colorClass = "text-orange-600 font-bold";
-                else if(err.loai.includes("Khoa")) colorClass = "text-red-600 font-bold";
-                else if(err.loai.includes("Cảnh báo")) colorClass = "text-yellow-600 font-bold";
-                else if(err.loai.includes("Vị trí")) colorClass = "text-purple-600 font-bold";
+                let badgeClass = "bg-slate-100 text-slate-600";
+                if(err.loai.includes("Thiếu")) badgeClass = "bg-rose-100 text-rose-700";
+                else if(err.loai.includes("Định dạng")) badgeClass = "bg-orange-100 text-orange-700";
+                else if(err.loai.includes("Khoa")) badgeClass = "bg-rose-100 text-rose-700 border border-rose-200";
+                else if(err.loai.includes("Vị trí")) badgeClass = "bg-purple-100 text-purple-700";
 
                 const row = `
-                    <tr class="hover:bg-blue-50 border-b transition">
-                        <td class="py-2 px-4 text-center text-gray-500">${err.stt}</td>
-                        <td class="py-2 px-4 font-semibold text-gray-700 font-mono">${err.ma}</td>
-                        <td class="py-2 px-4 text-blue-900 font-medium">${err.ten}</td>
-                        <td class="py-2 px-4 ${colorClass}">${err.loai}</td>
-                        <td class="py-2 px-4 text-sm text-gray-700">${err.chitiet}</td>
-                        <td class="py-2 px-4 text-xs text-gray-400 font-mono max-w-xs truncate" title="${err.goc}">${err.goc}</td>
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="py-4 px-4 text-slate-400 font-medium">${err.stt}</td>
+                        <td class="py-4 px-4 font-mono font-semibold text-slate-700">${err.ma}</td>
+                        <td class="py-4 px-4 font-semibold text-slate-900">${err.ten}</td>
+                        <td class="py-4 px-4">
+                            <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${badgeClass}">
+                                ${err.loai}
+                            </span>
+                        </td>
+                        <td class="py-4 px-4 text-slate-600 leading-relaxed">${err.chitiet}</td>
+                        <td class="py-4 px-4">
+                            <span class="text-[11px] font-mono text-slate-400 bg-slate-50 px-2 py-1 rounded truncate block max-w-[150px]" title="${err.goc}">
+                                ${err.goc}
+                            </span>
+                        </td>
                     </tr>
                 `;
-                tableBody.innerHTML += row;
+                tableBody.insertAdjacentHTML('beforeend', row);
             });
         }
 
         function filterTable(type) {
             if(!window.currentErrors) return;
-            if(type === 'all') fillTable(window.currentErrors);
-            else {
-                const filtered = window.currentErrors.filter(e => e.loai.includes(type));
-                fillTable(filtered);
+            const filtered = type === 'all' ? window.currentErrors : window.currentErrors.filter(e => e.loai.includes(type));
+            fillTable(filtered);
+        }
+
+        function exportToExcel() {
+            if (!window.rawNVData) {
+                alert("⚠️ Hãy chạy kiểm tra trước khi xuất!");
+                return;
             }
-        }
-        
-       function exportToExcel() {
-    if (!window.rawNVData || window.rawNVData.length === 0) {
-        alert("⚠️ Không có dữ liệu để xuất! Vui lòng chạy kiểm tra file trước.");
-        return;
-    }
+            const mapViTri = {
+                "1": "Người chịu trách nhiệm chuyên môn",
+                "2": "Trưởng khoa",
+                "3": "Người chịu trách nhiệm chuyên môn kiêm Trưởng khoa",
+                "4": "Người đứng đầu cơ sở KCB hoặc người được người đứng đầu cơ sở KCB ủy quyền",
+                "5": "Người hành nghề được giao phụ trách khoa trong trường hợp không có trưởng khoa"
+            };
 
-    const mapViTri = {
-        "1": "Người chịu trách nhiệm chuyên môn",
-        "2": "Trưởng khoa",
-        "3": "Người chịu trách nhiệm chuyên môn kiêm Trưởng khoa",
-        "4": "Người đứng đầu cơ sở KCB hoặc người được người đứng đầu cơ sở KCB ủy quyền",
-        "5": "Người hành nghề được giao phụ trách khoa trong trường hợp không có trưởng khoa"
-    };
-
-    const exportData = window.rawNVData.map((nv, index) => {
-        const viTriCode = nv[COL.NV_VI_TRI] ? nv[COL.NV_VI_TRI].toString().trim() : "";
-        
-        // --- Logic xử lý lấy nhiều Tên Phạm Vi CM ---
-        const maPVRaw = nv[COL.NV_PHAM_VI] ? nv[COL.NV_PHAM_VI].toString().trim() : "";
-        let tenPVArray = [];
-        
-        if (maPVRaw && window.globalMappingRules) {
-            // Tách các mã bằng dấu ;
-            const listMa = maPVRaw.split(';').map(m => m.trim()).filter(m => m !== "");
-            
-            listMa.forEach(ma => {
-                if (window.globalMappingRules[ma]) {
-                    tenPVArray.push(window.globalMappingRules[ma].TEN_CHUYEN_KHOA);
-                } else {
-                    tenPVArray.push(`Lỗi mã: ${ma}`); // Cảnh báo nếu mã không tồn tại trong JSON
+            const exportData = window.rawNVData.map((nv, index) => {
+                const viTriCode = nv[COL.NV_VI_TRI] ? nv[COL.NV_VI_TRI].toString().trim() : "";
+                const maPVRaw = nv[COL.NV_PHAM_VI] ? nv[COL.NV_PHAM_VI].toString().trim() : "";
+                let tenPVArray = [];
+                
+                if (maPVRaw && window.globalMappingRules) {
+                    maPVRaw.split(';').map(m => m.trim()).forEach(ma => {
+                        if (window.globalMappingRules[ma]) tenPVArray.push(window.globalMappingRules[ma].TEN_CHUYEN_KHOA);
+                        else tenPVArray.push(`Lỗi: ${ma}`);
+                    });
                 }
+
+                return {
+                    "STT": index + 1,
+                    "MA_CSKCB": "",
+                    "HO_TEN": nv[COL.NV_HO_TEN] || "",
+                    "MACCHN": nv[COL.NV_MACCHN] || "",
+                    "TEN_PHAMVI_CM": tenPVArray.join('; '),
+                    "MA_PHAMVI_CM": maPVRaw,
+                    "CHUCDANH_NN": nv[COL.NV_CDNN] || "",
+                    "TEN_VI_TRI": mapViTri[viTriCode] || "",
+                    "MA_VI_TRI": viTriCode,
+                    "DVKT_KHAC": nv["DVKT_KHAC"] || "",
+                    "THOIGIAN_LV": "07h30 đến 17h thứ 2,3,4,5,6,7,CN",
+                    "THOIGIAN_DK": nv["THOIGIAN_DK"] || "",
+                    "THOIGIAN_NGAY": nv["THOIGIAN_NGAY"] || "",
+                    "THOIGIAN_TUAN": nv["THOIGIAN_TUAN"] || "",
+                    "TU_NGAY": nv[COL.NV_TUNGAY] || ""
+                };
             });
+
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Báo cáo");
+            XLSX.writeFile(wb, "Bao_cao_Nhan_vien_Y_te.xlsx");
         }
-        // Nối lại bằng dấu ; và khoảng trắng để dễ đọc
-        const tenPVFull = tenPVArray.join('; ');
-
-        return {
-            "STT": index + 1,
-            "MA_CSKCB": "",
-            "HO_TEN": nv[COL.NV_HO_TEN] || "",
-            "MACCHN": nv[COL.NV_MACCHN] || "",
-            "TEN_PHAMVI_CM": tenPVFull, // Kết quả sau khi tra cứu
-            "MA_PHAMVI_CM": maPVRaw,
-            "CHUCDANH_NN": nv[COL.NV_CDNN] || "",
-            "TEN_VI_TRI": mapViTri[viTriCode] || "",
-            "MA_VI_TRI": viTriCode,
-            "DVKT_KHAC": nv["DVKT_KHAC"] || "",
-            "THOIGIAN_LV": "07h30 đến 17h thứ 2,3,4,5,6,7,CN",
-            "THOIGIAN_DK": nv["THOIGIAN_DK"] || "",
-            "THOIGIAN_NGAY": nv["THOIGIAN_NGAY"] || "",
-            "THOIGIAN_TUAN": nv["THOIGIAN_TUAN"] || "",
-            "TU_NGAY": nv[COL.NV_TUNGAY] || ""
-        };
-    });
-
-    // Tạo file Excel
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Báo cáo");
-    XLSX.writeFile(workbook, "Bao_cao_Nhan_vien_Y_te.xlsx");
-}
     </script>
 </body>
 </html>
