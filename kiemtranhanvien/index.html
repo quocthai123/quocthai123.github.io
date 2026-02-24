@@ -28,6 +28,10 @@
             <span>🚀 CHẠY KIỂM TRA TOÀN DIỆN</span>
         </button>
 
+        <button onclick="exportToExcel()" class="px-3 py-1 bg-green-700 text-white hover:bg-green-800 rounded text-sm font-medium shadow-md ml-auto flex items-center gap-1">
+    📊 Xuất file Excel Báo Cáo
+</button>
+
         <div id="resultArea" class="mt-8 hidden">
             <h2 class="text-xl font-bold mb-4">Kết quả: <span id="errorCount" class="text-red-600"></span></h2>
             
@@ -121,6 +125,7 @@
                 }
 
                 const dataNV = await readExcel(fileNV);
+                window.rawNVData = dataNV;
                 const dataKP = await readExcel(fileKP);
 
                 const mapKhoaPhong = {};
@@ -361,6 +366,56 @@
                 fillTable(filtered);
             }
         }
+        
+        function exportToExcel() {
+    // 1. Kiểm tra xem đã có dữ liệu nhân viên chưa
+    // Lưu ý: Ta cần lấy dữ liệu từ biến dataNV (dữ liệu gốc đã đọc)
+    // Để tiện lợi, bạn nên khai báo biến toàn cục 'window.rawNVData' trong hàm processData
+    if (!window.rawNVData || window.rawNVData.length === 0) {
+        alert("⚠️ Không có dữ liệu để xuất! Vui lòng chạy kiểm tra file trước.");
+        return;
+    }
+
+    // 2. Định nghĩa bảng tra cứu tên vị trí
+    const mapViTri = {
+        "1": "Người chịu trách nhiệm chuyên môn",
+        "2": "Trưởng khoa",
+        "3": "Người chịu trách nhiệm chuyên môn kiêm Trưởng khoa",
+        "4": "Người đứng đầu cơ sở KCB hoặc người được người đứng đầu cơ sở KCB ủy quyền",
+        "5": "Người hành nghề được giao phụ trách khoa trong trường hợp không có trưởng khoa"
+    };
+
+    // 3. Chuyển đổi dữ liệu sang định dạng mới
+    const exportData = window.rawNVData.map((nv, index) => {
+        const viTriCode = nv[COL.NV_VI_TRI] ? nv[COL.NV_VI_TRI].toString().trim() : "";
+        
+        return {
+            "STT": index + 1,
+            "MA_CSKCB": "",
+            "HO_TEN": nv[COL.NV_HO_TEN] || "",
+            "MACCHN": nv[COL.NV_MACCHN] || "",
+            "TEN_PHAMVI_CM": "", // Thừa kế tên (nếu có logic mapping tên chuyên môn có thể bổ sung ở đây)
+            "MA_PHAMVI_CM": nv[COL.NV_PHAM_VI] || "",
+            "CHUCDANH_NN": nv[COL.NV_CDNN] || "",
+            "TEN_VI_TRI": mapViTri[viTriCode] || "",
+            "MA_VI_TRI": viTriCode,
+            "DVKT_KHAC": nv["DVKT_KHAC"] || "",
+            "THOIGIAN_LV": "07h30 đến 17h thứ 2,3,4,5,6,7,CN", // Giá trị mặc định hoặc tùy chỉnh
+            "THOIGIAN_DK": nv["THOIGIAN_DK"] || "",
+            "THOIGIAN_NGAY": nv["THOIGIAN_NGAY"] || "",
+            "THOIGIAN_TUAN": nv["THOIGIAN_TUAN"] || "",
+            "TU_NGAY": nv[COL.NV_TUNGAY] || ""
+        };
+    });
+
+    // 4. Tạo Workbook và Export
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Bao_Cao_NVYT");
+
+    // Xuất file
+    XLSX.writeFile(workbook, "Bao_cao_Nhan_vien_Y_te.xlsx");
+}
     </script>
 </body>
 </html>
