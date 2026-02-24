@@ -351,16 +351,45 @@
                 alert("⚠️ Hãy chạy kiểm tra trước khi xuất!");
                 return;
             }
+            
+            // 1. Map Vị trí quản lý (cập nhật theo yêu cầu mới)
             const mapViTri = {
-                "1": "Người chịu trách nhiệm chuyên môn",
+                "1": "người chịu trách nhiệm chuyên môn",
                 "2": "Trưởng khoa",
-                "3": "Người chịu trách nhiệm chuyên môn kiêm Trưởng khoa",
-                "4": "Người đứng đầu cơ sở KCB hoặc người được người đứng đầu cơ sở KCB ủy quyền",
+                "3": "người chịu trách nhiệm chuyên môn kiêm Trưởng khoa",
+                "4": "Người đứng đầu cơ sở KCB hoặc người được người đứng đầu cơ sở KCB ủy quyền được ký giấy chuyển tuyến KCB BHYT, giấy ra viện",
                 "5": "Người hành nghề được giao phụ trách khoa trong trường hợp không có trưởng khoa"
+            };
+
+            // 2. Map Chức danh nghề nghiệp
+            const mapChucDanh = {
+                "1": "Bác sĩ",
+                "2": "Y sĩ",
+                "3": "Điều dưỡng",
+                "4": "Hộ sinh",
+                "5": "Kỹ thuật viên",
+                "6": "Cử nhân X-quang",
+                "7": "Dược sĩ đại học",
+                "8": "Dược sĩ trung cấp",
+                "9": "Lương y",
+                "10": "cử nhân xét nghiệm"
             };
 
             const exportData = window.rawNVData.map((nv, index) => {
                 const viTriCode = nv[COL.NV_VI_TRI] ? nv[COL.NV_VI_TRI].toString().trim() : "";
+                const chucDanhCode = nv[COL.NV_CDNN] ? nv[COL.NV_CDNN].toString().trim() : "";
+                
+                // 3. Xử lý logic ghép chuỗi Tên Chức danh + Vị trí
+                const tenChucDanh = mapChucDanh[chucDanhCode] || "";
+                const tenViTriQuanLy = mapViTri[viTriCode] || "";
+                
+                let tenViTriXuat = tenChucDanh; // Mặc định lấy Tên chức danh
+                if (tenViTriQuanLy !== "") {
+                    // Nếu có vị trí quản lý, ghép thêm vào bằng dấu " - "
+                    tenViTriXuat = tenChucDanh !== "" ? `${tenChucDanh} - ${tenViTriQuanLy}` : tenViTriQuanLy;
+                }
+
+                // Xử lý phạm vi chuyên môn (giữ nguyên logic cũ của bạn)
                 const maPVRaw = nv[COL.NV_PHAM_VI] ? nv[COL.NV_PHAM_VI].toString().trim() : "";
                 let tenPVArray = [];
                 
@@ -379,7 +408,7 @@
                     "TEN_PHAMVI_CM": tenPVArray.join('; '),
                     "MA_PHAMVI_CM": maPVRaw,
                     "CHUCDANH_NN": nv[COL.NV_CDNN] || "",
-                    "TEN_VI_TRI": mapViTri[viTriCode] || "",
+                    "TEN_VI_TRI": tenViTriXuat, // Sử dụng chuỗi đã ghép ở đây
                     "MA_VI_TRI": viTriCode,
                     "DVKT_KHAC": nv["DVKT_KHAC"] || "",
                     "THOIGIAN_LV": "07h30 đến 17h thứ 2,3,4,5,6,7,CN",
