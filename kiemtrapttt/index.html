@@ -306,13 +306,18 @@
             for (let key in currentConfig) configMap[normalizeName(key)] = currentConfig[key];
 
             const processedRows = data.map((row, index) => {
+                // LẤY GIÁ TRỊ LOẠI ĐỐI TƯỢNG
+                const doiTuong = (row['Loại đối tượng'] || "").toString().trim().toUpperCase();
+
+                // BƯỚC LỌC: Chỉ lấy dòng có giá trị BHYT, các loại khác (Viện phí, Không thu,...) bỏ qua
+                if (doiTuong !== "BHYT") return null;
+
                 const result = {
                     id: index + 1,
                     maPhieu: (row['Mã phiếu'] || "").toString().trim(),
                     maHoSo: (row['Mã hồ sơ'] || "").toString().trim(),
                     theBHYT: (row['Thẻ bảo hiểm'] || "").toString().trim(),
                     ngaySinh: (row['Ngày sinh'] || "").toString().trim(),
-                    
                     ngayVao: (row['Ngày vào viện'] || "").toString().trim(),
                     ngayRa: (row['Ngày ra viện'] || "").toString().trim(),
                     patient: (row['Tên bệnh nhân'] || "").toString().trim(),
@@ -376,6 +381,9 @@
 
                 return result;
             }).filter(item => item !== null);
+
+            // --- GIỮ NGUYÊN PHẦN LOGIC CHECK TRÙNG KTV VÀ BỆNH NHÂN Ở ĐÂY ---
+            // (Như đoạn mã bạn đã có ở trên)
 
             // 1. CHECK BỆNH NHÂN LÀM TRÙNG
             for (const pKey in patientMap) {
