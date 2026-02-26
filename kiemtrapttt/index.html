@@ -165,6 +165,10 @@
                     <button class="btn btn-primary btn-sm px-4 fw-bold shadow-sm" onclick="processData()">
                         <i class="bi bi-search me-1"></i> KIỂM TRA
                     </button>
+
+                    <button id="btnExport" class="btn btn-success btn-sm px-4 fw-bold shadow-sm d-none" onclick="exportToExcel()">
+                        <i class="bi bi-file-earmark-excel me-1"></i> XUẤT LỖI
+                    </button>
                     
                     <a href="admin.html" class="btn btn-outline-light btn-sm bg-white text-dark border-0 shadow-sm" title="Cấu hình danh mục">
                         <i class="bi bi-gear-fill"></i>
@@ -476,6 +480,8 @@ for (const staff in staffMap) {
 
             globalProcessedData = processedRows;
             filterTable('ALL', document.querySelector('#statsBar .col-6:first-child .stat-card'));
+         
+document.getElementById('btnExport').classList.remove('d-none');
         }
 
         function filterTable(filterType, element) {
@@ -570,6 +576,43 @@ for (const staff in staffMap) {
             if (!dateObj) return "-";
             return dateObj.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
         }
+
+        function exportToExcel() {
+    if (globalProcessedData.length === 0) return;
+
+    // 1. Chuẩn bị dữ liệu cho Sheet Tổng hợp
+    const allData = globalProcessedData.map(item => ({
+        "STT": item.id,
+        "Ngày": item.dateIn,
+        "Mã Phiếu": item.maPhieu,
+        "Bệnh Nhân": item.patient,
+        "Dịch Vụ": item.service,
+        "KTV": item.staff,
+        "Bắt Đầu": formatSimpleTime(item.startObj),
+        "Kết Thúc": formatSimpleTime(item.endObj),
+        "Phút": item.duration,
+        "Trạng Thái": item.status,
+        "Chi Tiết Lỗi": item.messages.join(", ")
+    }));
+
+    // 2. Chuẩn bị dữ liệu cho Sheet Lỗi (Chỉ lấy ERROR và WARNING)
+    const errorData = allData.filter(item => item["Trạng Thái"] !== "OK");
+
+    // 3. Tạo Workbook
+    const wb = XLSX.utils.book_new();
+
+    // 4. Tạo Sheet Lỗi (Ưu tiên đưa lên đầu)
+    const wsError = XLSX.utils.json_to_sheet(errorData);
+    XLSX.utils.book_append_sheet(wb, wsError, "Danh Sach Loi");
+
+    // 5. Tạo Sheet Tất cả
+    const wsAll = XLSX.utils.json_to_sheet(allData);
+    XLSX.utils.book_append_sheet(wb, wsAll, "Tat Ca Du Lieu");
+
+    // 6. Xuất file
+    const fileName = `Bao_cao_PTTT_Loi_${new Date().toLocaleDateString('vi-VN')}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+}
     </script>
 
 </body>
