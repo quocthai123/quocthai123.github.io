@@ -6,17 +6,16 @@
     <title>Hướng Dẫn Sử Dụng - Rà Soát PTTT</title>
     
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3063/3063176.png" type="image/png">
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --primary-color: #4361ee;
-            --bg-color: #f8f9fa;
-            --text-main: #2b2d42;
+            --primary-color: #0f766e;
+            --primary-light: #14b8a6;
+            --bg-color: #f0fdf4;
+            --text-main: #1e293b;
             --text-muted: #64748b;
         }
 
@@ -28,12 +27,12 @@
         }
 
         .hero-section {
-            background: linear-gradient(135deg, var(--primary-color), #4cc9f0);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
             color: white;
             padding: 60px 0 40px;
             border-bottom-left-radius: 30px;
             border-bottom-right-radius: 30px;
-            box-shadow: 0 10px 30px rgba(67, 97, 238, 0.15);
+            box-shadow: 0 10px 30px rgba(20, 184, 166, 0.15);
             margin-bottom: 40px;
         }
 
@@ -44,57 +43,49 @@
             height: 100%;
             border: 1px solid rgba(0,0,0,0.05);
             box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: all 0.3s ease;
         }
 
         .feature-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 10px 20px rgba(20, 184, 166, 0.1);
         }
 
         .icon-box {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 15px;
+            width: 50px; height: 50px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; margin-bottom: 15px;
         }
 
-        .bg-icon-primary { background: #e0e7ff; color: var(--primary-color); }
-        .bg-icon-success { background: #d1fae5; color: #059669; }
-        .bg-icon-danger { background: #fee2e2; color: #dc2626; }
-        .bg-icon-warning { background: #fef3c7; color: #d97706; }
-
-        .list-check { list-style: none; padding-left: 0; }
-        .list-check li { position: relative; padding-left: 25px; margin-bottom: 10px; }
-        .list-check li::before {
-            content: "\F26A"; /* Bootstrap Icon Check */
-            font-family: "bootstrap-icons";
-            position: absolute;
-            left: 0;
-            color: var(--primary-color);
-            font-weight: bold;
-        }
+        .bg-icon-primary { background: #ccfbf1; color: var(--primary-color); }
+        .bg-icon-success { background: #dcfce7; color: #15803d; }
+        .bg-icon-danger { background: #fee2e2; color: #b91c1c; }
+        .bg-icon-warning { background: #fef3c7; color: #b45309; }
 
         .error-group {
             border-left: 4px solid;
             padding-left: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .group-red { border-color: #dc2626; }
         .group-yellow { border-color: #d97706; }
-        .group-gray { border-color: #94a3b8; }
 
         .btn-back {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.4);
-            backdrop-filter: blur(5px);
+            background: rgba(255,255,255,0.2); color: white;
+            border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(5px);
         }
         .btn-back:hover { background: white; color: var(--primary-color); }
+
+        .update-badge {
+            background-color: #f0fdfa;
+            color: #0d9488;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            border: 1px solid #99f6e4;
+            font-weight: 600;
+            margin-left: 5px;
+        }
 
         footer { margin-top: 50px; padding: 30px 0; background: white; border-top: 1px solid #e2e8f0; text-align: center; color: var(--text-muted); }
     </style>
@@ -107,11 +98,11 @@
                 <a href="index.html" class="btn btn-back btn-sm px-3 rounded-pill fw-bold">
                     <i class="bi bi-arrow-left me-1"></i> Quay lại Công cụ
                 </a>
-                <span class="badge bg-white text-primary rounded-pill px-3">Phiên bản 2.7</span>
+                <span class="badge bg-white text-dark rounded-pill px-3">Phiên bản 2.7 (Update 2026)</span>
             </div>
             <div class="text-center">
                 <h1 class="fw-bold mb-2">HƯỚNG DẪN SỬ DỤNG</h1>
-                <p class="lead opacity-90">Phần mềm Rà soát Dữ liệu Phẫu thuật - Thủ thuật (PTTT)</p>
+                <p class="lead opacity-90">Hệ thống kiểm soát dữ liệu PTTT nội bộ</p>
             </div>
         </div>
     </header>
@@ -119,40 +110,57 @@
     <div class="container pb-5">
         
         <div class="row mb-5">
-            <div class="col-lg-8 mx-auto text-center">
-                <h3 class="fw-bold text-primary mb-3">Mục Tiêu Phần Mềm</h3>
-                <p class="text-muted fs-5">
-                    Công cụ tự động hóa việc kiểm tra tính hợp lệ của dữ liệu PTTT, giúp nhân viên y tế phát hiện sớm các lỗi sai sót về thời gian, trùng lặp nhân sự và đặc biệt là <strong class="text-dark">trùng lặp bệnh nhân</strong> trước khi đẩy lên cổng giám định BHYT.
-                </p>
+            <div class="col-12">
+                <div class="feature-card bg-white border-start border-primary border-4">
+                    <h4 class="fw-bold text-primary"><i class="bi bi-megaphone me-2"></i>Các cập nhật quan trọng (v2.7)</h4>
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-filter-square-fill text-success me-2"></i>
+                                <strong>Lọc Đối Tượng BHYT</strong>
+                            </div>
+                            <small class="text-muted">Hệ thống tự động loại bỏ các ca Viện phí, Không thu... chỉ tập trung đối chiếu dữ liệu BHYT.</small>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-clock-history text-danger me-2"></i>
+                                <strong>Kiểm soát Gối đầu</strong>
+                            </div>
+                            <small class="text-muted">Báo lỗi nếu giờ kết thúc ca trước trùng khít với giờ bắt đầu ca sau của cùng 1 KTV.</small>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-file-earmark-spreadsheet-fill text-primary me-2"></i>
+                                <strong>Xuất Excel Đa Sheet</strong>
+                            </div>
+                            <small class="text-muted">Hỗ trợ xuất tệp báo cáo tách riêng danh sách lỗi và danh sách tổng hợp để dễ quản lý.</small>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="row g-4 mb-5">
             <div class="col-12">
-                <h4 class="fw-bold mb-3 border-bottom pb-2"><i class="bi bi-exclamation-diamond-fill text-danger me-2"></i>Các Trường Hợp Lỗi Được Phát Hiện</h4>
+                <h4 class="fw-bold mb-3 border-bottom pb-2"><i class="bi bi-shield-fill-exclamation text-danger me-2"></i>Danh mục Lỗi & Cảnh báo</h4>
             </div>
 
             <div class="col-md-6 col-lg-4">
                 <div class="feature-card border-danger border-top-0 border-end-0 border-bottom-0 border-3">
                     <div class="icon-box bg-icon-danger mb-3"><i class="bi bi-x-octagon-fill"></i></div>
-                    <h5 class="fw-bold text-danger">Lỗi Nghiêm Trọng (Màu Đỏ)</h5>
-                    <p class="small text-muted mb-3">Vi phạm quy chế chuyên môn hoặc quy tắc vật lý. Bắt buộc phải sửa.</p>
+                    <h5 class="fw-bold text-danger">Lỗi Nghiêm Trọng</h5>
                     
                     <div class="error-group group-red">
-                        <strong class="text-dark">1. Trùng Bệnh Nhân (Mới)</strong><br>
-                        <small>Cùng 1 Mã hồ sơ thực hiện 2 dịch vụ chồng lấn thời gian ở 2 nơi khác nhau.</small>
+                        <strong class="text-dark">Trùng KTV (Gối đầu)</strong> <span class="update-badge">Mới</span><br>
+                        <small>KTV làm ca tiếp theo ngay khi ca trước vừa xong (trùng giờ). Cần ít nhất 1 phút khoảng nghỉ giữa 2 ca.</small>
                     </div>
                     <div class="error-group group-red">
-                        <strong class="text-dark">2. Trùng KTV (Cấm kỵ)</strong><br>
-                        <small>KTV làm cùng lúc 2 ca mà dịch vụ không cho phép (VD: Xoa bóp & Tập VĐ).</small>
+                        <strong class="text-dark">Trùng Bệnh Nhân</strong><br>
+                        <small>Một bệnh nhân không thể thực hiện 2 dịch vụ cùng lúc (trừ trường hợp đặc biệt được cấu hình).</small>
                     </div>
                     <div class="error-group group-red">
-                        <strong class="text-dark">3. Trùng 100% Thời Gian</strong><br>
-                        <small>Giờ Bắt đầu và Kết thúc y hệt nhau từng phút.</small>
-                    </div>
-                    <div class="error-group group-red">
-                        <strong class="text-dark">4. Lỗi Logic</strong><br>
-                        <small>Sai ngày, Giờ âm, Lỗi định dạng.</small>
+                        <strong class="text-dark">Lỗi Logic Thời Gian</strong><br>
+                        <small>Ngày bắt đầu khác ngày kết thúc, giờ âm, hoặc sai định dạng Excel.</small>
                     </div>
                 </div>
             </div>
@@ -160,92 +168,57 @@
             <div class="col-md-6 col-lg-4">
                 <div class="feature-card border-warning border-top-0 border-end-0 border-bottom-0 border-3">
                     <div class="icon-box bg-icon-warning mb-3"><i class="bi bi-exclamation-triangle-fill"></i></div>
-                    <h5 class="fw-bold text-warning">Cảnh Báo (Màu Vàng)</h5>
-                    <p class="small text-muted mb-3">Cần xem xét lại tính hợp lý.</p>
-                    
+                    <h5 class="fw-bold text-warning">Cảnh Báo Định Mức</h5>
                     <div class="error-group group-yellow">
-                        <strong class="text-dark">Vi phạm định mức thời gian</strong><br>
-                        <ul class="mb-0 ps-3 small text-muted">
-                            <li>Quá nhanh (Dưới mức tối thiểu)</li>
-                            <li>Quá lâu (Trên mức tối đa)</li>
-                        </ul>
-                        <div class="mt-2 fst-italic text-muted" style="font-size: 0.8em">
-                            Ví dụ: Điện xung quy định 20p nhưng thực tế làm 5p.
-                        </div>
+                        <strong class="text-dark">Thời gian quá nhanh/chậm</strong><br>
+                        <small>Hệ thống đối chiếu với <code>danhmucdvkt.json</code>. Nếu thực hiện nhanh hơn Min hoặc lâu hơn Max sẽ cảnh báo.</small>
+                    </div>
+                    <div class="error-group group-yellow">
+                        <strong class="text-dark">Sai lệch quy chế</strong><br>
+                        <small>Cảnh báo các ca có dấu hiệu ghi chép không thực tế dựa trên định mức kỹ thuật.</small>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-6 col-lg-4">
-                <div class="feature-card border-secondary border-top-0 border-end-0 border-bottom-0 border-3">
-                    <div class="icon-box bg-light text-secondary mb-3"><i class="bi bi-question-circle-fill"></i></div>
-                    <h5 class="fw-bold text-secondary">Chưa Cấu Hình (Màu Xám)</h5>
-                    <p class="small text-muted mb-3">Dịch vụ chưa có trong hệ thống.</p>
-                    
-                    <div class="error-group group-gray">
-                        <strong class="text-dark">Dịch vụ lạ</strong><br>
-                        <small>Tên dịch vụ trong Excel không khớp với file cấu hình JSON.</small><br>
-                        <a href="admin.html" class="btn btn-outline-secondary btn-sm mt-2" style="font-size: 0.75rem;">Đến trang Cấu hình để thêm</a>
-                    </div>
+                <div class="feature-card">
+                    <div class="icon-box bg-icon-primary mb-3"><i class="bi bi-file-earmark-excel-fill"></i></div>
+                    <h5 class="fw-bold text-primary">Yêu cầu File Excel</h5>
+                    <p class="small text-muted">File xuất từ HIS cần có các cột sau:</p>
+                    <ul class="small list-unstyled">
+                        <li><i class="bi bi-check2-circle me-1"></i> <strong>Loại đối tượng:</strong> Phải là "BHYT"</li>
+                        <li><i class="bi bi-check2-circle me-1"></i> <strong>Mã hồ sơ:</strong> Để định danh BN</li>
+                        <li><i class="bi bi-check2-circle me-1"></i> <strong>PTV/TTV chính:</strong> Tên KTV thực hiện</li>
+                        <li><i class="bi bi-check2-circle me-1"></i> <strong>Giờ PTTT / Giờ KTPTTT:</strong> Giờ vào/ra</li>
+                    </ul>
                 </div>
             </div>
         </div>
 
-        <div class="row g-4">
-            <div class="col-lg-6">
-                <div class="feature-card h-100">
-                    <h4 class="fw-bold mb-4"><i class="bi bi-stars text-warning me-2"></i>Điểm Nổi Bật</h4>
-                    
-                    <div class="d-flex mb-4">
-                        <div class="icon-box bg-icon-success flex-shrink-0 me-3"><i class="bi bi-shield-lock-fill"></i></div>
-                        <div>
-                            <h6 class="fw-bold">An Toàn Tuyệt Đối</h6>
-                            <p class="small text-muted mb-0">Chạy hoàn toàn trên trình duyệt (Client-side). File Excel chứa thông tin bệnh nhân KHÔNG bao giờ được tải lên máy chủ nào.</p>
-                        </div>
+        <div class="row">
+            <div class="col-12">
+                <h4 class="fw-bold mb-4 text-center">Quy trình xử lý dữ liệu</h4>
+                <div class="row g-4 justify-content-center">
+                    <div class="col-md-3 text-center">
+                        <div class="icon-box bg-white shadow-sm mx-auto mb-3">1</div>
+                        <h6 class="fw-bold">Nạp File</h6>
+                        <small class="text-muted">Chọn file Excel tổng hợp danh sách PTTT.</small>
                     </div>
-
-                    <div class="d-flex mb-4">
-                        <div class="icon-box bg-icon-primary flex-shrink-0 me-3"><i class="bi bi-lightning-charge-fill"></i></div>
-                        <div>
-                            <h6 class="fw-bold">Xử Lý Thông Minh</h6>
-                            <p class="small text-muted mb-0">Tự động tìm dòng tiêu đề Excel. Tự động chuẩn hóa lỗi chính tả (dấu cách thừa, viết hoa thường).</p>
-                        </div>
+                    <div class="col-md-1 d-none d-md-flex align-items-center justify-content-center">
+                        <i class="bi bi-chevron-right text-muted"></i>
                     </div>
-
-                    <div class="d-flex">
-                        <div class="icon-box bg-light text-dark flex-shrink-0 me-3"><i class="bi bi-sliders"></i></div>
-                        <div>
-                            <h6 class="fw-bold">Cấu Hình Động</h6>
-                            <p class="small text-muted mb-0">Người dùng tự do thêm/sửa/xóa quy tắc thời gian mà không cần biết lập trình.</p>
-                        </div>
+                    <div class="col-md-3 text-center">
+                        <div class="icon-box bg-white shadow-sm mx-auto mb-3">2</div>
+                        <h6 class="fw-bold">Kiểm tra & Lọc</h6>
+                        <small class="text-muted">Hệ thống tự lọc BHYT và đối soát thời gian.</small>
                     </div>
-                </div>
-            </div>
-
-            <div class="col-lg-6">
-                <div class="feature-card h-100 bg-light border-0">
-                    <h4 class="fw-bold mb-4"><i class="bi bi-signpost-2-fill text-primary me-2"></i>Quy Trình Triển Khai</h4>
-                    
-                    <div class="position-relative ps-3">
-                        <div class="border-start border-2 border-primary position-absolute h-100 start-0 top-0 opacity-25"></div>
-                        
-                        <div class="mb-4 position-relative ps-4">
-                            <span class="position-absolute top-0 start-0 translate-middle bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 12px; margin-left: -1px;">1</span>
-                            <h6 class="fw-bold text-dark">Chuẩn bị dữ liệu</h6>
-                            <p class="small text-muted">Xuất file Excel từ phần mềm HIS. Đảm bảo có cột: Mã HS, Tên BN, Tên DVKT, KTV, Thời gian PTTT.</p>
-                        </div>
-
-                        <div class="mb-4 position-relative ps-4">
-                            <span class="position-absolute top-0 start-0 translate-middle bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 12px; margin-left: -1px;">2</span>
-                            <h6 class="fw-bold text-dark">Cấu hình Quy tắc (Lần đầu)</h6>
-                            <p class="small text-muted">Vào trang <a href="admin.html" class="fw-bold text-decoration-none">Cấu hình</a> để thiết lập thời gian Min/Max và chế độ cho phép trùng.</p>
-                        </div>
-
-                        <div class="position-relative ps-4">
-                            <span class="position-absolute top-0 start-0 translate-middle bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 12px; margin-left: -1px;">3</span>
-                            <h6 class="fw-bold text-success">Kiểm tra Hàng ngày</h6>
-                            <p class="small text-muted mb-0">Truy cập trang này, upload file Excel và lọc các dòng <span class="badge bg-danger">Lỗi</span> để xử lý.</p>
-                        </div>
+                    <div class="col-md-1 d-none d-md-flex align-items-center justify-content-center">
+                        <i class="bi bi-chevron-right text-muted"></i>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="icon-box bg-white shadow-sm mx-auto mb-3">3</div>
+                        <h6 class="fw-bold">Xuất Báo Cáo</h6>
+                        <small class="text-muted">Tải file Excel lỗi để gửi các khoa chỉnh sửa.</small>
                     </div>
                 </div>
             </div>
@@ -255,8 +228,8 @@
 
     <footer>
         <div class="container">
-            <strong class="text-primary">BỆNH VIỆN PHỤC HỒI CHỨC NĂNG</strong><br>
-            <small>Tài liệu hướng dẫn nội bộ - Phiên bản 2.7</small>
+            <strong class="text-dark">BỆNH VIỆN PHỤC HỒI CHỨC NĂNG</strong><br>
+            <small>&copy; 2026 - Lưu hành nội bộ</small>
         </div>
     </footer>
 
