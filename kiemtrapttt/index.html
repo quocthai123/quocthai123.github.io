@@ -398,43 +398,60 @@
             }
 
             // 2. CHECK KTV LÀM TRÙNG
-            for (const staff in staffMap) {
-                const sessions = staffMap[staff];
-                sessions.sort((a, b) => (a.startObj || 0) - (b.startObj || 0));
+for (const staff in staffMap) {
+    const sessions = staffMap[staff];
+    // Sắp xếp các ca làm việc theo thời gian bắt đầu
+    sessions.sort((a, b) => (a.startObj || 0) - (b.startObj || 0));
 
-                for (let i = 0; i < sessions.length; i++) {
-                    for (let j = i + 1; j < sessions.length; j++) {
-                        const ca1 = sessions[i];
-                        const ca2 = sessions[j];
-                        if (!ca2.startObj || !ca1.endObj || ca2.startObj >= ca1.endObj) break;
+    for (let i = 0; i < sessions.length; i++) {
+        for (let j = i + 1; j < sessions.length; j++) {
+            const ca1 = sessions[i];
+            const ca2 = sessions[j];
 
-                        const isExactMatch = (ca1.startObj.getTime() === ca2.startObj.getTime()) && 
-                                             (ca1.endObj.getTime() === ca2.endObj.getTime());
-                        const isConfigAllowed = !ca1.rule.isDefault && !ca2.rule.isDefault && 
-                                                ca1.rule.allowOverlap && ca2.rule.allowOverlap;
+            // Nếu không có dữ liệu thời gian, bỏ qua
+            if (!ca2.startObj || !ca1.endObj) break;
 
-                        if (ca1.patientKey !== ca2.patientKey) {
-                            let isViolation = false;
-                            let msg = "";
-                            if (isExactMatch) {
-                                isViolation = true;
-                                msg = `⛔ Trùng 100% thời gian với ${ca2.patient}`;
-                            } else if (!isConfigAllowed) {
-                                isViolation = true;
-                                msg = `⛔ Trùng giờ với ${ca2.patient} (Không được phép gối đầu)`;
-                            }
+            // LOGIC MỚI: Nếu ca sau bắt đầu TRƯỚC HOẶC ĐÚNG BẰNG lúc ca trước kết thúc
+            // (Nghĩa là ca2.start <= ca1.end)
+            if (ca2.startObj > ca1.endObj) break; 
 
-                            if (isViolation) {
-                                if(ca1.status !== "ERROR") ca1.status = "ERROR";
-                                ca1.messages.push(msg.replace(ca2.patient, ca2.patient)); 
-                                if(ca2.status !== "ERROR") ca2.status = "ERROR";
-                                ca2.messages.push(msg.replace(ca2.patient, ca1.patient));
-                            }
-                        }
-                    }
+            const isExactMatch = (ca1.startObj.getTime() === ca2.startObj.getTime()) && 
+                                 (ca1.endObj.getTime() === ca2.endObj.getTime());
+                                 
+            const isConfigAllowed = !ca1.rule.isDefault && !ca2.rule.isDefault && 
+                                    ca1.rule.allowOverlap && ca2.rule.allowOverlap;
+
+            if (ca1.patientKey !== ca2.patientKey) {
+                let isViolation = false;
+                let msg = "";
+
+                if (isExactMatch) {
+                    isViolation = true;
+                    msg = `⛔ Trùng 100% thời gian với ${ca2.patient}`;
+                } else if (ca2.startObj.getTime() === ca1.endObj.getTime()) {
+                    // TRƯỜNG HỢP BẠN YÊU CẦU: Kết thúc ca trước = Bắt đầu ca sau
+                    isViolation = true;
+                    msg = `⛔ Giờ kết thúc trùng với giờ bắt đầu ca tiếp theo của ${ca2.patient} (Cần khoảng nghỉ)`;
+                } else if (!isConfigAllowed) {
+                    isViolation = true;
+                    msg = `⛔ Trùng giờ với ${ca2.patient} (Không được phép gối đầu)`;
+                }
+
+                if (isViolation) {
+                    if(ca1.status !== "ERROR") ca1.status = "ERROR";
+                    ca1.messages.push(msg.replace(ca2.patient, ca2.patient)); 
+                    
+                    if(ca2.status !== "ERROR") ca2.status = "ERROR";
+                    // Đối với ca sau, đổi lại thông điệp để dễ hiểu
+                    let msgForCa2 = msg.includes("Kết thúc ca trước") 
+                                    ? `⛔ Giờ bắt đầu trùng với giờ kết thúc ca trước của ${ca1.patient}` 
+                                    : msg.replace(ca2.patient, ca1.patient);
+                    ca2.messages.push(msgForCa2);
                 }
             }
-
+        }
+    }
+}
             processedRows.forEach(row => {
                 row.messages = [...new Set(row.messages)]; 
                 if (row.status === "OK") stats.valid++;
