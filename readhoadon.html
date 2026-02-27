@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xuất Dữ Liệu XML Hóa Đơn Sang Excel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h2 {
+            color: #0056b3;
+        }
+        .file-input-wrapper {
+            margin: 20px 0;
+        }
+        input[type="file"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545 !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Trích Xuất Dữ Liệu Hóa Đơn XML</h2>
+    <p>Vui lòng chọn file XML của bạn. Hệ thống sẽ tự động đọc và tải file Excel xuống máy.</p>
+    
+    <div class="file-input-wrapper">
+        <input type="file" id="xmlFileInput" accept=".xml">
+    </div>
+    
+    <div id="status"></div>
+</div>
+
+<script>
+    document.getElementById('xmlFileInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        const statusEl = document.getElementById('status');
+        
+        if (!file) {
+            statusEl.textContent = "";
+            return;
+        }
+
+        statusEl.textContent = "Đang xử lý...";
+        statusEl.className = "";
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const xmlContent = e.target.result;
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+
+                // Tìm tất cả các thẻ HHDVu (Hàng hóa dịch vụ)
+                const items = xmlDoc.querySelectorAll("DSHHDVu > HHDVu");
+                
+                if (items.length === 0) {
+                    throw new Error("Không tìm thấy dữ liệu hàng hóa/dịch vụ trong file XML này.");
+                }
+
+                // Khởi tạo mảng dữ liệu với Dòng tiêu đề
+                const excelData = [
+                    [
+                        "STT", 
+                        "Tên hàng hóa, dịch vụ", 
+                        "Đơn vị tính", 
+                        "Số lượng", 
+                        "Đơn giá", 
+                        "Thành tiền trước thuế", 
+                        "Thuế suất", 
+                        "Tiền thuế", 
+                        "Tổng tiền thanh toán"
+                    ]
+                ];
+
+                // Lặp qua từng thẻ HHDVu để lấy dữ liệu
+                items.forEach(item => {
+                    const getText = (selector) => item.querySelector(selector) ? item.querySelector(selector).textContent : "";
+
+                    const stt = getText("STT");
+                    const ten = getText("THHDVu");
+                    const dvt = getText("DVTinh");
+                    const sl = Number(getText("SLuong")) || 0;
+                    const dg = Number(getText("DGia")) || 0;
+                    const thTien = Number(getText("ThTien")) || 0;
+                    const tSuat = getText("TSuat");
+
+                    // Tiền thuế và Tổng tiền thường nằm trong thẻ con <TTKhac> -> <TTin>
+                    let tienThue = 0;
+                    let tongTien = 0;
+                    
+                    const ttinList = item.querySelectorAll("TTKhac > TTin");
+                    ttinList.forEach(ttin => {
+                        const truong = ttin.querySelector("TTruong")?.textContent;
+                        const dLieu = Number(ttin.querySelector("DLieu")?.textContent) || 0;
+                        
+                        if (truong === "VATAmount") {
+                            tienThue = dLieu;
+                        } else if (truong === "Amount") {
+                            tongTien = dLieu;
+                        }
+                    });
+
+                    // Đưa dữ liệu của dòng hiện tại vào mảng
+                    excelData.push([stt, ten, dvt, sl, dg, thTien, tSuat, tienThue, tongTien]);
+                });
+
+                // Tạo Workbook và Worksheet từ mảng dữ liệu
+                const ws = XLSX.utils.aoa_to_sheet(excelData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "DanhSachHangHoa");
+
+                // Xuất file Excel
+                XLSX.writeFile(wb, "DuLieuHoaDon.xlsx");
+                
+                statusEl.textContent = "✅ Đã trích xuất và tải file Excel thành công!";
+            } catch (error) {
+                console.error(error);
+                statusEl.textContent = "❌ Lỗi: " + error.message;
+                statusEl.className = "error";
+            }
+        };
+
+        reader.onerror = function() {
+            statusEl.textContent = "❌ Đã xảy ra lỗi khi đọc file.";
+            statusEl.className = "error";
+        };
+
+        // Đọc file dưới dạng văn bản
+        reader.readAsText(file);
+    });
+</script>
+
+</body>
+</html>
