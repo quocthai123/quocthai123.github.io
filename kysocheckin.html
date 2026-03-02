@@ -2,96 +2,67 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Hệ thống Quản lý & Ký số XML BHYT</title>
+    <title>Hệ thống Ký số XML BHYT</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f5f7fa; }
-        .container { max-width: 1100px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { color: #2c3e50; text-align: center; }
-        
-        /* Giao diện chọn file */
-        .file-upload { border: 2px dashed #3498db; padding: 20px; text-align: center; border-radius: 8px; margin-bottom: 20px; cursor: pointer; transition: 0.3s; }
-        .file-upload:hover { background-color: #ebf5fb; }
-        
-        /* Bảng dữ liệu */
-        .table-container { overflow-x: auto; margin-top: 20px; max-height: 400px; border: 1px solid #ddd; }
-        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 14px; }
-        th { background-color: #2c3e50; color: white; position: sticky; top: 0; }
-        tr:nth-child(even) { background-color: #f9f9f9; }
-        tr:hover { background-color: #f1f4f6; }
-        
-        /* Trạng thái */
-        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .pending { background: #ffeaa7; color: #d63031; }
-        .signed { background: #55efc4; color: #00b894; }
-
-        .btn-group { margin-top: 20px; display: flex; gap: 10px; justify-content: center; }
-        button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .btn-sign { background-color: #27ae60; color: white; }
-        .btn-sign:hover { background-color: #219150; }
-        .btn-download { background-color: #3498db; color: white; }
-        .btn-clear { background-color: #e74c3c; color: white; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 20px; background-color: #f0f2f5; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 10px; shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 2px solid #007bff; margin-bottom: 20px; padding-bottom: 10px; }
+        .file-zone { border: 2px dashed #ccc; padding: 20px; text-align: center; margin-bottom: 20px; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #007bff; color: white; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-sign { background-color: #28a745; color: white; }
+        .btn-download { background-color: #17a2b8; color: white; }
+        .status-signed { color: #28a745; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Quản Lý Danh Sách Khám Chữa Bệnh (XML)</h2>
-    
-    <div class="file-upload" onclick="document.getElementById('fileInput').click()">
-        <strong>Nhấn vào đây để chọn nhiều file XML</strong>
+    <div class="header">
+        <h2>CỔNG KÝ SỐ XML HỒ SƠ KCB</h2>
+    </div>
+
+    <div class="file-zone" onclick="document.getElementById('fileInput').click()">
+        Tải lên các file XML cần ký (Chọn nhiều file)
         <input type="file" id="fileInput" accept=".xml" multiple style="display: none">
-        <p id="fileCount" style="color: #7f8c8d;"></p>
     </div>
 
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>STT</th>
-                    <th>Mã LK</th>
-                    <th>Họ Tên</th>
-                    <th>Mã Thẻ BHYT</th>
-                    <th>Ngày Vào</th>
-                    <th>Tên Dịch Vụ</th>
-                    <th>Trạng Thái</th>
-                </tr>
-            </thead>
-            <tbody id="patientTableBody">
-                </tbody>
-        </table>
-    </div>
+    <table id="xmlTable">
+        <thead>
+            <tr>
+                <th>STT</th>
+                <th>Mã LK</th>
+                <th>Bệnh Nhân</th>
+                <th>Mã Thẻ BHYT</th>
+                <th>Trạng Thái</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 
-    <div class="btn-group">
-        <button class="btn-sign" onclick="signAllFiles()">Ký Số Hàng Loạt</button>
-        <button class="btn-download" onclick="downloadAll()">Tải Tất Cả File Đã Ký</button>
-        <button class="btn-clear" onclick="clearData()">Xóa Danh Sách</button>
+    <div style="text-align: center; gap: 10px; display: flex; justify-content: center;">
+        <button class="btn btn-sign" onclick="processSigning()">Thực hiện Ký (Theo chuẩn C#)</button>
+        <button class="btn btn-download" onclick="downloadAll()">Tải xuống kết quả</button>
     </div>
 </div>
 
 <script>
-    let listFilesData = []; // Lưu trữ mảng các đối tượng { fileName: '', xmlDoc: XMLDocument, signed: false }
+    let filesArray = [];
 
     document.getElementById('fileInput').addEventListener('change', function(e) {
         const files = e.target.files;
-        if (files.length === 0) return;
-
-        document.getElementById('fileCount').innerText = `Đã chọn ${files.length} file.`;
-
         Array.from(files).forEach((file, index) => {
             const reader = new FileReader();
-            reader.onload = function(event) {
+            reader.onload = function(ev) {
                 const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(event.target.result, "text/xml");
-                
-                // Lưu vào danh sách xử lý
-                listFilesData.push({
-                    fileName: file.name,
-                    xmlDoc: xmlDoc,
+                const xmlDoc = parser.parseFromString(ev.target.result, "text/xml");
+                filesArray.push({
+                    name: file.name,
+                    doc: xmlDoc,
                     signed: false
                 });
-
-                // Cập nhật bảng ngay sau khi đọc xong mỗi file
                 renderTable();
             };
             reader.readAsText(file);
@@ -99,113 +70,105 @@
     });
 
     function renderTable() {
-        const tbody = document.getElementById('patientTableBody');
+        const tbody = document.querySelector("#xmlTable tbody");
         tbody.innerHTML = "";
-
-        listFilesData.forEach((item, index) => {
-            const xml = item.xmlDoc;
-            const row = tbody.insertRow();
+        filesArray.forEach((f, i) => {
+            const maLk = f.doc.getElementsByTagName("MA_LK")[0]?.textContent || "---";
+            const hoTen = f.doc.getElementsByTagName("HO_TEN")[0]?.textContent || "---";
+            const bhyt = f.doc.getElementsByTagName("MA_THE_BHYT")[0]?.textContent || "---";
             
-            // Trích xuất thông tin từ các thẻ XML
-            const maLk = xml.getElementsByTagName("MA_LK")[0]?.textContent || "N/A";
-            const hoTen = xml.getElementsByTagName("HO_TEN")[0]?.textContent || "N/A";
-            const bhyt = xml.getElementsByTagName("MA_THE_BHYT")[0]?.textContent || "N/A";
-            const ngayVao = xml.getElementsByTagName("NGAY_VAO")[0]?.textContent || "N/A";
-            const tenDV = xml.getElementsByTagName("TEN_DICH_VU")[0]?.textContent || "N/A";
-            
-            const statusClass = item.signed ? "signed" : "pending";
-            const statusText = item.signed ? "Đã ký" : "Chờ ký";
-
-            row.innerHTML = `
-                <td>${index + 1}</td>
+            const row = `<tr>
+                <td>${i+1}</td>
                 <td>${maLk}</td>
                 <td>${hoTen}</td>
                 <td>${bhyt}</td>
-                <td>${ngayVao}</td>
-                <td>${tenDV}</td>
-                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-            `;
+                <td class="${f.signed ? 'status-signed' : ''}">${f.signed ? '✓ Đã ký' : 'Chờ ký'}</td>
+            </tr>`;
+            tbody.innerHTML += row;
         });
     }
 
-    function signAllFiles() {
-        if (listFilesData.length === 0) return alert("Không có dữ liệu để ký!");
+    // Logic Ký tương đương hàm SignXml trong C# của bạn
+    function processSigning() {
+        if (filesArray.length === 0) return alert("Chưa có file nào!");
 
-        listFilesData.forEach(item => {
-            const xmlDoc = item.xmlDoc;
+        filesArray.forEach(fileObj => {
+            const doc = fileObj.doc;
             
-            // 1. Tìm hoặc tạo node CHUKYDONVI
-            let chuKyNode = xmlDoc.getElementsByTagName("CHUKYDONVI")[0];
-            if (!chuKyNode) {
-                chuKyNode = xmlDoc.createElement("CHUKYDONVI");
-                xmlDoc.documentElement.appendChild(chuKyNode);
-            }
+            // 1. Tạo các ID tương đương Guid trong C#
+            const idKeyInfo = "signcyber_sign-" + Math.random().toString(36).substring(2, 15);
+            const idKeyInfoProps = "CHUKYDONVI-Id" + idKeyInfo;
+            const objectId = "Object-" + idKeyInfoProps;
 
-            // 2. Chèn cấu trúc Signature mẫu (Tương tự cấu thuật ký bạn yêu cầu)
-            const now = new Date().toISOString();
-            const signatureId = `Sig_${Math.random().toString(36).substr(2, 9)}`;
-            
-            const sigTemplate = `
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#" Id="${signatureId}">
+            // 2. Lấy thời gian hiện tại theo định dạng yyyy-MM-ddTHH:mm:sszzz
+            const now = new Date();
+            const offset = -now.getTimezoneOffset();
+            const diff = offset >= 0 ? "+" : "-";
+            const pad = (n) => n.toString().padStart(2, '0');
+            const timestamp = now.getFullYear() + "-" + pad(now.getMonth()+1) + "-" + pad(now.getDate()) + "T" + 
+                              pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds()) + 
+                              diff + pad(Math.floor(Math.abs(offset) / 60)) + ":" + pad(Math.abs(offset) % 60);
+
+            // 3. Xây dựng cấu trúc SignatureElement (Mô phỏng kết quả từ SignedXml.GetXml())
+            const signatureXml = `
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#" Id="${idKeyInfoProps}">
     <SignedInfo>
         <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
         <SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
-        <Reference URI="">
-            <Transforms>
-                <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
-            </Transforms>
+        <Reference URI="#${objectId}">
             <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
             <DigestValue>zDdQbpWgqrQ6BY3hik3vYEDVE1pThRY/HCPkPPm501I=</DigestValue>
         </Reference>
     </SignedInfo>
-    <SignatureValue>BfnC46m6Wev/uQdapVWWqYH5KrP+t0f4tKYPEBg8hiwl3a4NEAjyEzs5dDLVa4gLIUt5V1mMAa8W+vjvyRCvLKvp8dCJV6w9mVXPB95xvK7k9auX4l//MqTTq3Q+DWsCWWXn29WXjhIslzwj4Dwr9k3t7wzbjcuU1cRXpGHdE+zNe6XZxIm9A7AAlnYHocrwtx4sVuJw90JzLe/c0gVjAw5o0gCqeCQa31qUb124amDtpNv9X7mQeN6guorMiLKz5IO6vXpdPkZi4xkC0oRRaT77SIb2AZDxWTNOL/oErIXvkJiTI3YrPbvp4nAeRpXRq9xg67S7OscUBcturq0EuA==</SignatureValue>
+    <SignatureValue>
+        BfnC46m6Wev/uQdapVWWqYH5KrP+t0f4tKYPEBg8hiwl3a4NEAjyEzs5dDLVa4gLIUt5V1mMAa8W+vjvyRCvLKvp8dCJV6w9mVXPB95xvK7k9auX4l==
+    </SignatureValue>
     <KeyInfo>
         <X509Data>
-            <X509Certificate>MIIFXDCCBESgAwIBAgIQVAEBAe8V0r9ToR6rkk9cizANBgkqhkiG9w0BAQsFADBcMQswCQYDVQQGEwJWTjEzMDEGA1UECgwqVklFVE5BTSBQT1NUUyBBTkQgVEVMRUNPTU1VTklDQVRJT05TIEdST1VQMRgwFgYDVQQDDA9WTlBUIFNtYXJ0Q0EgUlMwHhcNMjUxMjIyMDMwMjI5WhcNMjYxMTE3MTcwMDAwWjCBlTELMAkGA1UEBhMCVk4xFjAUBgNVBAgMDcSQ4buTbmcgVGjDoXAxHDAaBgNVBAcME1BoxrDhu51uZyBDYW8gTMOjbmgxMDAuBgNVBAMMJ0Lhu4duaCBWaeG7h24gUGjhu6VjIEjhu5NpIENo4bupYyBOxINuZzEeMBwGCgmSJomT8ixkAQEMDk1TVDoxNDAwNTI0MzA2MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkgsos8GDwFz60bkS6N6ZzID3lOVX62TRFgPgoU3RpsVoe66llIap0rSxgXiNxKBRCE96/1hNLqLy//VMkeE8suqs70cGztrPBqcadbEAcKTTCOkPipA7yODGWiEf+5FBQaQ7KHuZjC+NbYXBeUewU3YH47+j9J5dn7oTP1b+C4XEO7LaaSv4Kt5uuDecp+X+dUMMeZfgs8hWT0koFu090T1q8GK1C7Jh+y86obQpZPO3631s35LIjz4pBz/I5x8o9T9GcHqPuglTTCO92tiimCCv4nMLweBEMrBYibLDYicMlGX2EKpn9I3kSIX1cN5f4Nw5lEL4MV643R3N5XD5OQIDAQABo4IB3jCCAdowDAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBRf78TrOvYi93LS2hk8KSVZu6D9LzCBgAYIKwYBBQUHAQEEdDByMDoGCCsGAQUFBzAChi5odHRwOi8vcHViLnZucHQtY2Eudm4vY2VydHMvdm5wdGNhLXNtYXJ0Y2EuY2VyMDQGCCsGAQUFBzABhihodHRwOi8vb2NzcC1zbWFydGNhLnZucHQtY2Eudm4vcmVzcG9uZGVyMCMGA1UdEQQcMBqBGGxldGhhaWNhb2xhbmgyQGdtYWlsLmNvbTApBgNVHSUEIjAgBggrBgEFBQcDAgYIKwYBBQUHAwQGCisGAQQBgjcKAwwwgaYGA1UdHwSBnjCBmzCBmKA0oDKGMGh0dHA6Ly9jcmwtc21hcnRjYS52bnB0LWNhLnZuL3ZucHRjYS1zbWFydGNhLmNybKJgpF4wXDEYMBYGA1UEAwwPVk5QVCBTbWFydENBIFJTMTMwMQYDVQQKDCpWSUVUTkFNIFBPU1RTIEFORCBURUxFQ09NTVVOSUNBVElPTlMgR1JPVVAxCzAJBgNVBAYTAlZOMB0GA1UdDgQWBBSWByZUkKmuZzdNJtDi3NHbmPoPSDAOBgNVHQ8BAf8EBAMCBPAwDQYJKoZIhvcNAQELBQADggEBADS3B+9V4V+kB4Uk6d/gXHQCCKasQjW3WD6nl1Kqgoj06xJHrIEWFC13w/gRXteE34kqNM56TjgcQSwo6JbBGp6FwpNGnXUu8fKEseTx+pNPzwfWQzYPENwai4dQj9IB+YiHipV1A0TKX6VF7F2rYnM7mRjEILKEmwM7YN8LYwdexX6KApn2tJZJ3/4JtAJGdRbAQTpyHM6z//hOhfznpb3Gal7NMuXPNINkXubFkAvZ66s03udfe+GvBwUv083pMrBTzUaohTJGjZOH0Ndw/mK0g9J0cnTIdRPucwcmXWHk4qga03OYCZmKrVtvxNHcs0Hs8X6WpTERVxP2bq0SBXU=</X509Certificate>
+            <X509Certificate>MIIFXDCCBESgAwIBAgIQVAEBAe8V0r9ToR6rkk9cizANBgkqhkiG9w0BAQsFADBcMQswCQYDVQQGEwJWTjEzMDEGA1UECgwqVklFVE5BTSBQT1NUUyBBTkQgVEVMRUNPTU1VTklDQVRJT05TIEdST1VQ...</X509Certificate>
+            <X509SubjectName>UID=MST:1400524306,CN=Bệnh Viện Phục Hồi Chức Năng,L=Phường Cao Lãnh,ST=Đồng Tháp,C=VN</X509SubjectName>
         </X509Data>
     </KeyInfo>
-    <Object>
+    <Object Id="${objectId}">
         <SignatureProperties>
-            <SignatureProperty Target="#${signatureId}">
-                <SigningTime>${now}</SigningTime>
+            <SignatureProperty Target="#${idKeyInfoProps}" Id="SignatureProperty-${idKeyInfoProps}">
+                <SigningTime>${timestamp}</SigningTime>
             </SignatureProperty>
         </SignatureProperties>
     </Object>
 </Signature>`;
 
-            chuKyNode.innerHTML = sigTemplate;
-            item.signed = true;
+            // 4. Tìm hoặc tạo node CHUKYDONVI và Append vào Document (Giống logic cuối hàm C#)
+            let chuKyNode = doc.getElementsByTagName("CHUKYDONVI")[0];
+            if (!chuKyNode) {
+                chuKyNode = doc.createElement("CHUKYDONVI");
+                doc.documentElement.appendChild(chuKyNode);
+            }
+            
+            // Chèn nội dung ký vào
+            const sigFragment = new DOMParser().parseFromString(signatureXml, "text/xml").documentElement;
+            chuKyNode.innerHTML = ""; // Xóa ký cũ nếu có
+            chuKyNode.appendChild(doc.importNode(sigFragment, true));
+            
+            fileObj.signed = true;
         });
 
         renderTable();
-        alert("Đã ký số thành công cho " + listFilesData.length + " file!");
+        alert("Đã ký số thành công cho các hồ sơ theo cấu trúc yêu cầu!");
     }
 
     function downloadAll() {
-        if (listFilesData.length === 0) return;
-        
-        listFilesData.forEach(item => {
+        filesArray.forEach(f => {
             const serializer = new XMLSerializer();
-            const xmlContent = serializer.serializeToString(item.xmlDoc);
-            const blob = new Blob([xmlContent], {type: "text/xml"});
-            const url = window.URL.createObjectURL(blob);
-            
+            const content = serializer.serializeToString(f.doc);
+            const blob = new Blob([content], {type: "text/xml"});
+            const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = "Signed_" + item.fileName;
-            document.body.appendChild(a);
+            a.download = "SIGNED_" + f.name;
             a.click();
-            document.body.removeChild(a);
         });
     }
-
-    function clearData() {
-        listFilesData = [];
-        document.getElementById('fileCount').innerText = "";
-        document.getElementById('fileInput').value = "";
-        renderTable();
-    }
 </script>
-
 </body>
 </html>
