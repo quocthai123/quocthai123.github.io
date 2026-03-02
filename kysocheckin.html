@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hệ thống Ký số XML BHYT</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+        .container { max-width: 900px; margin: auto; border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        table, th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        .btn-group { margin-top: 15px; }
+        #xmlOutput { width: 100%; height: 200px; margin-top: 15px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Import & Ký số XML BHYT</h2>
+    <input type="file" id="fileInput" accept=".xml">
+    
+    <div id="dataDisplay">
+        <h3>Thông tin bệnh nhân</h3>
+        <table>
+            <tr><th>Mã LK</th><td id="td_malk"></td></tr>
+            <tr><th>Họ Tên</th><td id="td_hoten"></td></tr>
+            <tr><th>Mã Thẻ BHYT</th><td id="td_bhyt"></td></tr>
+            <tr><th>Ngày Vào</th><td id="td_ngayvao"></td></tr>
+        </table>
+    </div>
+
+    <div class="btn-group">
+        <button onclick="signXML()">Thực hiện ký số</button>
+        <button onclick="downloadXML()">Tải file đã ký</button>
+    </div>
+
+    <textarea id="xmlOutput" readonly placeholder="Nội dung XML sau khi ký..."></textarea>
+</div>
+
+<script>
+    let currentXmlDoc = null;
+
+    // 1. Đọc file XML khi người dùng chọn
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const parser = new DOMParser();
+            currentXmlDoc = parser.parseFromString(e.target.result, "text/xml");
+            displayData(currentXmlDoc);
+        };
+        reader.readAsText(file);
+    });
+
+    function displayData(xml) {
+        document.getElementById('td_malk').innerText = xml.getElementsByTagName("MA_LK")[0]?.textContent;
+        document.getElementById('td_hoten').innerText = xml.getElementsByTagName("HO_TEN")[0]?.textContent;
+        document.getElementById('td_bhyt').innerText = xml.getElementsByTagName("MA_THE_BHYT")[0]?.textContent;
+        document.getElementById('td_ngayvao').innerText = xml.getElementsByTagName("NGAY_VAO")[0]?.textContent;
+    }
+
+    // 2. Hàm giả lập tạo cấu trúc ký số (XMLDSig)
+    function signXML() {
+        if (!currentXmlDoc) return alert("Vui lòng chọn file trước!");
+
+        // Tìm hoặc tạo node CHUKYDONVI
+        let chuKyNode = currentXmlDoc.getElementsByTagName("CHUKYDONVI")[0];
+        if (!chuKyNode) {
+            chuKyNode = currentXmlDoc.createElement("CHUKYDONVI");
+            currentXmlDoc.documentElement.appendChild(chuKyNode);
+        }
+
+        // Tạo nội dung giả lập cho Signature (Trong thực tế sẽ gọi đến App ký số)
+        const now = new Date().toISOString();
+        const signatureTemplate = `
+            <Signature xmlns="http://www.w3.org/2000/09/xmldsig#" Id="sig-${Math.random().toString(36).substr(2, 9)}">
+                <SignedInfo>
+                    <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+                    <SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+                    <Reference URI="">
+                        <Transforms>
+                            <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+                        </Transforms>
+                        <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+                        <DigestValue>Base64_Computed_Digest_Here==</DigestValue>
+                    </Reference>
+                </SignedInfo>
+                <SignatureValue>Base64_Encrypted_Signature_Value_From_Token==</SignatureValue>
+                <KeyInfo>
+                    <X509Data>
+                        <X509Certificate>MII... (Chứng thư số của đơn vị)</X509Certificate>
+                    </X509Data>
+                </KeyInfo>
+                <Object>
+                    <SignatureProperties>
+                        <SignatureProperty>
+                            <SigningTime>${now}</SigningTime>
+                        </SignatureProperty>
+                    </SignatureProperties>
+                </Object>
+            </Signature>
+        `;
+
+        chuKyNode.innerHTML = signatureTemplate;
+        
+        const serializer = new XMLSerializer();
+        document.getElementById('xmlOutput').value = serializer.serializeToString(currentXmlDoc);
+        document.getElementById('xmlOutput').style.display = "block";
+        alert("Đã chèn cấu trúc ký số vào node <CHUKYDONVI>!");
+    }
+
+    function downloadXML() {
+        const content = document.getElementById('xmlOutput').value;
+        if(!content) return alert("Chưa có dữ liệu để tải!");
+        
+        const blob = new Blob([content], {type: "text/xml"});
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "KCB_DaKy.xml";
+        a.click();
+    }
+</script>
+
+</body>
+</html>
