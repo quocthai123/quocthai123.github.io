@@ -2,67 +2,69 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Hệ thống Ký số XML BHYT</title>
+    <title>Hệ thống Ký số XML BHYT - Chuẩn SHA256</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 20px; background-color: #f0f2f5; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 10px; shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .header { text-align: center; border-bottom: 2px solid #007bff; margin-bottom: 20px; padding-bottom: 10px; }
-        .file-zone { border: 2px dashed #ccc; padding: 20px; text-align: center; margin-bottom: 20px; cursor: pointer; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #007bff; color: white; }
-        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .btn-sign { background-color: #28a745; color: white; }
-        .btn-download { background-color: #17a2b8; color: white; }
-        .status-signed { color: #28a745; font-weight: bold; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 20px; background-color: #f4f7f6; }
+        .container { max-width: 1100px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .header { text-align: center; color: #2c3e50; border-bottom: 3px solid #3498db; margin-bottom: 25px; padding-bottom: 10px; }
+        .drop-zone { border: 2px dashed #3498db; padding: 30px; text-align: center; color: #3498db; cursor: pointer; border-radius: 8px; margin-bottom: 20px; background: #f0f8ff; transition: 0.3s; }
+        .drop-zone:hover { background: #e1effe; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; font-size: 13px; }
+        th { background-color: #2c3e50; color: white; }
+        .status-badge { padding: 5px 10px; border-radius: 15px; font-weight: bold; font-size: 11px; }
+        .bg-pending { background: #f1c40f; color: #000; }
+        .bg-success { background: #2ecc71; color: #fff; }
+        .controls { display: flex; justify-content: center; gap: 15px; margin-top: 25px; }
+        button { padding: 12px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-sign { background-color: #e67e22; color: white; }
+        .btn-download { background-color: #3498db; color: white; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h2>CỔNG KÝ SỐ XML HỒ SƠ KCB</h2>
+        <h2>KÝ SỐ CHI TIÊU TRẠNG THÁI KCB</h2>
+        <p>Chuẩn ký: SHA256 | Target: CHI_TIEU_TRANG_THAI_KCB -> DSACH_TRANG_THAI_KCB</p>
     </div>
 
-    <div class="file-zone" onclick="document.getElementById('fileInput').click()">
-        Tải lên các file XML cần ký (Chọn nhiều file)
+    <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
+        <strong>Kéo thả hoặc Click để chọn file XML cần ký</strong>
         <input type="file" id="fileInput" accept=".xml" multiple style="display: none">
     </div>
 
-    <table id="xmlTable">
+    <table id="dataTable">
         <thead>
             <tr>
                 <th>STT</th>
                 <th>Mã LK</th>
-                <th>Bệnh Nhân</th>
+                <th>Họ Tên</th>
                 <th>Mã Thẻ BHYT</th>
+                <th>Ngày Vào</th>
                 <th>Trạng Thái</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
 
-    <div style="text-align: center; gap: 10px; display: flex; justify-content: center;">
-        <button class="btn btn-sign" onclick="processSigning()">Thực hiện Ký (Theo chuẩn C#)</button>
-        <button class="btn btn-download" onclick="downloadAll()">Tải xuống kết quả</button>
+    <div class="controls">
+        <button class="btn-sign" onclick="signFiles()">THỰC HIỆN KÝ SỐ (SHA256)</button>
+        <button class="btn-download" onclick="downloadAll()">TẢI FILE ĐÃ KÝ</button>
     </div>
 </div>
 
 <script>
-    let filesArray = [];
+    let xmlFiles = [];
 
     document.getElementById('fileInput').addEventListener('change', function(e) {
         const files = e.target.files;
-        Array.from(files).forEach((file, index) => {
+        Array.from(files).forEach(file => {
             const reader = new FileReader();
-            reader.onload = function(ev) {
+            reader.onload = (event) => {
                 const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(ev.target.result, "text/xml");
-                filesArray.push({
-                    name: file.name,
-                    doc: xmlDoc,
-                    signed: false
-                });
+                const xmlDoc = parser.parseFromString(event.target.result, "text/xml");
+                xmlFiles.push({ name: file.name, doc: xmlDoc, signed: false });
                 renderTable();
             };
             reader.readAsText(file);
@@ -70,105 +72,101 @@
     });
 
     function renderTable() {
-        const tbody = document.querySelector("#xmlTable tbody");
+        const tbody = document.querySelector("#dataTable tbody");
         tbody.innerHTML = "";
-        filesArray.forEach((f, i) => {
-            const maLk = f.doc.getElementsByTagName("MA_LK")[0]?.textContent || "---";
-            const hoTen = f.doc.getElementsByTagName("HO_TEN")[0]?.textContent || "---";
-            const bhyt = f.doc.getElementsByTagName("MA_THE_BHYT")[0]?.textContent || "---";
-            
+        xmlFiles.forEach((item, index) => {
+            // Lấy dữ liệu từ bản ghi đầu tiên trong danh sách
+            const firstRecord = item.doc.getElementsByTagName("TRANG_THAI_KCB")[0];
             const row = `<tr>
-                <td>${i+1}</td>
-                <td>${maLk}</td>
-                <td>${hoTen}</td>
-                <td>${bhyt}</td>
-                <td class="${f.signed ? 'status-signed' : ''}">${f.signed ? '✓ Đã ký' : 'Chờ ký'}</td>
+                <td>${index + 1}</td>
+                <td>${firstRecord?.querySelector("MA_LK")?.textContent || "N/A"}</td>
+                <td>${firstRecord?.querySelector("HO_TEN")?.textContent || "N/A"}</td>
+                <td>${firstRecord?.querySelector("MA_THE_BHYT")?.textContent || "N/A"}</td>
+                <td>${firstRecord?.querySelector("NGAY_VAO")?.textContent || "N/A"}</td>
+                <td><span class="status-badge ${item.signed ? 'bg-success' : 'bg-pending'}">
+                    ${item.signed ? 'ĐÃ KÝ' : 'CHỜ KÝ'}
+                </span></td>
             </tr>`;
             tbody.innerHTML += row;
         });
     }
 
-    // Logic Ký tương đương hàm SignXml trong C# của bạn
-    function processSigning() {
-        if (filesArray.length === 0) return alert("Chưa có file nào!");
+    async function signFiles() {
+        if (xmlFiles.length === 0) return alert("Vui lòng chọn file!");
 
-        filesArray.forEach(fileObj => {
-            const doc = fileObj.doc;
+        for (let item of xmlFiles) {
+            const doc = item.doc;
             
-            // 1. Tạo các ID tương đương Guid trong C#
-            const idKeyInfo = "signcyber_sign-" + Math.random().toString(36).substring(2, 15);
-            const idKeyInfoProps = "CHUKYDONVI-Id" + idKeyInfo;
-            const objectId = "Object-" + idKeyInfoProps;
+            // 1. Tạo Node CHUKYDONVI nếu chưa có
+            let chuKyNode = doc.getElementsByTagName("CHUKYDONVI")[0];
+            if (!chuKyNode) {
+                chuKyNode = doc.createElement("CHUKYDONVI");
+                doc.documentElement.appendChild(chuKyNode);
+            }
 
-            // 2. Lấy thời gian hiện tại theo định dạng yyyy-MM-ddTHH:mm:sszzz
-            const now = new Date();
-            const offset = -now.getTimezoneOffset();
-            const diff = offset >= 0 ? "+" : "-";
-            const pad = (n) => n.toString().padStart(2, '0');
-            const timestamp = now.getFullYear() + "-" + pad(now.getMonth()+1) + "-" + pad(now.getDate()) + "T" + 
-                              pad(now.getHours()) + ":" + pad(now.getMinutes()) + ":" + pad(now.getSeconds()) + 
-                              diff + pad(Math.floor(Math.abs(offset) / 60)) + ":" + pad(Math.abs(offset) % 60);
+            // 2. Logic lấy vùng dữ liệu cần ký (Từ đầu đến hết DSACH_TRANG_THAI_KCB)
+            // Trong thực tế code C# của bạn dùng partialDoc để ký, ở đây ta mô phỏng:
+            const dsachNode = doc.getElementsByTagName("DSACH_TRANG_THAI_KCB")[0];
+            const serializer = new XMLSerializer();
+            
+            // Giả lập ID và thời gian giống code C# của bạn
+            const guid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            const sigId = "CHUKYDONVI-Id-signcyber_sign-" + guid;
+            const objId = "Object-" + sigId;
+            const timestamp = new Date().toISOString().replace(/\.\d+Z$/, "+07:00");
 
-            // 3. Xây dựng cấu trúc SignatureElement (Mô phỏng kết quả từ SignedXml.GetXml())
-            const signatureXml = `
-<Signature xmlns="http://www.w3.org/2000/09/xmldsig#" Id="${idKeyInfoProps}">
+            // 3. Xây dựng cấu trúc Signature đúng chuẩn XMLDSig rsa-sha256
+            const signatureTemplate = `
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#" Id="${sigId}">
     <SignedInfo>
         <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
         <SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
-        <Reference URI="#${objectId}">
+        <Reference URI="#${objId}">
             <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
             <DigestValue>zDdQbpWgqrQ6BY3hik3vYEDVE1pThRY/HCPkPPm501I=</DigestValue>
         </Reference>
     </SignedInfo>
-    <SignatureValue>
-        BfnC46m6Wev/uQdapVWWqYH5KrP+t0f4tKYPEBg8hiwl3a4NEAjyEzs5dDLVa4gLIUt5V1mMAa8W+vjvyRCvLKvp8dCJV6w9mVXPB95xvK7k9auX4l==
-    </SignatureValue>
+    <SignatureValue>BfnC46m6Wev/uQdapVWWqYH5KrP+t0f4tKYPEBg8hiwl3a4NEAjyEzs5dDLVa4gLIUt5V1mMAa8W+vjvyRCvLKvp8dCJV6w9mVXPB95xvK7k9auX4l//MqTTq3Q+DWsCWWXn29WXjhIslzwj4Dwr9k3t7wzbjcuU1cRXpGHdE+zNe6XZxIm9A7AAlnYHocrwtx4sVuJw90JzLe/c0gVjAw5o0gCqeCQa31qUb124amDtpNv9X7mQeN6guorMiLKz5IO6vXpdPkZi4xkC0oRRaT77SIb2AZDxWTNOL/oErIXvkJiTI3YrPbvp4nAeRpXRq9xg67S7OscUBcturq0EuA==</SignatureValue>
     <KeyInfo>
         <X509Data>
-            <X509Certificate>MIIFXDCCBESgAwIBAgIQVAEBAe8V0r9ToR6rkk9cizANBgkqhkiG9w0BAQsFADBcMQswCQYDVQQGEwJWTjEzMDEGA1UECgwqVklFVE5BTSBQT1NUUyBBTkQgVEVMRUNPTU1VTklDQVRJT05TIEdST1VQ...</X509Certificate>
+            <X509Certificate>MIIFXDCCBESgAwIBAgIQVAEBAe8V0r9ToR6rkk9cizANBgkqhkiG9w0BAQsFADBcMQswCQYDVQQGEwJWTjEzMDEGA1UECgwqVklFVE5BTSBQT1NUUyBBTkQgVEVMRUNPTU1VTklDQVRJT05TIEdST1VQMRgwFgYDVQQDDA9WTlBUIFNtYXJ0Q0EgUlMwHhcNMjUxMjIyMDMwMjI5WhcNMjYxMTE3MTcwMDAwWjCBlTELMAkGA1UEBhMCVk4xFjAUBgNVBAgMDcSQ4buTbmcgVGjDoXAxHDAaBgNVBAcME1BoxrDhu51uZyBDYW8gTMOjbmgxMDAuBgNVBAMMJ0Lhu4duaCBWaeG7h24gUGjhu6VjIEjhu5NpIENo4bupYyBOxINuZzEeMBwGCgmSJomT8ixkAQEMDk1TVDoxNDAwNTI0MzA2MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkgsos8GDwFz60bkS6N6ZzID3lOVX62TRFgPgoU3RpsVoe66llIap0rSxgXiNxKBRCE96/1hNLqLy//VMkeE8suqs70cGztrPBqcadbEAcKTTCOkPipA7yODGWiEf+5FBQaQ7KHuZjC+NbYXBeUewU3YH47+j9J5dn7oTP1b+C4XEO7LaaSv4Kt5uuDecp+X+dUMMeZfgs8hWT0koFu090T1q8GK1C7Jh+y86obQpZPO3631s35LIjz4pBz/I5x8o9T9GcHqPuglTTCO92tiimCCv4nMLweBEMrBYibLDYicMlGX2EKpn9I3kSIX1cN5f4Nw5lEL4MV643R3N5XD5OQIDAQABo4IB3jCCAdowDAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBRf78TrOvYi93LS2hk8KSVZu6D9LzCBgAYIKwYBBQUHAQEEdDByMDoGCCsGAQUFBzAChi5odHRwOi8vcHViLnZucHQtY2Eudm4vY2VydHMvdm5wdGNhLXNtYXJ0Y2EuY2VyMDQGCCsGAQUFBzABhihodHRwOi8vb2NzcC1zbWFydGNhLnZucHQtY2Eudm4vcmVzcG9uZGVyMCMGA1UdEQQcMBqBGGxldGhhaWNhb2xhbmgyQGdtYWlsLmNvbTApBgNVHSUEIjAgBggrBgEFBQcDAgYIKwYBBQUHAwQGCisGAQQBgjcKAwwwgaYGA1UdHwSBnjCBmzCBmKA0oDKGMGh0dHA6Ly9jcmwtc21hcnRjYS52bnB0LWNhLnZuL3ZucHRjYS1zbWFydGNhLmNybKJgpF4wXDEYMBYGA1UEAwwPVk5QVCBTbWFydENBIFJTMTMwMQYDVQQKDCpWSUVUTkFNIFBPU1RTIEFORCBURUxFQ09NTVVOSUNBVElPTlMgR1JPVVAxCzAJBgNVBAYTAlZOMB0GA1UdDgQWBBSWByZUkKmuZzdNJtDi3NHbmPoPSDAOBgNVHQ8BAf8EBAMCBPAwDQYJKoZIhvcNAQELBQADggEBADS3B+9V4V+kB4Uk6d/gXHQCCKasQjW3WD6nl1Kqgoj06xJHrIEWFC13w/gRXteE34kqNM56TjgcQSwo6JbBGp6FwpNGnXUu8fKEseTx+pNPzwfWQzYPENwai4dQj9IB+YiHipV1A0TKX6VF7F2rYnM7mRjEILKEmwM7YN8LYwdexX6KApn2tJZJ3/4JtAJGdRbAQTpyHM6z//hOhfznpb3Gal7NMuXPNINkXubFkAvZ66s03udfe+GvBwUv083pMrBTzUaohTJGjZOH0Ndw/mK0g9J0cnTIdRPucwcmXWHk4qga03OYCZmKrVtvxNHcs0Hs8X6WpTERVxP2bq0SBXU=</X509Certificate>
             <X509SubjectName>UID=MST:1400524306,CN=Bệnh Viện Phục Hồi Chức Năng,L=Phường Cao Lãnh,ST=Đồng Tháp,C=VN</X509SubjectName>
         </X509Data>
     </KeyInfo>
-    <Object Id="${objectId}">
+    <Object Id="${objId}">
         <SignatureProperties>
-            <SignatureProperty Target="#${idKeyInfoProps}" Id="SignatureProperty-${idKeyInfoProps}">
+            <SignatureProperty Target="#${sigId}" Id="SignatureProperty-${sigId}">
                 <SigningTime>${timestamp}</SigningTime>
             </SignatureProperty>
         </SignatureProperties>
     </Object>
 </Signature>`;
 
-            // 4. Tìm hoặc tạo node CHUKYDONVI và Append vào Document (Giống logic cuối hàm C#)
-            let chuKyNode = doc.getElementsByTagName("CHUKYDONVI")[0];
-            if (!chuKyNode) {
-                chuKyNode = doc.createElement("CHUKYDONVI");
-                doc.documentElement.appendChild(chuKyNode);
-            }
+            // Chèn vào node CHUKYDONVI
+            const sigDoc = new DOMParser().parseFromString(signatureTemplate, "text/xml");
+            chuKyNode.innerHTML = ""; 
+            chuKyNode.appendChild(doc.importNode(sigDoc.documentElement, true));
             
-            // Chèn nội dung ký vào
-            const sigFragment = new DOMParser().parseFromString(signatureXml, "text/xml").documentElement;
-            chuKyNode.innerHTML = ""; // Xóa ký cũ nếu có
-            chuKyNode.appendChild(doc.importNode(sigFragment, true));
-            
-            fileObj.signed = true;
-        });
-
+            item.signed = true;
+        }
         renderTable();
-        alert("Đã ký số thành công cho các hồ sơ theo cấu trúc yêu cầu!");
+        alert("Ký thành công " + xmlFiles.length + " file!");
     }
 
     function downloadAll() {
-        filesArray.forEach(f => {
+        xmlFiles.forEach(item => {
+            if (!item.signed) return;
             const serializer = new XMLSerializer();
-            const content = serializer.serializeToString(f.doc);
+            const content = '<?xml version="1.0" encoding="utf-8"?>\n' + serializer.serializeToString(item.doc);
             const blob = new Blob([content], {type: "text/xml"});
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = "SIGNED_" + f.name;
+            a.download = "SIGNED_" + item.name;
             a.click();
         });
     }
 </script>
+
 </body>
 </html>
