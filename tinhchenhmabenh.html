@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Đối Chiếu Chi Phí KCB</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f4f7f6; }
+        .container { max-width: 1200px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2c3e50; }
+        .upload-section { display: flex; justify-content: space-between; margin-bottom: 20px; gap: 20px; }
+        .upload-box { flex: 1; padding: 20px; border: 2px dashed #3498db; border-radius: 8px; text-align: center; background: #ebf5fb; }
+        button { display: block; width: 100%; padding: 15px; background-color: #27ae60; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; margin-bottom: 20px; }
+        button:hover { background-color: #2ecc71; }
+        table { border-collapse: collapse; width: 100%; font-size: 13px; margin-top: 20px; }
+        th, td { border: 1px solid #dddddd; text-align: right; padding: 8px; }
+        th { background-color: #3498db; color: white; text-align: center; position: sticky; top: 0; }
+        td:nth-child(2) { text-align: left; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        tr:hover { background-color: #e9ecef; }
+        #downloadBtn { background-color: #2980b9; display: none; margin-top: 20px; }
+        #downloadBtn:hover { background-color: #1a5276; }
+        .table-container { max-height: 500px; overflow-y: auto; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📊 Hệ Thống Đối Chiếu Chi Phí Khám Chữa Bệnh</h1>
+    
+    <div class="upload-section">
+        <div class="upload-box">
+            <h3>Tải lên File 1 (Kỳ trước)</h3>
+            <input type="file" id="file1" accept=".xlsx, .xls">
+        </div>
+        <div class="upload-box">
+            <h3>Tải lên File 2 (Kỳ này)</h3>
+            <input type="file" id="file2" accept=".xlsx, .xls">
+        </div>
+    </div>
+
+    <button onclick="processFiles()">🚀 Xử lý dữ liệu</button>
+    <div id="status" style="text-align: center; font-weight: bold; color: #e74c3c; margin-bottom: 10px;"></div>
+
+    <div class="table-container" id="reportContainer">
+        </div>
+
+    <button id="downloadBtn" onclick="downloadExcel()">📥 Tải Báo Cáo Excel (.xlsx) Về Máy</button>
+</div>
+
+<script>
+    // Biến toàn cục để lưu dữ liệu thô phục vụ việc xuất file Excel
+    let rawExcelData = [];
+
+    // Hàm format tiền tệ (chỉ dùng để hiển thị cho đẹp trên web)
+    const formatMoney = (num) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(num);
+
+    // Hàm đọc file Excel trả về mảng dữ liệu JSON
+    function readExcel(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const sheetName = workbook.SheetNames[0];
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+                resolve(json);
+            };
+            reader.onerror = (e) => reject(e);
+            reader.readAsArrayBuffer(file);
+        });
+    }
+
+    async function processFiles() {
+        const file1 = document.getElementById('file1').files[0];
+        const file2 = document.getElementById('file2').files[0];
+        const statusDiv = document.getElementById('status');
+
+        if (!file1 || !file2) {
+            statusDiv.innerText = "Vui lòng chọn đủ cả 2 file Excel!";
+            return;
+        }
+
+        statusDiv.innerText = "Đang xử lý dữ liệu, vui lòng đợi...";
+        statusDiv.style.color = "#2980b9";
+        
+        // Xóa dữ liệu cũ nếu chạy lại
+        rawExcelData = []; 
+
+        try {
+            const data1 = await readExcel(file1);
+            const data2 = await readExcel(file2);
+
+            let map = new Map();
+
+            // Hàm gom nhóm dữ liệu dùng chung
+            const processData = (data, fileIndex) => {
+                data.forEach(row => {
+                    let diag = row['Chẩn đoán'];
+                    if (!diag) return; 
+                    
+                    let bhtt = parseFloat(row['Bảo hiểm TT']);
+                    if (isNaN(bhtt)) bhtt = 0;
+
+                    if (!map.has(diag)) {
+                        map.set(diag, { f1_count: 0, f1_bhtt: 0, f2_count: 0, f2_bhtt: 0 });
+                    }
+                    
+                    let entry = map.get(diag);
+                    if (fileIndex === 1) {
+                        entry.f1_count++;
+                        entry.f1_bhtt += bhtt;
+                    } else {
+                        entry.f2_count++;
+                        entry.f2_bhtt += bhtt;
+                    }
+                });
+            };
+
+            processData(data1, 1);
+            processData(data2, 2);
+
+            let resultKeys = Array.from(map.keys()).sort();
+            
+            // Chuẩn bị khung HTML cho bảng trên web
+            let htmlTable = `<table>
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên bệnh</th>
+                        <th>Số lượt KCB file 1</th>
+                        <th>Số lượt KCB file 2</th>
+                        <th>BHTT file 1</th>
+                        <th>BHTT file 2</th>
+                        <th>Chi phí BQ file 1</th>
+                        <th>Chi phí BQ file 2</th>
+                        <th>Chi phí thay đổi</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            let stt = 1;
+            resultKeys.forEach(diag => {
+                let d = map.get(diag);
+                let bq1 = d.f1_count > 0 ? d.f1_bhtt / d.f1_count : 0;
+                let bq2 = d.f2_count > 0 ? d.f2_bhtt / d.f2_count : 0;
+                let diff = bq1 - bq2;
+
+                // 1. Lưu dữ liệu thô (Raw Data) vào mảng để xuất Excel (không format thành chuỗi)
+                rawExcelData.push({
+                    "STT": stt,
+                    "Tên bệnh": diag,
+                    "Số lượt KCB file 1": d.f1_count,
+                    "Số lượt KCB file 2": d.f2_count,
+                    "BHTT file 1": d.f1_bhtt,
+                    "BHTT file 2": d.f2_bhtt,
+                    "Chi phí BQ file 1": bq1,
+                    "Chi phí BQ file 2": bq2,
+                    "Chi phí thay đổi": diff
+                });
+
+                // 2. Tạo dòng HTML để hiển thị trên trình duyệt (có format phẩy hàng nghìn)
+                htmlTable += `<tr>
+                    <td style="text-align: center;">${stt++}</td>
+                    <td>${diag}</td>
+                    <td>${d.f1_count}</td>
+                    <td>${d.f2_count}</td>
+                    <td>${formatMoney(d.f1_bhtt)}</td>
+                    <td>${formatMoney(d.f2_bhtt)}</td>
+                    <td>${formatMoney(bq1)}</td>
+                    <td>${formatMoney(bq2)}</td>
+                    <td>${formatMoney(diff)}</td>
+                </tr>`;
+            });
+
+            htmlTable += `</tbody></table>`;
+            
+            // Cập nhật giao diện
+            document.getElementById('reportContainer').innerHTML = htmlTable;
+            document.getElementById('downloadBtn').style.display = "block";
+            statusDiv.innerText = "Xử lý thành công! Bạn có thể xem trước bên dưới hoặc tải file Excel.";
+            statusDiv.style.color = "#27ae60";
+
+        } catch (error) {
+            console.error(error);
+            statusDiv.innerText = "Có lỗi xảy ra khi đọc file. Vui lòng kiểm tra lại!";
+            statusDiv.style.color = "#e74c3c";
+        }
+    }
+
+    // Hàm xuất dữ liệu ra file Excel
+    function downloadExcel() {
+        if (rawExcelData.length === 0) return;
+
+        // Tạo một WorkSheet (trang tính) từ mảng JSON
+        const worksheet = XLSX.utils.json_to_sheet(rawExcelData);
+        
+        // Tạo một WorkBook (tệp Excel) mới
+        const workbook = XLSX.utils.book_new();
+        
+        // Gắn WorkSheet vào WorkBook, đặt tên tab là "Báo Cáo"
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Báo Cáo");
+        
+        // Kích hoạt tải file xuống máy tính
+        XLSX.writeFile(workbook, "Bao_Cao_Chi_Phi_KCB.xlsx");
+    }
+</script>
+
+</body>
+</html>
