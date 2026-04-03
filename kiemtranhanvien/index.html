@@ -282,13 +282,6 @@
                         errors.push({ stt: stt++, ma: ql.ma, ten: ql.ten, loai: "Lỗi Vị trí", chitiet: `Phát hiện ${listQuanLy.length} người chịu trách nhiệm chuyên môn (Đang khai báo mã Vị trí ${ql.goc}).`, goc: ql.goc });
                     });
                 }
-
-                if (listQuanLy.length > 1) {
-                    listQuanLy.forEach(ql => {
-                        errors.push({ stt: stt++, ma: ql.ma, ten: ql.ten, loai: "Lỗi Vị trí", chitiet: `Phát hiện ${listQuanLy.length} nhân sự quản lý (Vị trí 1).`, goc: ql.goc });
-                    });
-                }
-
                 renderResult(errors);
             } catch (e) {
                 alert("❌ Lỗi: " + e.message);
