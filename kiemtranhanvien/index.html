@@ -351,25 +351,25 @@
             }
             
             const mapViTri = {
-                "1": "người chịu trách nhiệm chuyên môn",
-                "2": "Trưởng khoa",
-                "3": "người chịu trách nhiệm chuyên môn kiêm Trưởng khoa",
-                "4": "Người đứng đầu cơ sở KCB hoặc người được người đứng đầu cơ sở KCB ủy quyền được ký giấy chuyển tuyến KCB BHYT, giấy ra viện",
-                "5": "Người hành nghề được giao phụ trách khoa trong trường hợp không có trưởng khoa"
-            };
+    "1": "người chịu trách nhiệm chuyên môn",
+    "2": "Trưởng khoa/ Trưởng đơn nguyên/người phụ trách phòng khám chuyên khoa đối với cơ sở khám bệnh, chữa bệnh có hình thức tổ chức là phòng khám liên chuyên khoa",
+    "3": "người chịu trách nhiệm chuyên môn kiêm Trưởng khoa",
+    "4": "Người đứng đầu cơ sở khám bệnh, chữa bệnh hoặc người được người đứng đầu cơ sở khám bệnh, chữa bệnh ủy quyền ký giấy chuyển tuyến khám bệnh, chữa bệnh, giấy ra viện, giấy hẹn khám lại",
+    "5": "Người hành nghề được giao phụ trách khoa trong trường hợp không có trưởng khoa",
+    "6": "Người được ủy quyền chịu trách nhiệm chuyên môn kỹ thuật theo khoản 11 Điều 27 Nghị định số 96/2023/NĐ-CP"
+};
 
-            const mapChucDanh = {
-                "1": "Bác sĩ",
-                "2": "Y sĩ",
-                "3": "Điều dưỡng",
-                "4": "Hộ sinh",
-                "5": "Kỹ thuật viên",
-                "6": "Cử nhân X-quang",
-                "7": "Dược sĩ đại học",
-                "8": "Dược sĩ trung cấp",
-                "9": "Lương y",
-                "10": "cử nhân xét nghiệm"
-            };
+const mapChucDanh = {
+    "1": "Bác sĩ",
+    "2": "Y sĩ",
+    "3": "Điều dưỡng",
+    "4": "Hộ sinh",
+    "5": "Kỹ thuật y",
+    "6": "Cử nhân tâm lý lâm sàng",
+    "7": "Lương y",
+    "8": "Dược sĩ",
+    "9": "người tham gia vào quá trình khám bệnh, chữa bệnh nhưng không cần phải cấp giấy phép hành nghề"
+};
 
             const exportData = window.rawNVData.map((nv, index) => {
                 const viTriCode = nv[COL.NV_VI_TRI] ? nv[COL.NV_VI_TRI].toString().trim() : "";
