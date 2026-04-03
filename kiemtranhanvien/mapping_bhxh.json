@@ -285,25 +285,25 @@
     "MA_PHAM_VI": "515",
     "MA_CHUC_DANH": "5",
     "TEN_CHUYEN_KHOA": "Kỹ thuật y phục hồi chức năng",
-    "CDNN": "Kỹ thuật viên"
+    "CDNN": "Kỹ thuật y"
   },
   {
     "MA_PHAM_VI": "701",
-    "MA_CHUC_DANH": "9",
+    "MA_CHUC_DANH": "7",
     "TEN_CHUYEN_KHOA": "Lương y",
     "CDNN": "Lương y"
   },
   {
     "MA_PHAM_VI": "801",
-    "MA_CHUC_DANH": "7",
+    "MA_CHUC_DANH": "8",
     "TEN_CHUYEN_KHOA": "Dược sỹ từ đại học trở lên",
-    "CDNN": "Dược sĩ đại học"
+    "CDNN": "Dược sĩ"
   },
   {
     "MA_PHAM_VI": "802",
     "MA_CHUC_DANH": "8",
     "TEN_CHUYEN_KHOA": "Dược sỹ dưới đại học",
-    "CDNN": "Dược sĩ trung cấp"
+    "CDNN": "Dược sĩ"
   },
   {
     "MA_PHAM_VI": "132",
@@ -451,116 +451,116 @@
   },
   {
     "MA_PHAM_VI": "501",
-    "MA_CHUC_DANH": "10",
+    "MA_CHUC_DANH": "5",
     "TEN_CHUYEN_KHOA": "Kỹ thuật y xét nghiệm Huyết học trình độ từ đại học trở lên",
-    "CDNN": "Cử nhân xét nghiệm"
+    "CDNN": "Kỹ thuật y"
   },
   {
     "MA_PHAM_VI": "502",
-    "MA_CHUC_DANH": "10",
+    "MA_CHUC_DANH": "5",
     "TEN_CHUYEN_KHOA": "Kỹ thuật y xét nghiệm Hóa sinh trình độ từ đại học trở lên",
-    "CDNN": "Cử nhân xét nghiệm"
+    "CDNN": "Kỹ thuật y"
   },
   {
     "MA_PHAM_VI": "503",
-    "MA_CHUC_DANH": "10",
+    "MA_CHUC_DANH": "5",
     "TEN_CHUYEN_KHOA": "Kỹ thuật y xét nghiệm Vi sinh trình độ từ đại học trở lên",
-    "CDNN": "Cử nhân xét nghiệm"
+    "CDNN": "Kỹ thuật y"
   },
   {
     "MA_PHAM_VI": "504",
-    "MA_CHUC_DANH": "10",
+    "MA_CHUC_DANH": "5",
     "TEN_CHUYEN_KHOA": "Kỹ thuật y xét nghiệm Giải phẫu bệnh trình độ từ đại học trở lên",
-    "CDNN": "Cử nhân xét nghiệm"
+    "CDNN": "Kỹ thuật y"
   },
   {
     "MA_PHAM_VI": "505",
     "MA_CHUC_DANH": "5",
     "TEN_CHUYEN_KHOA": "Kỹ thuật y xét nghiệm Huyết học trình độ dưới đại học",
-    "CDNN": "Kỹ thuật viên"
+    "CDNN": "Kỹ thuật y"
   },
   {
     "MA_PHAM_VI": "506",
     "MA_CHUC_DANH": "5",
     "TEN_CHUYEN_KHOA": "Kỹ thuật y xét nghiệm Hóa sinh trình độ dưới đại học",
-    "CDNN": "Kỹ thuật viên"
+    "CDNN": "Kỹ thuật y"
   },
   {
     "MA_PHAM_VI": "507",
     "MA_CHUC_DANH": "5",
     "TEN_CHUYEN_KHOA": "Kỹ thuật y xét nghiệm Vi sinh trình độ dưới đại học",
-    "CDNN": "Kỹ thuật viên"
+    "CDNN": "Kỹ thuật y"
   },
   {
     "MA_PHAM_VI": "508",
     "MA_CHUC_DANH": "5",
     "TEN_CHUYEN_KHOA": "Kỹ thuật y xét nghiệm Giải phẫu bệnh trình độ dưới đại học",
-    "CDNN": "Kỹ thuật viên"
+    "CDNN": "Kỹ thuật y"
   },
   {
     "MA_PHAM_VI": "509",
-    "MA_CHUC_DANH": "10",
+    "MA_CHUC_DANH": "5",
     "TEN_CHUYEN_KHOA": "Cử nhân hóa học, sinh học (theo quy định tại điểm d khoản 3 Điều 127 Nghị định số 96/2023/NĐ-CP)",
-    "CDNN": "Cử nhân xét nghiệm"
+    "CDNN": "Kỹ thuật y"
   },
   {
     "MA_PHAM_VI": "510",
-    "MA_CHUC_DANH": "7",
+    "MA_CHUC_DANH": "8",
     "TEN_CHUYEN_KHOA": "Dược sĩ trình độ đại học (theo quy định tại điểm d khoản 3 Điều 127 Nghị định số 96/2023/NĐ-CP)",
-    "CDNN": "Dược sĩ đại học"
+    "CDNN": "Dược sĩ"
   },
   {
     "MA_PHAM_VI": "511",
-    "MA_CHUC_DANH": "6",
+    "MA_CHUC_DANH": "5",
     "TEN_CHUYEN_KHOA": "Kỹ thuật y hình ảnh y học trình độ từ đại học trở lên",
-    "CDNN": "Cử nhân X-quang"
+    "CDNN": "Kỹ thuật y"
   },
   {
     "MA_PHAM_VI": "512",
     "MA_CHUC_DANH": "5",
     "TEN_CHUYEN_KHOA": "Kỹ thuật y hình ảnh y học trình độ dưới đại học",
-    "CDNN": "Kỹ thuật viên"
+    "CDNN": "Kỹ thuật y"
   },
   {
     "MA_PHAM_VI": "513",
     "MA_CHUC_DANH": "5",
     "TEN_CHUYEN_KHOA": "Kỹ thuật y phục hình răng",
-    "CDNN": "Kỹ thuật viên"
+    "CDNN": "Kỹ thuật y"
   },
   {
     "MA_PHAM_VI": "514",
     "MA_CHUC_DANH": "5",
     "TEN_CHUYEN_KHOA": "Kỹ thuật y khúc xạ nhãn khoa",
-    "CDNN": "Kỹ thuật viên"
+    "CDNN": "Kỹ thuật y"
   },
   {
     "MA_PHAM_VI": "601",
-    "MA_CHUC_DANH": "",
+    "MA_CHUC_DANH": "6",
     "TEN_CHUYEN_KHOA": "Cử nhân tâm lý lâm sàng",
-    "CDNN": ""
+    "CDNN": "Cử nhân tâm lý lâm sàng"
   },
   {
     "MA_PHAM_VI": "901",
-    "MA_CHUC_DANH": "",
+    "MA_CHUC_DANH": "9",
     "TEN_CHUYEN_KHOA": "Kỹ sư vật lý y học",
-    "CDNN": ""
+    "CDNN": "người tham gia vào quá trình khám bệnh, chữa bệnh nhưng không cần phải cấp giấy phép hành nghề"
   },
   {
     "MA_PHAM_VI": "902",
-    "MA_CHUC_DANH": "",
+    "MA_CHUC_DANH": "9",
     "TEN_CHUYEN_KHOA": "Kỹ sư xạ trị",
-    "CDNN": ""
+    "CDNN": "người tham gia vào quá trình khám bệnh, chữa bệnh nhưng không cần phải cấp giấy phép hành nghề"
   },
   {
     "MA_PHAM_VI": "903",
-    "MA_CHUC_DANH": "",
+    "MA_CHUC_DANH": "9",
     "TEN_CHUYEN_KHOA": "Kỹ sư công nghệ sinh học",
-    "CDNN": ""
+    "CDNN": "người tham gia vào quá trình khám bệnh, chữa bệnh nhưng không cần phải cấp giấy phép hành nghề"
   },
   {
     "MA_PHAM_VI": "904",
-    "MA_CHUC_DANH": "10",
+    "MA_CHUC_DANH": "5",
     "TEN_CHUYEN_KHOA": "Cử nhân công nghệ sinh học",
-    "CDNN": "Cử nhân xét nghiệm"
+    "CDNN": "Kỹ thuật y"
   }
 ]
