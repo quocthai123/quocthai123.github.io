@@ -27,7 +27,7 @@
                     </div>
                     <div>
                         <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 to-indigo-600">LQT CHECK DMNV</span>
-                        <p class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Medical Staff Validator v2.0</p>
+                        <p class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Medical Staff Validator v2.1</p>
                     </div>
                 </div>
                 <div id="statusIndicator" class="hidden flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-full border border-green-200 text-xs font-medium">
@@ -54,7 +54,7 @@
                     <input type="file" id="fileNV" accept=".xlsx, .xls, .csv" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"/>
                     <div class="mt-4 p-3 bg-slate-50 rounded-xl">
                         <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Cấu trúc yêu cầu:</p>
-                        <p class="text-[10px] text-slate-500 leading-relaxed italic">MA_KHOA, TEN_KHOA, MA_BHXH, HO_TEN, GIOI_TINH, MACCHN...</p>
+                        <p class="text-[10px] text-slate-500 leading-relaxed italic">STT, MA_KHOA, TEN_KHOA, HO_TEN, GIOI_TINH, SO_DINH_DANH, CHUCDANH_NN...</p>
                     </div>
                 </div>
 
@@ -106,7 +106,7 @@
                         <thead class="bg-slate-50 sticky top-0 z-10 shadow-sm">
                             <tr>
                                 <th class="py-4 px-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider w-12">STT</th>
-                                <th class="py-4 px-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider">Mã BHXH</th>
+                                <th class="py-4 px-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider">Số định danh</th>
                                 <th class="py-4 px-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider">Họ tên</th>
                                 <th class="py-4 px-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider">Loại lỗi</th>
                                 <th class="py-4 px-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-wider">Chi tiết nội dung</th>
@@ -114,7 +114,7 @@
                             </tr>
                         </thead>
                         <tbody id="tableBody" class="bg-white divide-y divide-slate-100 text-[13px]">
-                            </tbody>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -122,18 +122,18 @@
     </div>
 
     <script>
-        // --- GIỮ NGUYÊN TOÀN BỘ CONFIG VÀ LOGIC CŨ ---
+        // CẬP NHẬT CẤU TRÚC CỘT MỚI
         const COL = {
             NV_MA_KHOA: "MA_KHOA",
             NV_TEN_KHOA: "TEN_KHOA",
-            NV_MA_BHXH: "MA_BHXH",
+            NV_SO_DINH_DANH: "SO_DINH_DANH", // Đã đổi từ MA_BHXH
             NV_HO_TEN: "HO_TEN",
             NV_GIOI_TINH: "GIOI_TINH",
             NV_MACCHN: "MACCHN",
             NV_NGAY_CAP_CCHN: "NGAYCAP_CCHN", 
             NV_NOICAP_CCHN: "NOICAP_CCHN",
             NV_PHAM_VI: "PHAMVI_CM",  
-            NV_TUNGAY: "TUNGAY", 
+            NV_TUNGAY: "TU_NGAY", // Đã đổi từ TUNGAY
             NV_CDNN: "CHUCDANH_NN",
             NV_VI_TRI: "VI_TRI",
             KP_MA_KHOA: "MA_KHOA",
@@ -143,7 +143,7 @@
         const REQUIRED_COLS = [
             { key: COL.NV_MA_KHOA, label: "Mã Khoa" },
             { key: COL.NV_TEN_KHOA, label: "Tên Khoa" },
-            { key: COL.NV_MA_BHXH, label: "Mã BHXH" },
+            { key: COL.NV_SO_DINH_DANH, label: "Số định danh" },
             { key: COL.NV_HO_TEN, label: "Họ Tên" },
             { key: COL.NV_GIOI_TINH, label: "Giới tính" },
             { key: COL.NV_MACCHN, label: "Mã CCHN" },
@@ -192,7 +192,7 @@
                 let listQuanLy = []; 
 
                 dataNV.forEach(nv => {
-                    const maBHXH = nv[COL.NV_MA_BHXH] ? nv[COL.NV_MA_BHXH].toString().trim() : "N/A";
+                    const soDinhDanh = nv[COL.NV_SO_DINH_DANH] ? nv[COL.NV_SO_DINH_DANH].toString().trim() : "N/A";
                     const hoTen = nv[COL.NV_HO_TEN] || "N/A";
 
                     // Check Required
@@ -205,34 +205,33 @@
                     });
 
                     if (missingFields.length > 0) {
-                        errors.push({ stt: stt++, ma: maBHXH, ten: hoTen, loai: "Thiếu dữ liệu", chitiet: `Bị trống: ${missingFields.join(', ')}`, goc: "NULL" });
+                        errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Thiếu dữ liệu", chitiet: `Bị trống: ${missingFields.join(', ')}`, goc: "NULL" });
                     }
 
                     // Format Checks
                     const rawGioiTinh = nv[COL.NV_GIOI_TINH] ? nv[COL.NV_GIOI_TINH].toString().trim() : "";
                     const rawNgayCap = nv[COL.NV_NGAY_CAP_CCHN] ? nv[COL.NV_NGAY_CAP_CCHN].toString().trim() : "";
-                    const rawTuNgay = nv[COL.NV_TUNGAY] ? nv[COL.NV_TUNGAY].toString().trim() : "";
                     const rawMaKhoa = nv[COL.NV_MA_KHOA] ? nv[COL.NV_MA_KHOA].toString().trim() : "";
-                    const rawTenKhoa = nv[COL.NV_TEN_KHOA] || "";
                     const rawPhamVi = nv[COL.NV_PHAM_VI] ? nv[COL.NV_PHAM_VI].toString().trim() : "";
                     const rawChucDanh = nv[COL.NV_CDNN] ? nv[COL.NV_CDNN].toString().trim() : "";
                     const rawViTri = nv[COL.NV_VI_TRI] ? nv[COL.NV_VI_TRI].toString().trim() : "";
 
-                    if (maBHXH !== "N/A" && !/^\d{10}$/.test(maBHXH)) {
-                        errors.push({ stt: stt++, ma: maBHXH, ten: hoTen, loai: "Lỗi Định dạng", chitiet: `Mã BHXH phải là 10 số.`, goc: maBHXH });
+                    // Cho phép từ 9 đến 12 số (CMND, Mã BHXH, CCCD)
+                    if (soDinhDanh !== "N/A" && !/^\d{9,12}$/.test(soDinhDanh)) {
+                        errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Lỗi Định dạng", chitiet: `Số định danh phải từ 9-12 số.`, goc: soDinhDanh });
                     }
                     if (rawGioiTinh !== "" && !["1", "2"].includes(rawGioiTinh)) {
-                        errors.push({ stt: stt++, ma: maBHXH, ten: hoTen, loai: "Lỗi Định dạng", chitiet: `Giới tính sai (1: Nam, 2: Nữ).`, goc: rawGioiTinh });
+                        errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Lỗi Định dạng", chitiet: `Giới tính sai (1: Nam, 2: Nữ).`, goc: rawGioiTinh });
                     }
                     if (rawNgayCap !== "" && !isValidDate(rawNgayCap)) {
-                        errors.push({ stt: stt++, ma: maBHXH, ten: hoTen, loai: "Lỗi Định dạng", chitiet: `Ngày cấp sai yyyymmdd.`, goc: rawNgayCap });
+                        errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Lỗi Định dạng", chitiet: `Ngày cấp sai yyyymmdd.`, goc: rawNgayCap });
                     }
 
                     // Khoa Phong Logic
                     const listMaKhoa = splitAndTrim(rawMaKhoa);
                     listMaKhoa.forEach(ma => {
                         if (!mapKhoaPhong.hasOwnProperty(ma)) {
-                            errors.push({ stt: stt++, ma: maBHXH, ten: hoTen, loai: "Sai Mã Khoa", chitiet: `Mã khoa '${ma}' không có trong DM.`, goc: rawMaKhoa });
+                            errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Sai Mã Khoa", chitiet: `Mã khoa '${ma}' không có trong DM.`, goc: rawMaKhoa });
                         }
                     });
 
@@ -248,10 +247,10 @@
                             }
                         });
                         if (validScopeCount > 0 && !isTitleValid) {
-                            errors.push({ stt: stt++, ma: maBHXH, ten: hoTen, loai: "Sai Chức danh", chitiet: `Chức danh không khớp phạm vi.`, goc: rawChucDanh });
+                            errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Sai Chức danh", chitiet: `Chức danh không khớp phạm vi.`, goc: rawChucDanh });
                         }
                     }
-                    if (rawViTri === "1") listQuanLy.push({ ma: maBHXH, ten: hoTen, goc: rawViTri });
+                    if (rawViTri === "1") listQuanLy.push({ ma: soDinhDanh, ten: hoTen, goc: rawViTri });
                 });
 
                 if (listQuanLy.length > 1) {
@@ -304,7 +303,6 @@
             }
             window.currentErrors = errors; 
             fillTable(errors);
-            // Cuộn xuống kết quả
             resultArea.scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -352,7 +350,6 @@
                 return;
             }
             
-            // 1. Map Vị trí quản lý (cập nhật theo yêu cầu mới)
             const mapViTri = {
                 "1": "người chịu trách nhiệm chuyên môn",
                 "2": "Trưởng khoa",
@@ -361,7 +358,6 @@
                 "5": "Người hành nghề được giao phụ trách khoa trong trường hợp không có trưởng khoa"
             };
 
-            // 2. Map Chức danh nghề nghiệp
             const mapChucDanh = {
                 "1": "Bác sĩ",
                 "2": "Y sĩ",
@@ -379,17 +375,14 @@
                 const viTriCode = nv[COL.NV_VI_TRI] ? nv[COL.NV_VI_TRI].toString().trim() : "";
                 const chucDanhCode = nv[COL.NV_CDNN] ? nv[COL.NV_CDNN].toString().trim() : "";
                 
-                // 3. Xử lý logic ghép chuỗi Tên Chức danh + Vị trí
                 const tenChucDanh = mapChucDanh[chucDanhCode] || "";
                 const tenViTriQuanLy = mapViTri[viTriCode] || "";
                 
-                let tenViTriXuat = tenChucDanh; // Mặc định lấy Tên chức danh
+                let tenViTriXuat = tenChucDanh;
                 if (tenViTriQuanLy !== "") {
-                    // Nếu có vị trí quản lý, ghép thêm vào bằng dấu " - "
                     tenViTriXuat = tenChucDanh !== "" ? `${tenChucDanh} / ${tenViTriQuanLy}` : tenViTriQuanLy;
                 }
 
-                // Xử lý phạm vi chuyên môn (giữ nguyên logic cũ của bạn)
                 const maPVRaw = nv[COL.NV_PHAM_VI] ? nv[COL.NV_PHAM_VI].toString().trim() : "";
                 let tenPVArray = [];
                 
@@ -402,20 +395,32 @@
 
                 return {
                     "STT": index + 1,
-                    "MA_CSKCB": "",
+                    "MA_KHOA": nv[COL.NV_MA_KHOA] || "",
+                    "TEN_KHOA": nv[COL.NV_TEN_KHOA] || "",
+                    "MA_CSKCB": nv["MA_CSKCB"] || "",
+                    "SO_DINH_DANH": nv[COL.NV_SO_DINH_DANH] || "",
                     "HO_TEN": nv[COL.NV_HO_TEN] || "",
                     "MACCHN": nv[COL.NV_MACCHN] || "",
+                    "NGAYCAP_CCHN": nv[COL.NV_NGAY_CAP_CCHN] || "",
+                    "NOICAP_CCHN": nv[COL.NV_NOICAP_CCHN] || "",
+                    "GIOI_TINH": nv[COL.NV_GIOI_TINH] || "",
                     "TEN_PHAMVI_CM": tenPVArray.join('; '),
                     "MA_PHAMVI_CM": maPVRaw,
-                    "CHUCDANH_NN": nv[COL.NV_CDNN] || "",
-                    "TEN_VI_TRI": tenViTriXuat, // Sử dụng chuỗi đã ghép ở đây
+                    "PHAMVI_CMBS": nv["PHAMVI_CMBS"] || "",
+                    "CHUCDANH_NN": chucDanhCode,
+                    "TEN_VI_TRI": tenViTriXuat,
                     "MA_VI_TRI": viTriCode,
                     "DVKT_KHAC": nv["DVKT_KHAC"] || "",
+                    "VB_PHANCONG": nv["VB_PHANCONG"] || "",
                     "THOIGIAN_LV": "07h30 đến 17h thứ 2,3,4,5,6,7,CN",
                     "THOIGIAN_DK": nv["THOIGIAN_DK"] || "",
                     "THOIGIAN_NGAY": nv["THOIGIAN_NGAY"] || "",
                     "THOIGIAN_TUAN": nv["THOIGIAN_TUAN"] || "",
-                    "TU_NGAY": nv[COL.NV_TUNGAY] || ""
+                    "CSKCB_KHAC": nv["CSKCB_KHAC"] || "",
+                    "CSKCB_CGKT": nv["CSKCB_CGKT"] || "",
+                    "QD_CGKT": nv["QD_CGKT"] || "",
+                    "TU_NGAY": nv[COL.NV_TUNGAY] || "",
+                    "DEN_NGAY": nv["DEN_NGAY"] || ""
                 };
             });
 
