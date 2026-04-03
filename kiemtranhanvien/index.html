@@ -191,14 +191,31 @@
                 let stt = 1;
                 let listQuanLy = []; 
 
+                // Các dải mã hợp lệ mới
+                const validChucDanh = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+                const validViTri = ["1", "2", "3", "4", "5", "6"];
+
                 dataNV.forEach(nv => {
                     const soDinhDanh = nv[COL.NV_SO_DINH_DANH] ? nv[COL.NV_SO_DINH_DANH].toString().trim() : "N/A";
                     const hoTen = nv[COL.NV_HO_TEN] || "N/A";
+                    
+                    const rawGioiTinh = nv[COL.NV_GIOI_TINH] ? nv[COL.NV_GIOI_TINH].toString().trim() : "";
+                    const rawNgayCap = nv[COL.NV_NGAY_CAP_CCHN] ? nv[COL.NV_NGAY_CAP_CCHN].toString().trim() : "";
+                    const rawMaKhoa = nv[COL.NV_MA_KHOA] ? nv[COL.NV_MA_KHOA].toString().trim() : "";
+                    const rawPhamVi = nv[COL.NV_PHAM_VI] ? nv[COL.NV_PHAM_VI].toString().trim() : "";
+                    const rawChucDanh = nv[COL.NV_CDNN] ? nv[COL.NV_CDNN].toString().trim() : "";
+                    const rawViTri = nv[COL.NV_VI_TRI] ? nv[COL.NV_VI_TRI].toString().trim() : "";
 
-                    // Check Required
+                    // 1. CHECK REQUIRED (Bỏ qua CCHN nếu chức danh = 9)
                     let missingFields = [];
                     REQUIRED_COLS.forEach(col => {
                         const val = nv[col.key];
+                        
+                        // Nếu Chức danh là 9 (không cần GPHN), bỏ qua các trường liên quan đến chứng chỉ
+                        if (rawChucDanh === "9" && [COL.NV_MACCHN, COL.NV_NGAY_CAP_CCHN, COL.NV_NOICAP_CCHN, COL.NV_PHAM_VI].includes(col.key)) {
+                            return; // Bỏ qua không kiểm tra
+                        }
+
                         if (val === undefined || val === null || val.toString().trim() === "") {
                             missingFields.push(col.label);
                         }
@@ -208,16 +225,8 @@
                         errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Thiếu dữ liệu", chitiet: `Bị trống: ${missingFields.join(', ')}`, goc: "NULL" });
                     }
 
-                    // Format Checks
-                    const rawGioiTinh = nv[COL.NV_GIOI_TINH] ? nv[COL.NV_GIOI_TINH].toString().trim() : "";
-                    const rawNgayCap = nv[COL.NV_NGAY_CAP_CCHN] ? nv[COL.NV_NGAY_CAP_CCHN].toString().trim() : "";
-                    const rawMaKhoa = nv[COL.NV_MA_KHOA] ? nv[COL.NV_MA_KHOA].toString().trim() : "";
-                    const rawPhamVi = nv[COL.NV_PHAM_VI] ? nv[COL.NV_PHAM_VI].toString().trim() : "";
-                    const rawChucDanh = nv[COL.NV_CDNN] ? nv[COL.NV_CDNN].toString().trim() : "";
-                    const rawViTri = nv[COL.NV_VI_TRI] ? nv[COL.NV_VI_TRI].toString().trim() : "";
-
-                    // Cho phép từ 9 đến 12 số (CMND, Mã BHXH, CCCD)
-                    if (soDinhDanh !== "N/A" && !/^\d{12}$/.test(soDinhDanh)) {
+                    // 2. CHECK FORMAT CHUNG
+                    if (soDinhDanh !== "N/A" && !/^\d{9,12}$/.test(soDinhDanh)) {
                         errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Lỗi Định dạng", chitiet: `Số định danh phải từ 9-12 số.`, goc: soDinhDanh });
                     }
                     if (rawGioiTinh !== "" && !["1", "2"].includes(rawGioiTinh)) {
@@ -225,6 +234,14 @@
                     }
                     if (rawNgayCap !== "" && !isValidDate(rawNgayCap)) {
                         errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Lỗi Định dạng", chitiet: `Ngày cấp sai yyyymmdd.`, goc: rawNgayCap });
+                    }
+
+                    // 3. CHECK MÃ CHỨC DANH & VỊ TRÍ MỚI
+                    if (rawChucDanh !== "" && !validChucDanh.includes(rawChucDanh)) {
+                        errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Sai Chức danh", chitiet: `Mã chức danh (${rawChucDanh}) không hợp lệ (chỉ từ 1-9).`, goc: rawChucDanh });
+                    }
+                    if (rawViTri !== "" && !validViTri.includes(rawViTri)) {
+                        errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Lỗi Vị trí", chitiet: `Mã vị trí (${rawViTri}) không hợp lệ (chỉ từ 1-6).`, goc: rawViTri });
                     }
 
                     // Khoa Phong Logic
@@ -235,23 +252,36 @@
                         }
                     });
 
-                    // Pham Vi Logic
-                    const listPhamVi = splitAndTrim(rawPhamVi);
-                    if (listPhamVi.length > 0 && Object.keys(mapRulesDict).length > 0) {
-                        let isTitleValid = false;
-                        let validScopeCount = 0;
-                        listPhamVi.forEach(pv => {
-                            if (mapRulesDict[pv]) {
-                                validScopeCount++;
-                                if (rawChucDanh === mapRulesDict[pv].MA_CHUC_DANH.toString().trim()) isTitleValid = true;
+                    // Pham Vi Logic (Chỉ check nếu không phải Chức danh 9)
+                    if (rawChucDanh !== "9") {
+                        const listPhamVi = splitAndTrim(rawPhamVi);
+                        if (listPhamVi.length > 0 && Object.keys(mapRulesDict).length > 0) {
+                            let isTitleValid = false;
+                            let validScopeCount = 0;
+                            listPhamVi.forEach(pv => {
+                                if (mapRulesDict[pv]) {
+                                    validScopeCount++;
+                                    if (rawChucDanh === mapRulesDict[pv].MA_CHUC_DANH.toString().trim()) isTitleValid = true;
+                                }
+                            });
+                            if (validScopeCount > 0 && !isTitleValid) {
+                                errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Sai Chức danh", chitiet: `Chức danh không khớp phạm vi chuyên môn.`, goc: rawChucDanh });
                             }
-                        });
-                        if (validScopeCount > 0 && !isTitleValid) {
-                            errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Sai Chức danh", chitiet: `Chức danh không khớp phạm vi.`, goc: rawChucDanh });
                         }
                     }
-                    if (rawViTri === "1") listQuanLy.push({ ma: soDinhDanh, ten: hoTen, goc: rawViTri });
+                    
+                    // Gom nhóm để check trùng vị trí quản lý (Mã 1 hoặc 3)
+                    if (rawViTri === "1" || rawViTri === "3") {
+                        listQuanLy.push({ ma: soDinhDanh, ten: hoTen, goc: rawViTri });
+                    }
                 });
+
+                // Cảnh báo nếu có quá nhiều Người chịu trách nhiệm CM
+                if (listQuanLy.length > 1) {
+                    listQuanLy.forEach(ql => {
+                        errors.push({ stt: stt++, ma: ql.ma, ten: ql.ten, loai: "Lỗi Vị trí", chitiet: `Phát hiện ${listQuanLy.length} người chịu trách nhiệm chuyên môn (Đang khai báo mã Vị trí ${ql.goc}).`, goc: ql.goc });
+                    });
+                }
 
                 if (listQuanLy.length > 1) {
                     listQuanLy.forEach(ql => {
