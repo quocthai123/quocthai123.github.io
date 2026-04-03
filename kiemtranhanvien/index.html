@@ -217,7 +217,7 @@
                     const rawViTri = nv[COL.NV_VI_TRI] ? nv[COL.NV_VI_TRI].toString().trim() : "";
 
                     // Cho phép từ 9 đến 12 số (CMND, Mã BHXH, CCCD)
-                    if (soDinhDanh !== "N/A" && !/^\d{9,12}$/.test(soDinhDanh)) {
+                    if (soDinhDanh !== "N/A" && !/^\d{12}$/.test(soDinhDanh)) {
                         errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Lỗi Định dạng", chitiet: `Số định danh phải từ 9-12 số.`, goc: soDinhDanh });
                     }
                     if (rawGioiTinh !== "" && !["1", "2"].includes(rawGioiTinh)) {
