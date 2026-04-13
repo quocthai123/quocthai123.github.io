@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tra Cứu Dữ Liệu RHM - Nâng Cấp</title>
+    <title>Tra Cứu Dữ Liệu RHM - Cấu Trúc Mới</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         body { font-family: Tahoma, sans-serif; margin: 20px; background-color: #f4f7f6; }
-        .container { max-width: 1300px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .container { max-width: 1400px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #333; }
         .search-box { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
         input[type="date"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: Tahoma; }
@@ -18,6 +18,7 @@
         th { background-color: #007bff; color: white; position: sticky; top: 0; white-space: nowrap; }
         #loading { text-align: center; color: #666; font-style: italic; display: none; margin-top: 10px; }
         .no-data { text-align: center; color: red; font-weight: bold; margin-top: 20px; }
+        .auto-calc { color: #0056b3; font-weight: bold; } /* Hiệu ứng cho cột tự tính toán */
     </style>
 </head>
 <body>
@@ -45,7 +46,9 @@
                     <th>Ngày vào</th>
                     <th>Chẩn đoán</th>
                     <th>Tên DVKT</th>
-                    <th>Ngày thực hiện (+1p)</th>
+                    <th>Y lệnh</th>
+                    <th>Bắt đầu</th>
+                    <th>Kết thúc</th>
                     <th>BS thực hiện</th>
                 </tr>
             </thead>
@@ -55,6 +58,7 @@
 </div>
 
 <script>
+    // URL Google Sheet của bạn (giữ nguyên nếu không đổi file)
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQDkjeljXFjEM3dAmFLGBFesTvULHc0NtrV6-1aLi_edrxoJgHLlhlpPDVdbTKT7bC6YaGhy_-skiyT/pub?gid=2099298800&single=true&output=csv';
 
     let allData = [];
@@ -103,9 +107,10 @@
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = ''; 
 
+        // Lọc theo cột 'ngay_vao' (Cấu trúc mới)
         const filteredData = allData.filter(row => {
-            const ngayVao = row['Ngày vào'] ? row['Ngày vào'].trim() : '';
-            return ngayVao.includes(targetDate) && row['Họ tên người bệnh'];
+            const ngayVao = row['ngay_vao'] ? row['ngay_vao'].trim() : '';
+            return ngayVao.includes(targetDate) && row['ho_ten'];
         });
 
         if (filteredData.length === 0) {
@@ -115,26 +120,41 @@
         }
 
         filteredData.forEach(row => {
-            // Tính tuổi: Năm báo cáo (từ Ngày vào) - Năm sinh
-            const namSinh = parseInt(row['Năm sinh']) || 0;
-            const namBaoCao = parseInt(row['Ngày vào'].split('/').pop()) || new Date().getFullYear();
+            // Tính tuổi từ nam_sinh và năm hiện tại của ngay_vao
+            const namSinh = parseInt(row['nam_sinh']) || 0;
+            let namBaoCao = new Date().getFullYear();
+            if (row['ngay_vao']) {
+                const dateParts = row['ngay_vao'].split(' ');
+                if (dateParts.length > 1) {
+                    namBaoCao = parseInt(dateParts[1].split('/')[2]) || namBaoCao;
+                }
+            }
             const tuoi = namSinh > 0 ? (namBaoCao - namSinh) : "";
 
-            // Tính ngày thực hiện
-            const ngayThucHien = addOneMinute(row['TG Chỉ định']);
+            // LOGIC XỬ LÝ 'auto' VÀ 'bat_dau'
+            let finalBatDau = row['bat_dau'] || ''; // Load giá trị mặc định của sheet
+            let isAutoCalc = false;
+
+            // Nếu auto = 1 thì set bat_dau = y_lenh + 1 phút
+            if (row['auto'] !== undefined && row['auto'].toString().trim() === '1') {
+                finalBatDau = addOneMinute(row['y_lenh']);
+                isAutoCalc = true; // Cờ để đổi màu hiển thị cho dễ nhìn
+            }
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${row['Số TT'] || ''}</td>
-                <td>${row['Mã bệnh nhân'] || ''}</td>
-                <td><strong>${row['Họ tên người bệnh'] || ''}</strong></td>
+                <td>${row['STT'] || ''}</td>
+                <td>${row['mabn'] || ''}</td>
+                <td><strong>${row['ho_ten'] || ''}</strong></td>
                 <td>${tuoi}</td>
-                <td>${row['Giới tính'] || ''}</td>
-                <td>${row['Ngày vào'] || ''}</td>
-                <td>${row['Chẩn đoán'] || ''}</td>
-                <td>${row['Tên DVKT'] || ''}</td>
-                <td>${ngayThucHien}</td>
-                <td>${row['BS thực hiện'] || ''}</td>
+                <td>${row['gioi_tinh'] || ''}</td>
+                <td>${row['ngay_vao'] || ''}</td>
+                <td>${row['chan_doan'] || ''}</td>
+                <td>${row['ten_dv'] || ''}</td>
+                <td>${row['y_lenh'] || ''}</td>
+                <td class="${isAutoCalc ? 'auto-calc' : ''}">${finalBatDau}</td>
+                <td>${row['ket_thuc'] || ''}</td>
+                <td>${row['bs_thuchien'] || ''}</td>
             `;
             tbody.appendChild(tr);
         });
