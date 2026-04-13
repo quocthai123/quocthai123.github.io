@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tra Cứu Dữ Liệu RHM - Cấu Trúc Mới</title>
+    <title>Tra Cứu Dữ Liệu RHM - Cấu Trúc Mới & In Phiếu</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         body { font-family: Tahoma, sans-serif; margin: 20px; background-color: #f4f7f6; }
@@ -11,20 +11,22 @@
         h2 { text-align: center; color: #333; }
         .search-box { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
         input[type="date"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: Tahoma; }
-        button { padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background-color: #218838; }
+        button { padding: 8px 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .btn-print { background-color: #28a745; font-size: 11px; padding: 5px 10px; }
+        .btn-print:hover { background-color: #218838; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background-color: #007bff; color: white; position: sticky; top: 0; white-space: nowrap; }
         #loading { text-align: center; color: #666; font-style: italic; display: none; margin-top: 10px; }
         .no-data { text-align: center; color: red; font-weight: bold; margin-top: 20px; }
-        .auto-calc { color: #0056b3; font-weight: bold; } /* Hiệu ứng cho cột tự tính toán */
+        .auto-calc { color: #0056b3; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Tra Cứu Giao Dịch Làm Việc Theo Ngày</h2>
+    <h2>Tra Cứu Dữ Liệu & In Phiếu Thủ Thuật</h2>
     
     <div class="search-box">
         <input type="date" id="searchDate">
@@ -50,7 +52,7 @@
                     <th>Bắt đầu</th>
                     <th>Kết thúc</th>
                     <th>BS thực hiện</th>
-                </tr>
+                    <th>Thao tác</th> </tr>
             </thead>
             <tbody id="tableBody"></tbody>
         </table>
@@ -58,11 +60,12 @@
 </div>
 
 <script>
-    // URL Google Sheet của bạn (giữ nguyên nếu không đổi file)
+    // URL Google Sheet
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQDkjeljXFjEM3dAmFLGBFesTvULHc0NtrV6-1aLi_edrxoJgHLlhlpPDVdbTKT7bC6YaGhy_-skiyT/pub?gid=2099298800&single=true&output=csv';
 
     let allData = [];
     let isDataLoaded = false;
+    let currentFilteredData = []; // Lưu trữ mảng data đang hiển thị để in
 
     window.onload = function() {
         document.getElementById('loading').style.display = 'block';
@@ -78,7 +81,6 @@
         });
     };
 
-    // Hàm cộng 1 phút vào chuỗi thời gian "HH:mm DD/MM/YYYY"
     function addOneMinute(dateTimeStr) {
         if (!dateTimeStr || dateTimeStr.trim() === "") return "";
         try {
@@ -107,20 +109,18 @@
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = ''; 
 
-        // Lọc theo cột 'ngay_vao' (Cấu trúc mới)
-        const filteredData = allData.filter(row => {
+        currentFilteredData = allData.filter(row => {
             const ngayVao = row['ngay_vao'] ? row['ngay_vao'].trim() : '';
             return ngayVao.includes(targetDate) && row['ho_ten'];
         });
 
-        if (filteredData.length === 0) {
+        if (currentFilteredData.length === 0) {
             document.getElementById('resultTable').style.display = 'none';
             document.getElementById('noDataMessage').style.display = 'block';
             return;
         }
 
-        filteredData.forEach(row => {
-            // Tính tuổi từ nam_sinh và năm hiện tại của ngay_vao
+        currentFilteredData.forEach((row, index) => {
             const namSinh = parseInt(row['nam_sinh']) || 0;
             let namBaoCao = new Date().getFullYear();
             if (row['ngay_vao']) {
@@ -129,24 +129,23 @@
                     namBaoCao = parseInt(dateParts[1].split('/')[2]) || namBaoCao;
                 }
             }
-            const tuoi = namSinh > 0 ? (namBaoCao - namSinh) : "";
+            row.tuoi = namSinh > 0 ? (namBaoCao - namSinh) : ""; // Lưu tuổi vào object để lúc in lấy dùng
 
-            // LOGIC XỬ LÝ 'auto' VÀ 'bat_dau'
-            let finalBatDau = row['bat_dau'] || ''; // Load giá trị mặc định của sheet
+            let finalBatDau = row['bat_dau'] || ''; 
             let isAutoCalc = false;
 
-            // Nếu auto = 1 thì set bat_dau = y_lenh + 1 phút
             if (row['auto'] !== undefined && row['auto'].toString().trim() === '1') {
                 finalBatDau = addOneMinute(row['y_lenh']);
-                isAutoCalc = true; // Cờ để đổi màu hiển thị cho dễ nhìn
+                isAutoCalc = true; 
             }
+            row.finalBatDau = finalBatDau; // Lưu lại để dùng cho in ấn
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${row['STT'] || ''}</td>
                 <td>${row['mabn'] || ''}</td>
                 <td><strong>${row['ho_ten'] || ''}</strong></td>
-                <td>${tuoi}</td>
+                <td>${row.tuoi}</td>
                 <td>${row['gioi_tinh'] || ''}</td>
                 <td>${row['ngay_vao'] || ''}</td>
                 <td>${row['chan_doan'] || ''}</td>
@@ -155,12 +154,135 @@
                 <td class="${isAutoCalc ? 'auto-calc' : ''}">${finalBatDau}</td>
                 <td>${row['ket_thuc'] || ''}</td>
                 <td>${row['bs_thuchien'] || ''}</td>
+                <td><button class="btn-print" onclick="printPhieu(${index})">In Phiếu</button></td>
             `;
             tbody.appendChild(tr);
         });
 
         document.getElementById('noDataMessage').style.display = 'none';
         document.getElementById('resultTable').style.display = 'table';
+    }
+
+    // --- HÀM XỬ LÝ IN PHIẾU THỦ THUẬT ---
+    function printPhieu(index) {
+        const data = currentFilteredData[index];
+        
+        // Tách ngày giờ để hiển thị đẹp
+        let thoiGianThucHien = ".........Giờ.......... Ngày ............../.........../20...............";
+        if(data.finalBatDau) {
+            const [time, date] = data.finalBatDau.split(' ');
+            if (time && date) {
+                const [day, month, year] = date.split('/');
+                thoiGianThucHien = `${time} Giờ, Ngày ${day}/${month}/${year}`;
+            }
+        }
+
+        // Tạo cấu trúc HTML cho trang in
+        const printContent = `
+            <html>
+            <head>
+                <title>In Phiếu Thủ Thuật - ${data.ho_ten}</title>
+                <style>
+                    body { font-family: 'Times New Roman', Times, serif; font-size: 14pt; line-height: 1.5; color: #000; }
+                    .print-container { width: 210mm; padding: 15mm 20mm; margin: auto; box-sizing: border-box; }
+                    .header-table { width: 100%; border: none; margin-bottom: 20px; }
+                    .header-table td { padding: 0; vertical-align: top; border: none; }
+                    .text-center { text-align: center; }
+                    .text-right { text-align: right; }
+                    h1 { font-size: 18pt; font-weight: bold; text-align: center; margin: 20px 0 5px 0; }
+                    h2 { font-size: 14pt; font-weight: bold; margin: 15px 0 5px 0; }
+                    .bold { font-weight: bold; }
+                    .row-flex { display: flex; justify-content: space-between; }
+                    .checkbox-box { display: inline-block; width: 12px; height: 12px; border: 1px solid #000; margin-right: 5px; vertical-align: middle;}
+                    table.signature { width: 100%; margin-top: 30px; border: none; }
+                    table.signature td { text-align: center; border: none; }
+                    
+                    @media print {
+                        body { margin: 0; padding: 0; background-color: #fff; }
+                        @page { size: A4; margin: 15mm; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="print-container">
+                    <table class="header-table">
+                        <tr>
+                            <td style="width: 60%;">
+                                SỞ Y TẾ QUẢNG NAM<br>
+                                <span class="bold" style="text-decoration: underline;">PHÒNG KHÁM ĐA KHOA ĐỒNG NHÂN</span>
+                            </td>
+                            <td class="text-right" style="width: 40%;">
+                                <span class="bold">MS: PT-11</span><br>
+                                Mã người bệnh: ${data.mabn || ''}
+                            </td>
+                        </tr>
+                    </table>
+
+                    <h1>PHIẾU THỦ THUẬT</h1>
+
+                    <h2>1. Thông tin người bệnh</h2>
+                    <div class="row-flex">
+                        <div>Họ và tên: <span class="bold" style="text-transform: uppercase;">${data.ho_ten || ''}</span></div>
+                        <div>Tuổi: ${data.tuoi || ''}</div>
+                        <div>Giới tính: 
+                            <span class="checkbox-box" style="background-color: ${data.gioi_tinh?.toLowerCase() === 'nam' ? '#000' : '#fff'};"></span> Nam 
+                            &nbsp;&nbsp;
+                            <span class="checkbox-box" style="background-color: ${data.gioi_tinh?.toLowerCase() === 'nữ' ? '#000' : '#fff'};"></span> Nữ
+                        </div>
+                    </div>
+
+                    <h2>2. Nội dung</h2>
+                    <div>- Chẩn đoán trước thủ thuật: ${data.chan_doan || ''}</div>
+                    <div>- Chẩn đoán sau thủ thuật: ${data.chan_doan || ''}</div>
+                    <div>- Phương pháp làm thủ thuật: <span class="bold">${data.ten_dv || ''}</span></div>
+                    <div>- Loại thủ thuật: &nbsp;&nbsp; 
+                        <span class="checkbox-box"></span> Đặc biệt &nbsp;&nbsp;
+                        <span class="checkbox-box"></span> Loại I &nbsp;&nbsp;
+                        <span class="checkbox-box"></span> Loại II &nbsp;&nbsp;
+                        <span class="checkbox-box"></span> Loại III
+                    </div>
+                    <div>- Phương pháp vô cảm: Các phương pháp vô cảm khác</div>
+                    <div>- Bác sỹ làm thủ thuật: ${data.bs_thuchien || ''}</div>
+                    <div>- Nhân viên phụ: ${(data.ktv1 || '') + ' ' + (data.ktv2 || '')}</div>
+                    <div>- Bác sỹ gây mê hồi sức (nếu có): Không</div>
+                    <div>- Thời gian làm thủ thuật: ${thoiGianThucHien}</div>
+                    
+                    <div class="bold" style="margin-top: 10px; text-transform: uppercase;">Tóm tắt quá trình làm thủ thuật</div>
+                    <div>${data.ten_dv || 'Lấy sạch vôi răng bằng dụng cụ siêu âm. Đánh bóng.'}</div>
+                    
+                    <div class="bold" style="margin-top: 10px;">Kết luận: <span style="font-weight: normal;">Thực hiện thành công.</span></div>
+                    <div>- Các biến chứng trong quá trình làm thủ thuật: Không</div>
+                    <div>- Lượng máu mất: Không</div>
+                    <div>- Số mẫu bệnh phẩm (nếu có): Không</div>
+                    <div>- Số đăng ký của thiết bị cấy ghép (nếu có): ........................................</div>
+
+                    <table class="signature">
+                        <tr>
+                            <td style="width: 50%;"></td>
+                            <td style="width: 50%;">
+                                <div><i>${thoiGianThucHien}</i></div>
+                                <div class="bold">Bác sỹ thực hiện</div>
+                                <div style="font-size: 10pt;">(Ký, ghi rõ họ tên)</div>
+                                <div style="height: 80px;"></div> <div class="bold">${data.bs_thuchien || ''}</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <script>
+                    // Tự động kích hoạt hộp thoại in khi cửa sổ load xong
+                    window.onload = function() {
+                        window.print();
+                    }
+                <\/script>
+            </body>
+            </html>
+        `;
+
+        // Mở popup/tab mới và đẩy nội dung HTML vào để in
+        const printWindow = window.open('', '_blank', 'width=800,height=900');
+        printWindow.document.open();
+        printWindow.document.write(printContent);
+        printWindow.document.close();
     }
 </script>
 </body>
