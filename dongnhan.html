@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tra Cứu Dữ Liệu RHM</title>
+    <title>Tra Cứu Dữ Liệu RHM - Nâng Cấp</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         body { font-family: Tahoma, sans-serif; margin: 20px; background-color: #f4f7f6; }
-        .container { max-width: 1200px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .container { max-width: 1300px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #333; }
         .search-box { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
         input[type="date"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: Tahoma; }
         button { padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
         button:hover { background-color: #218838; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #007bff; color: white; position: sticky; top: 0; }
+        th { background-color: #007bff; color: white; position: sticky; top: 0; white-space: nowrap; }
         #loading { text-align: center; color: #666; font-style: italic; display: none; margin-top: 10px; }
         .no-data { text-align: center; color: red; font-weight: bold; margin-top: 20px; }
     </style>
@@ -30,7 +30,7 @@
         <button onclick="searchData()">Tra cứu</button>
     </div>
 
-    <div id="loading">Đang tải dữ liệu từ hệ thống...</div>
+    <div id="loading">Đang đồng bộ dữ liệu từ hệ thống...</div>
     <div id="noDataMessage" class="no-data" style="display: none;">Không tìm thấy dữ liệu cho ngày này.</div>
 
     <div style="overflow-x:auto;">
@@ -39,104 +39,107 @@
                 <tr>
                     <th>STT</th>
                     <th>Mã BN</th>
-                    <th>Họ tên người bệnh</th>
+                    <th>Họ tên</th>
+                    <th>Tuổi</th>
                     <th>Giới tính</th>
                     <th>Ngày vào</th>
                     <th>Chẩn đoán</th>
                     <th>Tên DVKT</th>
-                    <th>BS Thực hiện</th>
+                    <th>Ngày thực hiện (+1p)</th>
+                    <th>BS thực hiện</th>
                 </tr>
             </thead>
-            <tbody id="tableBody">
-                </tbody>
+            <tbody id="tableBody"></tbody>
         </table>
     </div>
 </div>
 
 <script>
-    // Điền ID file Google Sheets của bạn sau khi đã "Lưu dưới dạng Google Trang tính"
-  const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSI4mf7fdEiyU2oPFlsEeH_DJwwmFiy3voC96zRJ8GCDBQhOMwWH807Uv6fOlYUykhqBExAdx3ZEsqe/pub?gid=1299577110&single=true&output=csv';
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSI4mf7fdEiyU2oPFlsEeH_DJwwmFiy3voC96zRJ8GCDBQhOMwWH807Uv6fOlYUykhqBExAdx3ZEsqe/pub?gid=1299577110&single=true&output=csv';
 
     let allData = [];
-    let isDataLoaded = false; // Biến kiểm tra xem dữ liệu đã tải xong chưa
+    let isDataLoaded = false;
 
-    // 1. TỰ ĐỘNG TẢI DỮ LIỆU 1 LẦN DUY NHẤT KHI MỞ WEB
     window.onload = function() {
-        document.getElementById('loading').innerText = "Đang đồng bộ dữ liệu từ hệ thống...";
         document.getElementById('loading').style.display = 'block';
-
         Papa.parse(CSV_URL, {
             download: true,
             header: true,
             skipEmptyLines: true,
             complete: function(results) {
                 allData = results.data;
-                isDataLoaded = true; // Đánh dấu đã tải xong
+                isDataLoaded = true;
                 document.getElementById('loading').style.display = 'none';
-                console.log("Đã tải xong " + allData.length + " dòng dữ liệu.");
-            },
-            error: function(err) {
-                console.error("Lỗi khi đọc dữ liệu:", err);
-                document.getElementById('loading').innerText = "Không thể kết nối dữ liệu. Vui lòng tải lại trang.";
-                document.getElementById('loading').style.color = 'red';
             }
         });
     };
 
-    function formatDateToVN(dateString) {
-        if (!dateString) return '';
-        const parts = dateString.split('-');
-        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    // Hàm cộng 1 phút vào chuỗi thời gian "HH:mm DD/MM/YYYY"
+    function addOneMinute(dateTimeStr) {
+        if (!dateTimeStr || dateTimeStr.trim() === "") return "";
+        try {
+            const [time, date] = dateTimeStr.split(' ');
+            const [hours, minutes] = time.split(':');
+            const [day, month, year] = date.split('/');
+            
+            let dt = new Date(year, month - 1, day, hours, minutes);
+            dt.setMinutes(dt.getMinutes() + 1);
+
+            const format = (n) => n.toString().padStart(2, '0');
+            return `${format(dt.getHours())}:${format(dt.getMinutes())} ${format(dt.getDate())}/${format(dt.getMonth() + 1)}/${dt.getFullYear()}`;
+        } catch (e) {
+            return dateTimeStr;
+        }
     }
 
-    // 2. HÀM TRA CỨU BÂY GIỜ CHỈ LỌC DỮ LIỆU CÓ SẴN (CỰC KỲ NHANH)
     function searchData() {
-        if (!isDataLoaded) {
-            alert('Dữ liệu đang được tải về, vui lòng đợi vài giây nhé!');
-            return;
-        }
-
+        if (!isDataLoaded) return;
         const dateInput = document.getElementById('searchDate').value;
-        if (!dateInput) {
-            alert('Vui lòng chọn ngày để tra cứu!');
-            return;
-        }
+        if (!dateInput) return;
 
-        const targetDate = formatDateToVN(dateInput);
-        document.getElementById('resultTable').style.display = 'none';
-        document.getElementById('noDataMessage').style.display = 'none';
+        const parts = dateInput.split('-');
+        const targetDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
 
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = ''; 
 
-        // Lọc dữ liệu trực tiếp từ biến allData trong bộ nhớ
         const filteredData = allData.filter(row => {
-            if (!row['Họ tên người bệnh'] || row['Họ tên người bệnh'].trim() === '') return false;
             const ngayVao = row['Ngày vào'] ? row['Ngày vào'].trim() : '';
-            return ngayVao.includes(targetDate); 
+            return ngayVao.includes(targetDate) && row['Họ tên người bệnh'];
         });
 
         if (filteredData.length === 0) {
+            document.getElementById('resultTable').style.display = 'none';
             document.getElementById('noDataMessage').style.display = 'block';
             return;
         }
 
-        // In kết quả
         filteredData.forEach(row => {
+            // Tính tuổi: Năm báo cáo (từ Ngày vào) - Năm sinh
+            const namSinh = parseInt(row['Năm sinh']) || 0;
+            const namBaoCao = parseInt(row['Ngày vào'].split('/').pop()) || new Date().getFullYear();
+            const tuoi = namSinh > 0 ? (namBaoCao - namSinh) : "";
+
+            // Tính ngày thực hiện
+            const ngayThucHien = addOneMinute(row['TG Chỉ định']);
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${row['Số TT'] || ''}</td>
                 <td>${row['Mã bệnh nhân'] || ''}</td>
                 <td><strong>${row['Họ tên người bệnh'] || ''}</strong></td>
+                <td>${tuoi}</td>
                 <td>${row['Giới tính'] || ''}</td>
                 <td>${row['Ngày vào'] || ''}</td>
                 <td>${row['Chẩn đoán'] || ''}</td>
                 <td>${row['Tên DVKT'] || ''}</td>
+                <td>${ngayThucHien}</td>
                 <td>${row['BS thực hiện'] || ''}</td>
             `;
             tbody.appendChild(tr);
         });
 
+        document.getElementById('noDataMessage').style.display = 'none';
         document.getElementById('resultTable').style.display = 'table';
     }
 </script>
