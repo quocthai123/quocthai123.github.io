@@ -58,15 +58,44 @@
   const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSI4mf7fdEiyU2oPFlsEeH_DJwwmFiy3voC96zRJ8GCDBQhOMwWH807Uv6fOlYUykhqBExAdx3ZEsqe/pub?gid=1299577110&single=true&output=csv';
 
     let allData = [];
+    let isDataLoaded = false; // Biến kiểm tra xem dữ liệu đã tải xong chưa
 
-    // Format ngày từ input YYYY-MM-DD sang định dạng DD/MM/YYYY giống trong file Excel
+    // 1. TỰ ĐỘNG TẢI DỮ LIỆU 1 LẦN DUY NHẤT KHI MỞ WEB
+    window.onload = function() {
+        document.getElementById('loading').innerText = "Đang đồng bộ dữ liệu từ hệ thống...";
+        document.getElementById('loading').style.display = 'block';
+
+        Papa.parse(CSV_URL, {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                allData = results.data;
+                isDataLoaded = true; // Đánh dấu đã tải xong
+                document.getElementById('loading').style.display = 'none';
+                console.log("Đã tải xong " + allData.length + " dòng dữ liệu.");
+            },
+            error: function(err) {
+                console.error("Lỗi khi đọc dữ liệu:", err);
+                document.getElementById('loading').innerText = "Không thể kết nối dữ liệu. Vui lòng tải lại trang.";
+                document.getElementById('loading').style.color = 'red';
+            }
+        });
+    };
+
     function formatDateToVN(dateString) {
         if (!dateString) return '';
         const parts = dateString.split('-');
         return `${parts[2]}/${parts[1]}/${parts[0]}`;
     }
 
+    // 2. HÀM TRA CỨU BÂY GIỜ CHỈ LỌC DỮ LIỆU CÓ SẴN (CỰC KỲ NHANH)
     function searchData() {
+        if (!isDataLoaded) {
+            alert('Dữ liệu đang được tải về, vui lòng đợi vài giây nhé!');
+            return;
+        }
+
         const dateInput = document.getElementById('searchDate').value;
         if (!dateInput) {
             alert('Vui lòng chọn ngày để tra cứu!');
@@ -74,49 +103,25 @@
         }
 
         const targetDate = formatDateToVN(dateInput);
-        document.getElementById('loading').style.display = 'block';
         document.getElementById('resultTable').style.display = 'none';
         document.getElementById('noDataMessage').style.display = 'none';
 
-        // Gọi API tải file CSV
-        Papa.parse(CSV_URL, {
-            download: true,
-            header: true, // Lấy dòng đầu tiên làm Key
-            skipEmptyLines: true,
-            complete: function(results) {
-                allData = results.data;
-                filterAndDisplayData(targetDate);
-            },
-            error: function(err) {
-                console.error("Lỗi khi đọc dữ liệu:", err);
-                alert("Không thể đọc dữ liệu. Vui lòng kiểm tra lại quyền chia sẻ (Public) của file Google Sheets.");
-                document.getElementById('loading').style.display = 'none';
-            }
-        });
-    }
-
-    function filterAndDisplayData(targetDate) {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = ''; 
 
-        // Lọc dữ liệu: Dựa vào cột "Ngày vào" hoặc có thể chứa trong chuỗi thời gian
+        // Lọc dữ liệu trực tiếp từ biến allData trong bộ nhớ
         const filteredData = allData.filter(row => {
-            // Kiểm tra xem dòng có chứa dữ liệu thật không (loại bỏ các dòng tiêu đề gom nhóm ví dụ "15: 02/01/2024")
             if (!row['Họ tên người bệnh'] || row['Họ tên người bệnh'].trim() === '') return false;
-            
             const ngayVao = row['Ngày vào'] ? row['Ngày vào'].trim() : '';
-            // Cột 'Ngày vào' trong hình có chứa định dạng ngày tháng như '02/01/2024'
             return ngayVao.includes(targetDate); 
         });
-
-        document.getElementById('loading').style.display = 'none';
 
         if (filteredData.length === 0) {
             document.getElementById('noDataMessage').style.display = 'block';
             return;
         }
 
-        // Render dữ liệu ra bảng
+        // In kết quả
         filteredData.forEach(row => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -135,6 +140,5 @@
         document.getElementById('resultTable').style.display = 'table';
     }
 </script>
-
 </body>
 </html>
