@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tra Cứu Dữ Liệu RHM & In Phiếu</title>
+    <title>Tra Cứu Dữ Liệu RHM & In Phiếu - Đồng Bộ Thời Gian</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         body { font-family: Tahoma, sans-serif; margin: 20px; background-color: #f4f7f6; }
@@ -60,7 +60,6 @@
 </div>
 
 <script>
-    // URL Google Sheet
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQpmjgWq53GTt4cT8K_3yOGwYWHj8fbIcQqJGivg-2ZMwVl3dwrK5NzBXoK3-gCqPk7cnefZXfvD9Bs/pub?gid=607449787&single=true&output=csv';
 
     let allData = [];
@@ -77,9 +76,34 @@
                 allData = results.data;
                 isDataLoaded = true;
                 document.getElementById('loading').style.display = 'none';
+            },
+            error: function(err) {
+                console.error("Lỗi khi tải CSV:", err);
+                document.getElementById('loading').innerText = "Lỗi khi kết nối dữ liệu!";
             }
         });
     };
+
+    // Hàm ép chuẩn định dạng về dạng hh:mm dd/MM/yyyy
+    function standardizeDateTime(str) {
+        if (!str) return '';
+        str = str.trim();
+        
+        // Mẫu 1: Dạng hh:mm (hoặc hh:mm:ss) dd/MM/yyyy (Ví dụ: 13:58 02/01/2024)
+        let match1 = str.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s+(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (match1) {
+            return `${match1[1].padStart(2, '0')}:${match1[2].padStart(2, '0')} ${match1[3].padStart(2, '0')}/${match1[4].padStart(2, '0')}/${match1[5]}`;
+        }
+
+        // Mẫu 2: Dạng dd/MM/yyyy (hoặc M/D/yyyy) hh:mm:ss (Ví dụ: 1/2/2024 13:59:00)
+        let match2 = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::\d{2})?$/);
+        if (match2) {
+            // Đảo Giờ:Phút lên trước, cắt bỏ giây, định dạng lại số 0 ở đầu
+            return `${match2[4].padStart(2, '0')}:${match2[5].padStart(2, '0')} ${match2[1].padStart(2, '0')}/${match2[2].padStart(2, '0')}/${match2[3]}`;
+        }
+
+        return str; // Trả về nguyên gốc nếu không nhận diện được
+    }
 
     function searchData() {
         if (!isDataLoaded) return;
@@ -109,14 +133,17 @@
             let namBaoCao = new Date().getFullYear();
             if (row['ngay_vao']) {
                 const dateParts = row['ngay_vao'].split(' ');
-                if (dateParts.length > 1) {
-                    namBaoCao = parseInt(dateParts[1].split('/')[2]) || namBaoCao;
+                const dateOnly = dateParts.find(p => p.includes('/'));
+                if (dateOnly) {
+                    namBaoCao = parseInt(dateOnly.split('/')[2]) || namBaoCao;
                 }
             }
             row.tuoi = namSinh > 0 ? (namBaoCao - namSinh) : ""; 
-            
-            const batDau = row['bat_dau'] || '';
-            row.finalBatDau = batDau; 
+
+            // Cập nhật lại format chuẩn cho dữ liệu trước khi render
+            row.y_lenh_fmt = standardizeDateTime(row['y_lenh']);
+            row.bat_dau_fmt = standardizeDateTime(row['bat_dau']);
+            row.ket_thuc_fmt = standardizeDateTime(row['ket_thuc']);
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -128,9 +155,9 @@
                 <td>${row['ngay_vao'] || ''}</td>
                 <td>${row['chan_doan'] || ''}</td>
                 <td>${row['ten_dv'] || ''}</td>
-                <td>${row['y_lenh'] || ''}</td>
-                <td>${batDau}</td>
-                <td>${row['ket_thuc'] || ''}</td>
+                <td>${row.y_lenh_fmt}</td>
+                <td style="color: #0056b3; font-weight: bold;">${row.bat_dau_fmt}</td>
+                <td style="color: #c82333; font-weight: bold;">${row.ket_thuc_fmt}</td>
                 <td>${row['bs_thuchien'] || ''}</td>
                 <td><button class="btn-print" onclick="printPhieu(${index})">In Phiếu</button></td>
             `;
@@ -141,49 +168,45 @@
         document.getElementById('resultTable').style.display = 'table';
     }
 
-    // --- HÀM XỬ LÝ IN PHIẾU THỦ THUẬT ---
     function printPhieu(index) {
         const data = currentFilteredData[index];
         
-        // Sửa lỗi hiển thị undefined bằng cách dùng Regex để lấy chính xác ngày tháng
+        // Tách ngày giờ ở phần ký tên dựa trên chuỗi đã được chuẩn hóa (hh:mm dd/mm/yyyy)
         let signatureTime = "Ngày ...... tháng ...... năm 20......";
-        if(data.finalBatDau) {
-            // Tìm định dạng DD/MM/YYYY ở bất kỳ đâu trong chuỗi
-            const dateMatch = data.finalBatDau.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-            if (dateMatch) {
-                signatureTime = `Ngày ${dateMatch[1]} tháng ${dateMatch[2]} năm ${dateMatch[3]}`;
-            } else {
-                signatureTime = data.finalBatDau; // Trường hợp fallback nếu không tìm thấy
+        if(data.bat_dau_fmt) {
+            const parts = data.bat_dau_fmt.split(' ');
+            if (parts.length > 1) {
+                const dateParts = parts[1].split('/');
+                if (dateParts.length === 3) {
+                    signatureTime = `Ngày ${dateParts[0]} tháng ${dateParts[1]} năm ${dateParts[2]}`;
+                }
             }
         }
 
-        // Xử lý xuống dòng cho phần tóm tắt
         const tomTatFormatted = data.tom_tat ? data.tom_tat.replace(/\n/g, '<br>') : (data.ten_dv || '');
 
-        // Tạo cấu trúc HTML cho trang in
         const printContent = `
             <html>
             <head>
                 <title>In Phiếu Thủ Thuật - ${data.ho_ten}</title>
                 <style>
                     body { font-family: 'Times New Roman', Times, serif; font-size: 14pt; line-height: 1.5; color: #000; }
-                    .print-container { width: 210mm; padding: 15mm 20mm; margin: auto; box-sizing: border-box; }
-                    .header-table { width: 100%; border: none; margin-bottom: 20px; }
+                    .print-container { width: 210mm; padding: 10mm 15mm; margin: auto; box-sizing: border-box; }
+                    .header-table { width: 100%; border: none; margin-bottom: 10px; }
                     .header-table td { padding: 0; vertical-align: top; border: none; }
-                    .text-center { text-align: center; }
                     .text-right { text-align: right; }
-                    h1 { font-size: 18pt; font-weight: bold; text-align: center; margin: 20px 0 5px 0; }
-                    h2 { font-size: 14pt; font-weight: bold; margin: 15px 0 5px 0; }
+                    h1 { font-size: 18pt; font-weight: bold; text-align: center; margin: 10px 0 5px 0; }
+                    h2 { font-size: 14pt; font-weight: bold; margin: 10px 0 5px 0; }
                     .bold { font-weight: bold; }
                     .row-flex { display: flex; justify-content: space-between; }
                     .checkbox-box { display: inline-block; width: 12px; height: 12px; border: 1px solid #000; margin-right: 5px; vertical-align: middle;}
-                    table.signature { width: 100%; margin-top: 15px; border: none; }
+                    table.signature { width: 100%; margin-top: 10px; border: none; }
                     table.signature td { text-align: center; border: none; }
-                    .note-section { margin-top: 30px; font-size: 11pt; line-height: 1.3; text-align: justify; }
+                    .note-section { margin-top: 20px; font-size: 10.5pt; line-height: 1.25; text-align: justify; border-top: 1px dashed #ccc; padding-top: 10px; }
                     
                     @media print {
                         body { margin: 0; padding: 0; background-color: #fff; }
-                        @page { size: A4; margin: 15mm; }
+                        @page { size: A4; margin: 10mm; }
                     }
                 </style>
             </head>
@@ -229,12 +252,12 @@
                     <div>- Bác sỹ làm thủ thuật: ${data.bs_thuchien || ''}</div>
                     <div>- Nhân viên phụ: ${(data.ktv1 || '') + ' ' + (data.ktv2 || '')}</div>
                     <div>- Bác sỹ gây mê hồi sức (nếu có): Không</div>
-                    <div>- Thời gian làm thủ thuật: Từ ${data.finalBatDau || '....................'} đến ${data.ket_thuc || '....................'}</div>
+                    <div>- Thời gian làm thủ thuật: Từ ${data.bat_dau_fmt || '..........'} đến ${data.ket_thuc_fmt || '..........'}</div>
                     
-                    <div class="bold" style="margin-top: 10px; text-transform: uppercase;">Tóm tắt quá trình làm thủ thuật</div>
-                    <div style="margin-top: 5px;">${tomTatFormatted}</div>
+                    <div class="bold" style="margin-top: 8px; text-transform: uppercase;">Tóm tắt quá trình làm thủ thuật</div>
+                    <div style="margin-top: 3px; min-height: 100px;">${tomTatFormatted}</div>
                     
-                    <div style="margin-top: 15px;">- Các biến chứng trong quá trình làm thủ thuật: Không</div>
+                    <div style="margin-top: 10px;">- Các biến chứng trong quá trình làm thủ thuật: Không</div>
                     <div>- Lượng máu mất: Không</div>
                     <div>- Số mẫu bệnh phẩm (nếu có): Không</div>
                     <div>- Số đăng ký của thiết bị cấy ghép (nếu có): ........................................</div>
@@ -246,7 +269,7 @@
                                 <div><i>${signatureTime}</i></div>
                                 <div class="bold">Bác sỹ thực hiện</div>
                                 <div style="font-size: 10pt;">(Ký, ghi rõ họ tên)</div>
-                                <div style="height: 70px;"></div> 
+                                <div style="height: 60px;"></div> 
                                 <div class="bold">${data.bs_thuchien || ''}</div>
                             </td>
                         </tr>
@@ -256,20 +279,17 @@
                         <div class="bold">Ghi chú:</div>
                         <div>– Đối với các phẫu thuật phải sử dụng phiếu và vẽ lược đồ.</div>
                         <div>– Đối với thủ thuật có sử dụng phương pháp vô cảm toàn thân hoặc phải thực hiện trong phòng mổ hoặc thủ thuật can thiệp đường mạch máu (không bao gồm tiêm, truyền), đường thở: Sử dụng phiếu thủ thuật và vẽ lược đồ thủ thuật (nếu cần thiết).</div>
-                        <div>– Đối với các thủ thuật khác: Không phải lập phiếu phẫu thuật/thủ thuật nhưng phải ghi chỉ định và nội dung thực hiện dịch vụ vào hồ sơ bệnh án và có chữ ký xác nhận của người bệnh hoặc người đại diện của người bệnh sau mỗi đợt điều trị (Thực hiện theo nội dung hướng dẫn tại Thông tư 50/2017/TT-BYT sửa đổi, bổ sung các quy định liên quan đến thanh toán chi phí khám chữa bệnh ngày 29/12/2017 và các văn bản quy định hiện hành).</div>
+                        <div>– Đối với các thủ thuật khác: Không phải lập phiếu phẫu thuật/thủ thuật nhưng phải ghi chỉ định và nội dung thực hiện dịch vụ vào hồ sơ bệnh án và có chữ ký xác nhận của người bệnh hoặc người đại diện của người bệnh sau mỗi đợt điều trị (Thực hiện theo Thông tư 50/2017/TT-BYT).</div>
                     </div>
                 </div>
                 <script>
-                    window.onload = function() {
-                        window.print();
-                    }
+                    window.onload = function() { window.print(); }
                 <\/script>
             </body>
             </html>
         `;
 
-        const printWindow = window.open('', '_blank', 'width=800,height=900');
-        printWindow.document.open();
+        const printWindow = window.open('', '_blank');
         printWindow.document.write(printContent);
         printWindow.document.close();
     }
