@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tra Cứu Dữ Liệu RHM & In Phiếu - Cập Nhật Tính Năng Sửa</title>
+    <title>Tra Cứu Dữ Liệu RHM & In Phiếu - Đồng bộ 2 chiều</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
+        /* ... (Phần style CSS giữ nguyên hoàn toàn như trước) ... */
         body { font-family: Tahoma, sans-serif; margin: 20px; background-color: #f4f7f6; }
         .container { max-width: 1400px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #333; }
@@ -23,7 +24,6 @@
         #loading { text-align: center; color: #666; font-style: italic; display: none; margin-top: 10px; }
         .no-data { text-align: center; color: red; font-weight: bold; margin-top: 20px; }
         
-        /* CSS cho Modal (Popup Sửa Dữ Liệu) */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
         .modal-content { background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 8px; width: 600px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); font-family: Tahoma, sans-serif; }
         .modal-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #007bff; border-bottom: 1px solid #ddd; padding-bottom: 10px;}
@@ -40,12 +40,10 @@
 
 <div class="container">
     <h2>Tra Cứu Dữ Liệu & In Phiếu Thủ Thuật</h2>
-    
     <div class="search-box">
         <input type="date" id="searchDate">
         <button onclick="searchData()">Tra cứu</button>
     </div>
-
     <div id="loading">Đang đồng bộ dữ liệu từ hệ thống...</div>
     <div id="noDataMessage" class="no-data" style="display: none;">Không tìm thấy dữ liệu cho ngày này.</div>
 
@@ -86,33 +84,30 @@
         </div>
         <div style="text-align: right;">
             <button class="btn-cancel" onclick="closeModal()">Hủy</button>
-            <button class="btn-save" onclick="saveData()">Lưu thay đổi</button>
+            <button class="btn-save" id="btnSaveData" onclick="saveData()">Lưu thay đổi</button>
         </div>
     </div>
 </div>
 
 <script>
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQpmjgWq53GTt4cT8K_3yOGwYWHj8fbIcQqJGivg-2ZMwVl3dwrK5NzBXoK3-gCqPk7cnefZXfvD9Bs/pub?gid=607449787&single=true&output=csv';
+    
+    // 👉 COPY VÀ DÁN LINK GOOGLE APPS SCRIPT CỦA BẠN VÀO DƯỚI ĐÂY:
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYxQbovpnybbJZj3BChLxnWOTBdaAmgoFHVmuS5Rj80PKoVQOFnQOk4-y-bodXUcyWVQ/exec';
 
     let allData = [];
     let isDataLoaded = false;
     let currentFilteredData = []; 
-    let editingIndex = -1; // Biến lưu dòng đang được chỉnh sửa
+    let editingIndex = -1;
 
     window.onload = function() {
         document.getElementById('loading').style.display = 'block';
         Papa.parse(CSV_URL, {
-            download: true,
-            header: true,
-            skipEmptyLines: true,
+            download: true, header: true, skipEmptyLines: true,
             complete: function(results) {
                 allData = results.data;
                 isDataLoaded = true;
                 document.getElementById('loading').style.display = 'none';
-            },
-            error: function(err) {
-                console.error("Lỗi khi tải CSV:", err);
-                document.getElementById('loading').innerText = "Lỗi khi kết nối dữ liệu!";
             }
         });
     };
@@ -121,13 +116,9 @@
         if (!str) return '';
         str = str.trim();
         let match1 = str.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s+(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-        if (match1) {
-            return `${match1[1].padStart(2, '0')}:${match1[2].padStart(2, '0')} ${match1[3].padStart(2, '0')}/${match1[4].padStart(2, '0')}/${match1[5]}`;
-        }
+        if (match1) return `${match1[1].padStart(2, '0')}:${match1[2].padStart(2, '0')} ${match1[3].padStart(2, '0')}/${match1[4].padStart(2, '0')}/${match1[5]}`;
         let match2 = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::\d{2})?$/);
-        if (match2) {
-            return `${match2[4].padStart(2, '0')}:${match2[5].padStart(2, '0')} ${match2[1].padStart(2, '0')}/${match2[2].padStart(2, '0')}/${match2[3]}`;
-        }
+        if (match2) return `${match2[4].padStart(2, '0')}:${match2[5].padStart(2, '0')} ${match2[1].padStart(2, '0')}/${match2[2].padStart(2, '0')}/${match2[3]}`;
         return str; 
     }
 
@@ -135,7 +126,6 @@
         if (!isDataLoaded) return;
         const dateInput = document.getElementById('searchDate').value;
         if (!dateInput) return;
-
         const parts = dateInput.split('-');
         const targetDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
 
@@ -155,7 +145,6 @@
         document.getElementById('resultTable').style.display = 'table';
     }
 
-    // Tách riêng hàm render bảng để gọi lại sau khi Edit
     function renderTable() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = ''; 
@@ -166,9 +155,7 @@
             if (row['ngay_vao']) {
                 const dateParts = row['ngay_vao'].split(' ');
                 const dateOnly = dateParts.find(p => p.includes('/'));
-                if (dateOnly) {
-                    namBaoCao = parseInt(dateOnly.split('/')[2]) || namBaoCao;
-                }
+                if (dateOnly) namBaoCao = parseInt(dateOnly.split('/')[2]) || namBaoCao;
             }
             row.tuoi = namSinh > 0 ? (namBaoCao - namSinh) : ""; 
 
@@ -199,15 +186,12 @@
         });
     }
 
-    // --- HÀM XỬ LÝ SỬA DỮ LIỆU ---
     function openModal(index) {
         editingIndex = index;
         const data = currentFilteredData[index];
-        
         document.getElementById('modalTitle').innerText = `Chỉnh sửa thông tin - Bệnh nhân: ${data.ho_ten}`;
         document.getElementById('editChanDoan').value = data.chan_doan || '';
         document.getElementById('editTomTat').value = data.tom_tat || '';
-        
         document.getElementById('editModal').style.display = 'block';
     }
 
@@ -216,37 +200,66 @@
         editingIndex = -1;
     }
 
-    function saveData() {
+    // --- HÀM LƯU DỮ LIỆU ĐẨY LÊN GOOGLE SHEETS ---
+    async function saveData() {
         if (editingIndex === -1) return;
         
-        // Lấy dữ liệu từ form
+        const dataRow = currentFilteredData[editingIndex];
         const newChanDoan = document.getElementById('editChanDoan').value;
         const newTomTat = document.getElementById('editTomTat').value;
-        
-        // Cập nhật vào mảng hiện tại đang hiển thị
-        currentFilteredData[editingIndex].chan_doan = newChanDoan;
-        currentFilteredData[editingIndex].tom_tat = newTomTat;
-        
-        // Đóng form và vẽ lại bảng
-        closeModal();
-        renderTable();
+        const sttToSave = dataRow['STT']; // Dùng STT làm khóa để tìm kiếm
+
+        // Cập nhật giao diện nút bấm để người dùng chờ
+        const btnSave = document.getElementById('btnSaveData');
+        btnSave.innerText = "Đang lưu lên hệ thống...";
+        btnSave.disabled = true;
+        btnSave.style.backgroundColor = "#6c757d";
+
+        try {
+            const response = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    STT: sttToSave,
+                    chan_doan: newChanDoan,
+                    tom_tat: newTomTat
+                }),
+                // Sử dụng text/plain để tránh lỗi bảo mật CORS của trình duyệt
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+            });
+
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                // Nếu API trả về success, cập nhật bảng nội bộ và lưới hiển thị
+                currentFilteredData[editingIndex].chan_doan = newChanDoan;
+                currentFilteredData[editingIndex].tom_tat = newTomTat;
+                alert("Đã lưu dữ liệu vào Google Sheets thành công!");
+                closeModal();
+                renderTable();
+            } else {
+                alert("Lỗi khi lưu dữ liệu: " + result.message);
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Lỗi kết nối! Bạn có chắc là đã dán đúng APPS_SCRIPT_URL chưa?");
+        } finally {
+            // Khôi phục nút bấm
+            btnSave.innerText = "Lưu thay đổi";
+            btnSave.disabled = false;
+            btnSave.style.backgroundColor = "#28a745";
+        }
     }
 
-    // --- HÀM XỬ LÝ IN PHIẾU THỦ THUẬT ---
     function printPhieu(index) {
         const data = currentFilteredData[index];
-        
         let signatureTime = "Ngày ...... tháng ...... năm 20......";
         if(data.bat_dau_fmt) {
             const parts = data.bat_dau_fmt.split(' ');
             if (parts.length > 1) {
                 const dateParts = parts[1].split('/');
-                if (dateParts.length === 3) {
-                    signatureTime = `Ngày ${dateParts[0]} tháng ${dateParts[1]} năm ${dateParts[2]}`;
-                }
+                if (dateParts.length === 3) signatureTime = `Ngày ${dateParts[0]} tháng ${dateParts[1]} năm ${dateParts[2]}`;
             }
         }
-
         const tomTatFormatted = data.tom_tat ? data.tom_tat.replace(/\n/g, '<br>') : (data.ten_dv || '');
 
         const printContent = `
@@ -267,7 +280,6 @@
                     table.signature { width: 100%; margin-top: 5px; border: none; }
                     table.signature td { text-align: center; border: none; }
                     .note-section { margin-top: 10px; font-size: 10pt; line-height: 1.2; text-align: justify; border-top: 1px dashed #ccc; padding-top: 5px; }
-                    
                     @media print {
                         body { background-color: #fff; -webkit-print-color-adjust: exact; }
                         .print-container { width: 100%; min-height: auto; margin: 0; padding: 0; box-shadow: none; }
