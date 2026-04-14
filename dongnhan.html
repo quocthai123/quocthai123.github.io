@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tra Cứu Dữ Liệu RHM & In Phiếu - Căn Chỉnh Form In</title>
+    <title>Tra Cứu Dữ Liệu RHM & In Phiếu - Căn Chỉnh Vừa 1 Trang</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         body { font-family: Tahoma, sans-serif; margin: 20px; background-color: #f4f7f6; }
@@ -183,34 +183,37 @@
             <head>
                 <title>In Phiếu Thủ Thuật - ${data.ho_ten}</title>
                 <style>
-                    /* Font và kích thước tiêu chuẩn cho form y tế */
-                    body { font-family: 'Times New Roman', Times, serif; font-size: 14pt; line-height: 1.5; color: #000; margin: 0; background-color: #e9ecef; }
+                    /* Ép dòng xích lại gần nhau hơn bằng line-height: 1.3 (thay vì 1.5) */
+                    body { font-family: 'Times New Roman', Times, serif; font-size: 14pt; line-height: 1.3; color: #000; margin: 0; background-color: #e9ecef; }
                     
-                    /* Cấu trúc container mô phỏng tờ giấy A4 trên màn hình máy tính */
+                    /* Ép margin top/bottom lại nhỏ hơn */
                     .print-container { 
                         width: 210mm; 
                         min-height: 297mm; 
-                        padding: 15mm 20mm; 
+                        padding: 5mm 15mm; /* Giảm khoảng cách viền trên/dưới */
                         margin: 20px auto; 
                         background-color: #fff; 
                         box-sizing: border-box; 
                         box-shadow: 0 0 10px rgba(0,0,0,0.2); 
                     }
                     
-                    .header-table { width: 100%; border: none; margin-bottom: 10px; }
+                    .header-table { width: 100%; border: none; margin-bottom: 5px; } /* Giảm margin bottom */
                     .header-table td { padding: 0; vertical-align: top; border: none; }
-                    .text-center { text-align: center; }
                     .text-right { text-align: right; }
-                    h1 { font-size: 18pt; font-weight: bold; text-align: center; margin: 10px 0 5px 0; }
-                    h2 { font-size: 14pt; font-weight: bold; margin: 10px 0 5px 0; }
+                    
+                    /* Giảm margin của các thẻ Heading để không bị đẩy quá nhiều khoảng trắng */
+                    h1 { font-size: 17pt; font-weight: bold; text-align: center; margin: 5px 0 5px 0; }
+                    h2 { font-size: 14pt; font-weight: bold; margin: 5px 0 3px 0; }
+                    
                     .bold { font-weight: bold; }
                     .row-flex { display: flex; justify-content: space-between; }
                     .checkbox-box { display: inline-block; width: 12px; height: 12px; border: 1px solid #000; margin-right: 5px; vertical-align: middle;}
-                    table.signature { width: 100%; margin-top: 10px; border: none; }
+                    table.signature { width: 100%; margin-top: 5px; border: none; }
                     table.signature td { text-align: center; border: none; }
-                    .note-section { margin-top: 20px; font-size: 11pt; line-height: 1.3; text-align: justify; border-top: 1px dashed #ccc; padding-top: 10px; }
                     
-                    /* Tinh chỉnh riêng cho chức năng In (bỏ margin nền, bỏ box-shadow, fit giấy A4) */
+                    /* Thu nhỏ chữ ghi chú và ép margin sát lên trên */
+                    .note-section { margin-top: 10px; font-size: 10pt; line-height: 1.2; text-align: justify; border-top: 1px dashed #ccc; padding-top: 5px; }
+                    
                     @media print {
                         body { background-color: #fff; -webkit-print-color-adjust: exact; }
                         .print-container { 
@@ -220,8 +223,8 @@
                             padding: 0; 
                             box-shadow: none; 
                         }
-                        /* Định dạng trang in A4 chuẩn */
-                        @page { size: A4 portrait; margin: 15mm 15mm 15mm 20mm; } 
+                        /* Ép lề tờ giấy A4 khi in mỏng lại ở viền trên dưới */
+                        @page { size: A4 portrait; margin: 10mm 15mm 10mm 15mm; } 
                     }
                 </style>
             </head>
@@ -271,10 +274,10 @@
                     <div>- Bác sỹ gây mê hồi sức (nếu có): Không</div>
                     <div>- Thời gian làm thủ thuật: Từ ${data.bat_dau_fmt || '..........'} đến ${data.ket_thuc_fmt || '..........'}</div>
                     
-                    <div class="bold" style="margin-top: 8px; text-transform: uppercase;">Tóm tắt quá trình làm thủ thuật</div>
-                    <div style="margin-top: 3px; min-height: 100px;">${tomTatFormatted}</div>
+                    <div class="bold" style="margin-top: 5px; text-transform: uppercase;">Tóm tắt quá trình làm thủ thuật</div>
+                    <div style="margin-top: 2px; min-height: 60px;">${tomTatFormatted}</div>
                     
-                    <div style="margin-top: 10px;">- Các biến chứng trong quá trình làm thủ thuật: Không</div>
+                    <div style="margin-top: 5px;">- Các biến chứng trong quá trình làm thủ thuật: Không</div>
                     <div>- Lượng máu mất: Không</div>
                     <div>- Số mẫu bệnh phẩm (nếu có): Không</div>
                     <div>- Số đăng ký của thiết bị cấy ghép (nếu có): ........................................</div>
@@ -286,8 +289,7 @@
                                 <div><i>${signatureTime}</i></div>
                                 <div class="bold">Bác sỹ thực hiện</div>
                                 <div style="font-size: 10pt;">(Ký, ghi rõ họ tên)</div>
-                                <div style="height: 60px;"></div> 
-                                <div class="bold">${data.bs_thuchien || ''}</div>
+                                <div style="height: 40px;"></div> <div class="bold">${data.bs_thuchien || ''}</div>
                             </td>
                         </tr>
                     </table>
