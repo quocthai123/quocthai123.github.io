@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tra Cứu Dữ Liệu RHM & In Phiếu - Căn Chỉnh Vừa 1 Trang</title>
+    <title>Tra Cứu Dữ Liệu RHM & In Phiếu - Cập Nhật Tính Năng Sửa</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         body { font-family: Tahoma, sans-serif; margin: 20px; background-color: #f4f7f6; }
@@ -15,11 +15,25 @@
         button:hover { background-color: #0056b3; }
         .btn-print { background-color: #28a745; font-size: 11px; padding: 5px 10px; }
         .btn-print:hover { background-color: #218838; }
+        .btn-edit { background-color: #ffc107; color: #000; font-size: 11px; padding: 5px 10px; margin-right: 5px; }
+        .btn-edit:hover { background-color: #e0a800; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background-color: #007bff; color: white; position: sticky; top: 0; white-space: nowrap; }
         #loading { text-align: center; color: #666; font-style: italic; display: none; margin-top: 10px; }
         .no-data { text-align: center; color: red; font-weight: bold; margin-top: 20px; }
+        
+        /* CSS cho Modal (Popup Sửa Dữ Liệu) */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 8px; width: 600px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); font-family: Tahoma, sans-serif; }
+        .modal-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #007bff; border-bottom: 1px solid #ddd; padding-bottom: 10px;}
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px;}
+        .form-group input[type="text"], .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: Tahoma; font-size: 13px;}
+        .form-group textarea { height: 120px; resize: vertical; }
+        .btn-save { background-color: #28a745; color: #fff; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-save:hover { background-color: #218838; }
+        .btn-cancel { background-color: #6c757d; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
     </style>
 </head>
 <body>
@@ -51,11 +65,29 @@
                     <th>Bắt đầu</th>
                     <th>Kết thúc</th>
                     <th>BS thực hiện</th>
-                    <th>Thao tác</th>
+                    <th style="min-width: 120px;">Thao tác</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
         </table>
+    </div>
+</div>
+
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header" id="modalTitle">Chỉnh sửa thông tin trước khi in</div>
+        <div class="form-group">
+            <label>Chẩn đoán:</label>
+            <input type="text" id="editChanDoan" placeholder="Nhập chẩn đoán mới...">
+        </div>
+        <div class="form-group">
+            <label>Tóm tắt quá trình làm thủ thuật:</label>
+            <textarea id="editTomTat" placeholder="Nhập tóm tắt quá trình làm thủ thuật..."></textarea>
+        </div>
+        <div style="text-align: right;">
+            <button class="btn-cancel" onclick="closeModal()">Hủy</button>
+            <button class="btn-save" onclick="saveData()">Lưu thay đổi</button>
+        </div>
     </div>
 </div>
 
@@ -65,6 +97,7 @@
     let allData = [];
     let isDataLoaded = false;
     let currentFilteredData = []; 
+    let editingIndex = -1; // Biến lưu dòng đang được chỉnh sửa
 
     window.onload = function() {
         document.getElementById('loading').style.display = 'block';
@@ -87,17 +120,14 @@
     function standardizeDateTime(str) {
         if (!str) return '';
         str = str.trim();
-        
         let match1 = str.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s+(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
         if (match1) {
             return `${match1[1].padStart(2, '0')}:${match1[2].padStart(2, '0')} ${match1[3].padStart(2, '0')}/${match1[4].padStart(2, '0')}/${match1[5]}`;
         }
-
         let match2 = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::\d{2})?$/);
         if (match2) {
             return `${match2[4].padStart(2, '0')}:${match2[5].padStart(2, '0')} ${match2[1].padStart(2, '0')}/${match2[2].padStart(2, '0')}/${match2[3]}`;
         }
-
         return str; 
     }
 
@@ -109,9 +139,6 @@
         const parts = dateInput.split('-');
         const targetDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
 
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = ''; 
-
         currentFilteredData = allData.filter(row => {
             const ngayVao = row['ngay_vao'] ? row['ngay_vao'].trim() : '';
             return ngayVao.includes(targetDate) && row['ho_ten'];
@@ -122,6 +149,16 @@
             document.getElementById('noDataMessage').style.display = 'block';
             return;
         }
+
+        renderTable();
+        document.getElementById('noDataMessage').style.display = 'none';
+        document.getElementById('resultTable').style.display = 'table';
+    }
+
+    // Tách riêng hàm render bảng để gọi lại sau khi Edit
+    function renderTable() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = ''; 
 
         currentFilteredData.forEach((row, index) => {
             const namSinh = parseInt(row['nam_sinh']) || 0;
@@ -147,21 +184,55 @@
                 <td>${row.tuoi}</td>
                 <td>${row['gioi_tinh'] || ''}</td>
                 <td>${row['ngay_vao'] || ''}</td>
-                <td>${row['chan_doan'] || ''}</td>
+                <td style="color: #d32f2f;">${row['chan_doan'] || ''}</td>
                 <td>${row['ten_dv'] || ''}</td>
                 <td>${row.y_lenh_fmt}</td>
                 <td style="color: #0056b3; font-weight: bold;">${row.bat_dau_fmt}</td>
                 <td style="color: #c82333; font-weight: bold;">${row.ket_thuc_fmt}</td>
                 <td>${row['bs_thuchien'] || ''}</td>
-                <td><button class="btn-print" onclick="printPhieu(${index})">In Phiếu</button></td>
+                <td>
+                    <button class="btn-edit" onclick="openModal(${index})">Sửa</button>
+                    <button class="btn-print" onclick="printPhieu(${index})">In Phiếu</button>
+                </td>
             `;
             tbody.appendChild(tr);
         });
-
-        document.getElementById('noDataMessage').style.display = 'none';
-        document.getElementById('resultTable').style.display = 'table';
     }
 
+    // --- HÀM XỬ LÝ SỬA DỮ LIỆU ---
+    function openModal(index) {
+        editingIndex = index;
+        const data = currentFilteredData[index];
+        
+        document.getElementById('modalTitle').innerText = `Chỉnh sửa thông tin - Bệnh nhân: ${data.ho_ten}`;
+        document.getElementById('editChanDoan').value = data.chan_doan || '';
+        document.getElementById('editTomTat').value = data.tom_tat || '';
+        
+        document.getElementById('editModal').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('editModal').style.display = 'none';
+        editingIndex = -1;
+    }
+
+    function saveData() {
+        if (editingIndex === -1) return;
+        
+        // Lấy dữ liệu từ form
+        const newChanDoan = document.getElementById('editChanDoan').value;
+        const newTomTat = document.getElementById('editTomTat').value;
+        
+        // Cập nhật vào mảng hiện tại đang hiển thị
+        currentFilteredData[editingIndex].chan_doan = newChanDoan;
+        currentFilteredData[editingIndex].tom_tat = newTomTat;
+        
+        // Đóng form và vẽ lại bảng
+        closeModal();
+        renderTable();
+    }
+
+    // --- HÀM XỬ LÝ IN PHIẾU THỦ THUẬT ---
     function printPhieu(index) {
         const data = currentFilteredData[index];
         
@@ -183,47 +254,23 @@
             <head>
                 <title>In Phiếu Thủ Thuật - ${data.ho_ten}</title>
                 <style>
-                    /* Ép dòng xích lại gần nhau hơn bằng line-height: 1.3 (thay vì 1.5) */
                     body { font-family: 'Times New Roman', Times, serif; font-size: 14pt; line-height: 1.3; color: #000; margin: 0; background-color: #e9ecef; }
-                    
-                    /* Ép margin top/bottom lại nhỏ hơn */
-                    .print-container { 
-                        width: 210mm; 
-                        min-height: 297mm; 
-                        padding: 5mm 15mm; /* Giảm khoảng cách viền trên/dưới */
-                        margin: 20px auto; 
-                        background-color: #fff; 
-                        box-sizing: border-box; 
-                        box-shadow: 0 0 10px rgba(0,0,0,0.2); 
-                    }
-                    
-                    .header-table { width: 100%; border: none; margin-bottom: 5px; } /* Giảm margin bottom */
+                    .print-container { width: 210mm; min-height: 297mm; padding: 5mm 15mm; margin: 20px auto; background-color: #fff; box-sizing: border-box; box-shadow: 0 0 10px rgba(0,0,0,0.2); }
+                    .header-table { width: 100%; border: none; margin-bottom: 5px; } 
                     .header-table td { padding: 0; vertical-align: top; border: none; }
                     .text-right { text-align: right; }
-                    
-                    /* Giảm margin của các thẻ Heading để không bị đẩy quá nhiều khoảng trắng */
                     h1 { font-size: 17pt; font-weight: bold; text-align: center; margin: 5px 0 5px 0; }
                     h2 { font-size: 14pt; font-weight: bold; margin: 5px 0 3px 0; }
-                    
                     .bold { font-weight: bold; }
                     .row-flex { display: flex; justify-content: space-between; }
                     .checkbox-box { display: inline-block; width: 12px; height: 12px; border: 1px solid #000; margin-right: 5px; vertical-align: middle;}
                     table.signature { width: 100%; margin-top: 5px; border: none; }
                     table.signature td { text-align: center; border: none; }
-                    
-                    /* Thu nhỏ chữ ghi chú và ép margin sát lên trên */
                     .note-section { margin-top: 10px; font-size: 10pt; line-height: 1.2; text-align: justify; border-top: 1px dashed #ccc; padding-top: 5px; }
                     
                     @media print {
                         body { background-color: #fff; -webkit-print-color-adjust: exact; }
-                        .print-container { 
-                            width: 100%; 
-                            min-height: auto; 
-                            margin: 0; 
-                            padding: 0; 
-                            box-shadow: none; 
-                        }
-                        /* Ép lề tờ giấy A4 khi in mỏng lại ở viền trên dưới */
+                        .print-container { width: 100%; min-height: auto; margin: 0; padding: 0; box-shadow: none; }
                         @page { size: A4 portrait; margin: 10mm 15mm 10mm 15mm; } 
                     }
                 </style>
@@ -289,7 +336,8 @@
                                 <div><i>${signatureTime}</i></div>
                                 <div class="bold">Bác sỹ thực hiện</div>
                                 <div style="font-size: 10pt;">(Ký, ghi rõ họ tên)</div>
-                                <div style="height: 40px;"></div> <div class="bold">${data.bs_thuchien || ''}</div>
+                                <div style="height: 40px;"></div> 
+                                <div class="bold">${data.bs_thuchien || ''}</div>
                             </td>
                         </tr>
                     </table>
