@@ -78,6 +78,11 @@
         <div class="modal-header" id="modalTitle">Chỉnh sửa thông tin trước khi in</div>
         
         <div class="form-group">
+            <label>Thời gian kết thúc:</label>
+            <input type="text" id="editKetThuc" placeholder="VD: 14:30 02/01/2024">
+        </div>
+
+        <div class="form-group">
             <label>Chẩn đoán:</label>
             <input type="text" id="editChanDoan" placeholder="Nhập chẩn đoán mới...">
         </div>
@@ -215,8 +220,15 @@
         const data = currentFilteredData[index];
         
         document.getElementById('modalTitle').innerText = `Chỉnh sửa thông tin - Bệnh nhân: ${data.ho_ten}`;
+        
+        // THÊM DÒNG NÀY: Tải thời gian kết thúc (lấy định dạng đã chuẩn hóa cho dễ nhìn)
+        document.getElementById('editKetThuc').value = data.ket_thuc_fmt || '';
+        
         document.getElementById('editChanDoan').value = data.chan_doan || '';
         document.getElementById('editTomTat').value = data.tom_tat || '';
+        
+        // Xóa trống ô điền nhanh mỗi khi mở popup
+        document.getElementById('quickFillInput').value = '';
         
         document.getElementById('editModal').style.display = 'block';
     }
@@ -230,14 +242,16 @@
         if (editingIndex === -1) return;
         
         // Lấy dữ liệu từ form
+        const newKetThuc = document.getElementById('editKetThuc').value; // Lấy tgian kết thúc
         const newChanDoan = document.getElementById('editChanDoan').value;
         const newTomTat = document.getElementById('editTomTat').value;
         
         // Cập nhật vào mảng hiện tại đang hiển thị
+        currentFilteredData[editingIndex].ket_thuc = newKetThuc; // Lưu tgian kết thúc
         currentFilteredData[editingIndex].chan_doan = newChanDoan;
         currentFilteredData[editingIndex].tom_tat = newTomTat;
         
-        // Đóng form và vẽ lại bảng
+        // Đóng form và vẽ lại bảng (hàm renderTable sẽ tự động format lại ket_thuc)
         closeModal();
         renderTable();
     }
