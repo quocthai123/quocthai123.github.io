@@ -76,21 +76,31 @@
 <div id="editModal" class="modal">
     <div class="modal-content">
         <div class="modal-header" id="modalTitle">Chỉnh sửa thông tin trước khi in</div>
+        
         <div class="form-group">
             <label>Chẩn đoán:</label>
             <input type="text" id="editChanDoan" placeholder="Nhập chẩn đoán mới...">
         </div>
+
+        <div class="form-group" style="background-color: #e9ecef; padding: 10px; border-radius: 4px; border-left: 4px solid #17a2b8;">
+            <label style="color: #0056b3; margin-bottom: 8px;">Điền nhanh vị trí răng (thay thế hàng loạt dấu ...):</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="quickFillInput" placeholder="VD: 72, 82" style="flex: 1;">
+                <button type="button" onclick="applyQuickFill()" style="background-color: #17a2b8; color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; font-weight: bold;">Áp dụng</button>
+            </div>
+        </div>
+
         <div class="form-group">
             <label>Tóm tắt quá trình làm thủ thuật:</label>
             <textarea id="editTomTat" placeholder="Nhập tóm tắt quá trình làm thủ thuật..."></textarea>
         </div>
+        
         <div style="text-align: right;">
             <button class="btn-cancel" onclick="closeModal()">Hủy</button>
             <button class="btn-save" onclick="saveData()">Lưu thay đổi</button>
         </div>
     </div>
 </div>
-
 <script>
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQpmjgWq53GTt4cT8K_3yOGwYWHj8fbIcQqJGivg-2ZMwVl3dwrK5NzBXoK3-gCqPk7cnefZXfvD9Bs/pub?gid=607449787&single=true&output=csv';
 
@@ -230,6 +240,28 @@
         // Đóng form và vẽ lại bảng
         closeModal();
         renderTable();
+    }
+    // --- HÀM XỬ LÝ ĐIỀN NHANH ---
+    function applyQuickFill() {
+        const fillValue = document.getElementById('quickFillInput').value.trim();
+        
+        if (!fillValue) {
+            alert("Vui lòng nhập giá trị cần điền (VD: 72, 82)!");
+            return;
+        }
+
+        const tomTatElement = document.getElementById('editTomTat');
+        let currentText = tomTatElement.value;
+
+        // Sử dụng Regex để tìm tất cả các cụm có từ 3 dấu chấm trở lên (...) 
+        // và thay thế bằng giá trị đã nhập
+        const newText = currentText.replace(/\.{3,}/g, fillValue);
+
+        // Cập nhật lại vào ô Tóm tắt
+        tomTatElement.value = newText;
+        
+        // (Tùy chọn) Xóa trống ô điền nhanh sau khi áp dụng xong để tránh nhầm lẫn cho lần sau
+        document.getElementById('quickFillInput').value = '';
     }
 
     // --- HÀM XỬ LÝ IN PHIẾU THỦ THUẬT ---
