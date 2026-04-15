@@ -241,26 +241,25 @@
         closeModal();
         renderTable();
     }
-    // --- HÀM XỬ LÝ ĐIỀN NHANH ---
+   // --- HÀM XỬ LÝ ĐIỀN NHANH ---
     function applyQuickFill() {
         const fillValue = document.getElementById('quickFillInput').value.trim();
         
         if (!fillValue) {
-            alert("Vui lòng nhập giá trị cần điền (VD: 72, 82)!");
+            alert("Vui lòng nhập giá trị cần điền (VD: 12)!");
             return;
         }
 
         const tomTatElement = document.getElementById('editTomTat');
         let currentText = tomTatElement.value;
 
-        // Sử dụng Regex để tìm tất cả các cụm có từ 3 dấu chấm trở lên (...) 
-        // và thay thế bằng giá trị đã nhập
-        const newText = currentText.replace(/\.{3,}/g, fillValue);
+        // CẬP NHẬT: Tìm cả 3 dấu chấm rời (...) VÀ ký tự dấu 3 chấm liền (…)
+        const newText = currentText.replace(/(\.{3,}|…)/g, fillValue);
 
         // Cập nhật lại vào ô Tóm tắt
         tomTatElement.value = newText;
         
-        // (Tùy chọn) Xóa trống ô điền nhanh sau khi áp dụng xong để tránh nhầm lẫn cho lần sau
+        // Xóa trống ô điền nhanh sau khi áp dụng xong
         document.getElementById('quickFillInput').value = '';
     }
     function openModal(index) {
