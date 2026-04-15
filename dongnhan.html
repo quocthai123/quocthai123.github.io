@@ -263,6 +263,19 @@
         // (Tùy chọn) Xóa trống ô điền nhanh sau khi áp dụng xong để tránh nhầm lẫn cho lần sau
         document.getElementById('quickFillInput').value = '';
     }
+    function openModal(index) {
+        editingIndex = index;
+        const data = currentFilteredData[index];
+        
+        document.getElementById('modalTitle').innerText = `Chỉnh sửa thông tin - Bệnh nhân: ${data.ho_ten}`;
+        document.getElementById('editChanDoan').value = data.chan_doan || '';
+        document.getElementById('editTomTat').value = data.tom_tat || '';
+        
+        // THÊM DÒNG NÀY: Xóa trống ô điền nhanh mỗi khi mở popup
+        document.getElementById('quickFillInput').value = '';
+        
+        document.getElementById('editModal').style.display = 'block';
+    }
 
     // --- HÀM XỬ LÝ IN PHIẾU THỦ THUẬT ---
     function printPhieu(index) {
