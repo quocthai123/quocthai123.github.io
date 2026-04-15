@@ -282,23 +282,20 @@
         
         let signatureTime = "Ngày ...... tháng ...... năm 20......";
         let tenSoYTe = "SỞ Y TẾ QUẢNG NAM"; // Giá trị mặc định
-        let recordDate = new Date(); // Lấy ngày hiện tại làm dự phòng
+        let recordDate = new Date(); 
 
-        // Lấy ngày tháng từ trường bat_dau_fmt
         if(data.bat_dau_fmt) {
             const parts = data.bat_dau_fmt.split(' ');
             if (parts.length > 1) {
                 const dateParts = parts[1].split('/');
                 if (dateParts.length === 3) {
                     signatureTime = `Ngày ${dateParts[0]} tháng ${dateParts[1]} năm ${dateParts[2]}`;
-                    // Tạo đối tượng Date để so sánh (Lưu ý: Tháng trong JS bắt đầu từ 0)
                     recordDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
                 }
             }
         }
 
-        // CẬP NHẬT: Kiểm tra mốc thời gian 01/07/2025
-        const thresholdDate = new Date(2025, 6, 1); // Năm 2025, Tháng 7 (index 6), Ngày 1
+        const thresholdDate = new Date(2025, 6, 1); 
         if (recordDate >= thresholdDate) {
             tenSoYTe = "SỞ Y TẾ ĐÀ NẴNG";
         }
@@ -316,7 +313,8 @@
                     .header-table td { padding: 0; vertical-align: top; border: none; }
                     .text-right { text-align: right; }
                     h1 { font-size: 17pt; font-weight: bold; text-align: center; margin: 5px 0 5px 0; }
-                    h2 { font-size: 14pt; font-weight: bold; margin: 5px 0 3px 0; }
+                    /* CẬP NHẬT: Đổi h2 (tiêu đề mục 1, 2) xuống size 13 */
+                    h2 { font-size: 13pt; font-weight: bold; margin: 5px 0 3px 0; } 
                     .bold { font-weight: bold; }
                     .row-flex { display: flex; justify-content: space-between; }
                     .checkbox-box { display: inline-block; width: 12px; height: 12px; border: 1px solid #000; margin-right: 5px; vertical-align: middle;}
@@ -324,10 +322,26 @@
                     table.signature td { text-align: center; border: none; }
                     .note-section { margin-top: 10px; font-size: 10pt; line-height: 1.2; text-align: justify; border-top: 1px dashed #ccc; padding-top: 5px; }
                     
+                    /* CẬP NHẬT: Class ép font size 13 cho toàn bộ nội dung chính */
+                    .content-13 { font-size: 13pt; }
+
                     @media print {
-                        body { background-color: #fff; -webkit-print-color-adjust: exact; }
-                        .print-container { width: 100%; min-height: auto; margin: 0; padding: 0; box-shadow: none; }
-                        @page { size: A4 portrait; margin: 10mm 15mm 10mm 15mm; } 
+                        body { 
+                            background-color: #fff; 
+                            -webkit-print-color-adjust: exact; 
+                            margin: 10mm 15mm 10mm 15mm !important; 
+                        }
+                        .print-container { 
+                            width: 100%; 
+                            min-height: auto; 
+                            margin: 0; 
+                            padding: 0; 
+                            box-shadow: none; 
+                        }
+                        @page { 
+                            size: A4 portrait; 
+                            margin: 0; 
+                        } 
                     }
                 </style>
             </head>
@@ -350,41 +364,44 @@
 
                     <h1>PHIẾU THỦ THUẬT</h1>
 
-                    <h2>1. Thông tin người bệnh</h2>
-                    <div class="row-flex">
-                        <div>Họ và tên: <span class="bold" style="text-transform: uppercase;">${data.ho_ten || ''}</span></div>
-                        <div>Tuổi: ${data.tuoi || ''}</div>
-                        <div>Giới tính: 
-                            <span class="checkbox-box" style="background-color: ${data.gioi_tinh?.toLowerCase() === 'nam' ? '#000' : '#fff'};"></span> Nam 
-                            &nbsp;&nbsp;
-                            <span class="checkbox-box" style="background-color: ${data.gioi_tinh?.toLowerCase() === 'nữ' ? '#000' : '#fff'};"></span> Nữ
+                    <div class="content-13">
+                        <h2>1. Thông tin người bệnh</h2>
+                        <div class="row-flex">
+                            <div>Họ và tên: <span class="bold" style="text-transform: uppercase;">${data.ho_ten || ''}</span></div>
+                            <div>Tuổi: ${data.tuoi || ''}</div>
+                            <div>Giới tính: 
+                                <span class="checkbox-box" style="background-color: ${data.gioi_tinh?.toLowerCase() === 'nam' ? '#000' : '#fff'};"></span> Nam 
+                                &nbsp;&nbsp;
+                                <span class="checkbox-box" style="background-color: ${data.gioi_tinh?.toLowerCase() === 'nữ' ? '#000' : '#fff'};"></span> Nữ
+                            </div>
                         </div>
-                    </div>
 
-                    <h2>2. Nội dung</h2>
-                    <div>- Chẩn đoán trước thủ thuật: ${data.chan_doan || ''}</div>
-                    <div>- Chẩn đoán sau thủ thuật: ${data.chan_doan || ''}</div>
-                    <div>- Phương pháp làm thủ thuật: <span class="bold">${data.ten_dv || ''}</span></div>
-                    <div>- Loại thủ thuật: &nbsp;&nbsp; 
-                        <span class="checkbox-box"></span> Đặc biệt &nbsp;&nbsp;
-                        <span class="checkbox-box"></span> Loại I &nbsp;&nbsp;
-                        <span class="checkbox-box"></span> Loại II &nbsp;&nbsp;
-                        <span class="checkbox-box"></span> Loại III
+                        <h2>2. Nội dung</h2>
+                        <div>- Chẩn đoán trước thủ thuật: ${data.chan_doan || ''}</div>
+                        <div>- Chẩn đoán sau thủ thuật: ${data.chan_doan || ''}</div>
+                        
+                        <div>- Phương pháp làm thủ thuật: ${data.ten_dv || ''}</div>
+                        
+                        <div>- Loại thủ thuật: &nbsp;&nbsp; 
+                            <span class="checkbox-box"></span> Đặc biệt &nbsp;&nbsp;
+                            <span class="checkbox-box"></span> Loại I &nbsp;&nbsp;
+                            <span class="checkbox-box"></span> Loại II &nbsp;&nbsp;
+                            <span class="checkbox-box"></span> Loại III
+                        </div>
+                        <div>- Phương pháp vô cảm: ${data.ppvc || 'Các phương pháp vô cảm khác'}</div>
+                        <div>- Bác sỹ làm thủ thuật: ${data.bs_thuchien || ''}</div>
+                        <div>- Nhân viên phụ: ${(data.ktv1 || '') + ' ' + (data.ktv2 || '')}</div>
+                        <div>- Bác sỹ gây mê hồi sức (nếu có): Không</div>
+                        <div>- Thời gian làm thủ thuật: Từ ${data.bat_dau_fmt || '..........'} đến ${data.ket_thuc_fmt || '..........'}</div>
+                        
+                        <div class="bold" style="margin-top: 5px; text-transform: uppercase;">Tóm tắt quá trình làm thủ thuật</div>
+                        <div style="margin-top: 2px; min-height: 60px;">${tomTatFormatted}</div>
+                        
+                        <div style="margin-top: 5px;">- Các biến chứng trong quá trình làm thủ thuật: Không</div>
+                        <div>- Lượng máu mất: Không</div>
+                        <div>- Số mẫu bệnh phẩm (nếu có): Không</div>
+                        <div>- Số đăng ký của thiết bị cấy ghép (nếu có): ........................................</div>
                     </div>
-                    <div>- Phương pháp vô cảm: ${data.ppvc || 'Các phương pháp vô cảm khác'}</div>
-                    <div>- Bác sỹ làm thủ thuật: ${data.bs_thuchien || ''}</div>
-                    <div>- Nhân viên phụ: ${(data.ktv1 || '') + ' ' + (data.ktv2 || '')}</div>
-                    <div>- Bác sỹ gây mê hồi sức (nếu có): Không</div>
-                    <div>- Thời gian làm thủ thuật: Từ ${data.bat_dau_fmt || '..........'} đến ${data.ket_thuc_fmt || '..........'}</div>
-                    
-                    <div class="bold" style="margin-top: 5px; text-transform: uppercase;">Tóm tắt quá trình làm thủ thuật</div>
-                    <div style="margin-top: 2px; min-height: 60px;">${tomTatFormatted}</div>
-                    
-                    <div style="margin-top: 5px;">- Các biến chứng trong quá trình làm thủ thuật: Không</div>
-                    <div>- Lượng máu mất: Không</div>
-                    <div>- Số mẫu bệnh phẩm (nếu có): Không</div>
-                    <div>- Số đăng ký của thiết bị cấy ghép (nếu có): ........................................</div>
-
                     <table class="signature">
                         <tr>
                             <td style="width: 50%;"></td>
