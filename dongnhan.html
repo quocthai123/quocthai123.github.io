@@ -281,14 +281,26 @@
         const data = currentFilteredData[index];
         
         let signatureTime = "Ngày ...... tháng ...... năm 20......";
+        let tenSoYTe = "SỞ Y TẾ QUẢNG NAM"; // Giá trị mặc định
+        let recordDate = new Date(); // Lấy ngày hiện tại làm dự phòng
+
+        // Lấy ngày tháng từ trường bat_dau_fmt
         if(data.bat_dau_fmt) {
             const parts = data.bat_dau_fmt.split(' ');
             if (parts.length > 1) {
                 const dateParts = parts[1].split('/');
                 if (dateParts.length === 3) {
                     signatureTime = `Ngày ${dateParts[0]} tháng ${dateParts[1]} năm ${dateParts[2]}`;
+                    // Tạo đối tượng Date để so sánh (Lưu ý: Tháng trong JS bắt đầu từ 0)
+                    recordDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
                 }
             }
+        }
+
+        // CẬP NHẬT: Kiểm tra mốc thời gian 01/07/2025
+        const thresholdDate = new Date(2025, 6, 1); // Năm 2025, Tháng 7 (index 6), Ngày 1
+        if (recordDate >= thresholdDate) {
+            tenSoYTe = "SỞ Y TẾ ĐÀ NẴNG";
         }
 
         const tomTatFormatted = data.tom_tat ? data.tom_tat.replace(/\n/g, '<br>') : (data.ten_dv || '');
@@ -325,7 +337,7 @@
                         <tr>
                             <td style="width: 50%;">
                                 <div style="text-align: center; display: inline-block;">
-                                    SỞ Y TẾ QUẢNG NAM<br>
+                                    ${tenSoYTe}<br>
                                     <span class="bold" style="text-decoration: underline;">PHÒNG KHÁM ĐA KHOA ĐỒNG NHÂN</span>
                                 </div>
                             </td>
