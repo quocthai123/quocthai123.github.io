@@ -251,9 +251,11 @@
                 <td style="color: #0056b3; font-weight: bold;">${row.bat_dau_fmt}</td>
                 <td style="color: #c82333; font-weight: bold;">${row.ket_thuc_fmt}</td>
                 <td>${row['bs_thuchien'] || ''}</td>
+                
                 <td>
                     <button class="btn-edit" onclick="openModal(${index})">Sửa</button>
-                    <button class="btn-print" onclick="printPhieu(${index})">In Phiếu</button>
+                    <button class="btn-print" style="background-color: #17a2b8; margin-bottom: 3px;" onclick="printChiDinh(${index})">In Chỉ Định</button>
+                    <button class="btn-print" onclick="printPhieu(${index})">In Phiếu PTTT</button>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -339,6 +341,179 @@
         document.getElementById('quickFillInput').value = '';
         
         document.getElementById('editModal').style.display = 'block';
+    }
+
+    // --- HÀM MỚI: IN CHỈ ĐỊNH (GOM NHÓM DỊCH VỤ THEO BỆNH NHÂN) ---
+    function printChiDinh(index) {
+        const data = currentFilteredData[index];
+        const targetMabn = data.mabn;
+        
+        // Xác định ngày y lệnh hiện tại để làm gốc gộp dịch vụ
+        let targetDate = "";
+        if (data.y_lenh_fmt) {
+            targetDate = data.y_lenh_fmt.split(' ').find(p => p.includes('/')) || "";
+        } else if (data.ngay_vao) {
+            targetDate = data.ngay_vao.split(' ').find(p => p.includes('/')) || "";
+        }
+
+        // Lọc TẤT CẢ dịch vụ của bệnh nhân này trong cùng ngày từ mảng allData
+        const services = allData.filter(row => {
+            let rowDate = "";
+            let y_lenh_fmt = standardizeDateTime(row['y_lenh']);
+            if (y_lenh_fmt) {
+                rowDate = y_lenh_fmt.split(' ').find(p => p.includes('/')) || "";
+            } else if (row['ngay_vao']) {
+                rowDate = row['ngay_vao'].split(' ').find(p => p.includes('/')) || "";
+            }
+            return row.mabn === targetMabn && rowDate === targetDate;
+        });
+
+        // Gộp chẩn đoán nếu có nhiều chẩn đoán khác nhau
+        let combinedChanDoan = [...new Set(services.map(s => s.chan_doan).filter(c => c))].join(' - ');
+        if (!combinedChanDoan) combinedChanDoan = data.chan_doan || '';
+
+        // Tạo các dòng trong bảng dịch vụ
+        let tableRows = '';
+        services.forEach((srv, i) => {
+            tableRows += `
+                <tr>
+                    <td style="text-align: center;">${i + 1}</td>
+                    <td>${srv.ten_dv || ''}</td>
+                    <td style="text-align: center;">1</td>
+                    <td></td>
+                </tr>
+            `;
+        });
+
+        // Định dạng ngày tháng cho chữ ký
+        let printDate = "Ngày ...... tháng ...... năm 20......";
+        if (targetDate) {
+            const dParts = targetDate.split('/');
+            if (dParts.length === 3) {
+                printDate = `Ngày ${dParts[0]} tháng ${dParts[1]} năm ${dParts[2]}`;
+            }
+        }
+
+        const printContent = `
+            <html>
+            <head>
+                <title>In Phiếu Chỉ Định - ${data.ho_ten}</title>
+                <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap" rel="stylesheet">
+                <style>
+                    body { font-family: 'Times New Roman', Times, serif; font-size: 13pt; line-height: 1.4; color: #000; margin: 0; background-color: #fff; }
+                    .print-container { width: 100%; max-width: 210mm; padding: 10mm 15mm; margin: 0 auto; box-sizing: border-box; }
+                    
+                    /* Header */
+                    .header-grid { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+                    .header-left { width: 120px; text-align: center; font-size: 10px; font-weight: bold; color: #0056b3; }
+                    .header-right { text-align: center; flex: 1; }
+                    .header-title-clinic { font-size: 18pt; font-weight: bold; margin: 0; }
+                    .header-info { font-size: 12pt; margin: 2px 0; }
+                    
+                    /* Tiêu đề */
+                    h1 { font-size: 22pt; font-weight: bold; text-align: center; margin: 20px 0; text-transform: uppercase; }
+                    
+                    /* Info Patient */
+                    .info-row { display: flex; flex-wrap: wrap; margin-bottom: 8px; }
+                    .info-label { font-weight: normal; margin-right: 5px; }
+                    .info-value { font-weight: bold; }
+                    .chan-doan-box { border: 1px dotted #666; padding: 5px 10px; margin-top: 5px; margin-bottom: 15px; }
+                    
+                    /* Bảng Dịch Vụ */
+                    table.dv-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                    table.dv-table th, table.dv-table td { border: 1px solid #000; padding: 6px; }
+                    table.dv-table th { font-weight: bold; text-align: center; }
+                    
+                    /* Footer */
+                    .footer-grid { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 30px; }
+                    .barcode-container { text-align: center; width: 40%; }
+                    /* Mã vạch cần dấu * ở đầu và cuối để quét được */
+                    .barcode-font { font-family: 'Libre Barcode 39', cursive; font-size: 50px; line-height: 1; margin-bottom: -5px; }
+                    .barcode-text { font-size: 13pt; font-weight: bold; }
+                    .signature-container { text-align: center; width: 50%; }
+                    
+                    @media print {
+                        body { background-color: #fff; margin: 0; -webkit-print-color-adjust: exact; }
+                        .print-container { padding: 0; }
+                        @page { size: A5 portrait; margin: 10mm; } 
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="print-container">
+                    <div class="header-grid">
+                        <div class="header-left">
+                            <svg width="60" height="60" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20,80 L20,20 L60,20 Q80,20 80,40 Q80,60 60,60 L40,60 L40,80 Z" fill="none" stroke="#0056b3" stroke-width="4"/>
+                                <path d="M40,60 L80,100" fill="none" stroke="#0056b3" stroke-width="4"/>
+                            </svg>
+                            <br>ĐỒNG NHÂN<br><span style="font-size:7px; font-weight:normal;">PHÒNG KHÁM ĐA KHOA</span>
+                        </div>
+                        <div class="header-right">
+                            <div class="header-title-clinic">PHÒNG KHÁM ĐA KHOA ĐỒNG NHÂN</div>
+                            <div class="header-info">22 Hoàng Sa, Xã Nam Phước, Tp Đà Nẵng</div>
+                            <div class="header-info">Điện thoại: 0235 3877244</div>
+                        </div>
+                    </div>
+
+                    <h1>PHIẾU CHỈ ĐỊNH</h1>
+
+                    <div class="info-row">
+                        <div style="flex: 2;">Họ và tên : <span class="info-value" style="text-transform: uppercase;">${data.ho_ten || ''}</span></div>
+                        <div style="flex: 1;">Tuổi: <span class="info-value">${data.tuoi || ''} tuổi</span></div>
+                        <div style="flex: 1;">Giới tính: <span class="info-value">${data.gioi_tinh || ''}</span></div>
+                    </div>
+                    <div class="info-row">
+                        Địa chỉ : <span style="margin-left: 5px;">........................................................................................................</span>
+                    </div>
+                    <div class="info-row">
+                        <div style="flex: 1;">Khoa phòng: <span class="info-value">PHÒNG KHÁM RĂNG HÀM MẶT 01</span></div>
+                        <div style="flex: 1;">Đối tượng : <span class="info-value">BHYT</span></div>
+                    </div>
+                    
+                    <div style="display: flex;">
+                        <div style="white-space: nowrap;">Chẩn đoán :&nbsp;</div>
+                        <div class="chan-doan-box" style="flex: 1;">${combinedChanDoan}</div>
+                    </div>
+
+                    <table class="dv-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 10%;">STT</th>
+                                <th style="width: 60%;">Tên dịch vụ</th>
+                                <th style="width: 10%;">SL</th>
+                                <th style="width: 20%;">Yêu Cầu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+
+                    <div class="footer-grid">
+                        <div class="barcode-container">
+                            <div class="barcode-font">*${targetMabn}*</div>
+                            <div class="barcode-text">${targetMabn}</div>
+                            <div style="margin-top: 10px;">Số phiếu: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
+                        </div>
+                        <div class="signature-container">
+                            <div style="font-style: italic; margin-bottom: 5px;">${printDate}</div>
+                            <div style="font-weight: bold; font-size: 14pt;">BÁC SĨ CHỈ ĐỊNH</div>
+                            <div style="height: 70px;"></div>
+                            <div style="font-weight: bold; font-size: 14pt;">${data.bs_thuchien || ''}</div>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                    window.onload = function() { window.print(); }
+                <\/script>
+            </body>
+            </html>
+        `;
+
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(printContent);
+        printWindow.document.close();
     }
 
     // --- HÀM XỬ LÝ IN PHIẾU THỦ THUẬT ---
