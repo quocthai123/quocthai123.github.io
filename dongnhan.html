@@ -42,8 +42,11 @@
     <h2>Tra Cứu Dữ Liệu & In Phiếu Thủ Thuật</h2>
     
     <div class="search-box">
-        <input type="date" id="searchDate">
+        <input type="date" id="searchDate" title="Chọn ngày">
+        <input type="text" id="searchName" placeholder="Nhập tên bệnh nhân..." style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: Tahoma; min-width: 200px;">
+        
         <button onclick="searchData()">Tra cứu</button>
+        <button onclick="groupByPatient()" style="background-color: #6c757d;">Nhóm theo Bệnh nhân</button>
     </div>
 
     <div id="loading">Đang đồng bộ dữ liệu từ hệ thống...</div>
@@ -148,15 +151,38 @@
 
     function searchData() {
         if (!isDataLoaded) return;
+        
         const dateInput = document.getElementById('searchDate').value;
-        if (!dateInput) return;
+        const nameInput = document.getElementById('searchName').value.trim().toLowerCase();
 
-        const parts = dateInput.split('-');
-        const targetDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        // Bắt lỗi nếu không nhập gì cả
+        if (!dateInput && !nameInput) {
+            alert("Vui lòng chọn ngày hoặc nhập tên bệnh nhân để tra cứu!");
+            return;
+        }
 
+        let targetDate = '';
+        if (dateInput) {
+            const parts = dateInput.split('-');
+            targetDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
+        // Lọc dữ liệu theo Ngày VÀ/HOẶC Tên
         currentFilteredData = allData.filter(row => {
             const ngayVao = row['ngay_vao'] ? row['ngay_vao'].trim() : '';
-            return ngayVao.includes(targetDate) && row['ho_ten'];
+            const hoTen = row['ho_ten'] ? row['ho_ten'].trim().toLowerCase() : '';
+
+            let matchDate = true;
+            let matchName = true;
+
+            if (targetDate) {
+                matchDate = ngayVao.includes(targetDate);
+            }
+            if (nameInput) {
+                matchName = hoTen.includes(nameInput);
+            }
+
+            return matchDate && matchName && row['ho_ten']; // Phải có ho_ten mới hiển thị
         });
 
         if (currentFilteredData.length === 0) {
@@ -168,6 +194,26 @@
         renderTable();
         document.getElementById('noDataMessage').style.display = 'none';
         document.getElementById('resultTable').style.display = 'table';
+    }
+
+    // --- HÀM XỬ LÝ NHÓM BỆNH NHÂN ---
+    function groupByPatient() {
+        if (currentFilteredData.length === 0) {
+            alert("Chưa có dữ liệu. Vui lòng tra cứu trước khi nhóm!");
+            return;
+        }
+
+        // Sắp xếp mảng hiện tại theo Tên bệnh nhân (ho_ten)
+        currentFilteredData.sort((a, b) => {
+            const nameA = (a.ho_ten || "").toLowerCase();
+            const nameB = (b.ho_ten || "").toLowerCase();
+            if (nameA < nameB) return -1;
+            if (nameA > nameB) return 1;
+            return 0;
+        });
+
+        // Vẽ lại bảng sau khi đã sắp xếp
+        renderTable();
     }
 
     // Tách riêng hàm render bảng để gọi lại sau khi Edit
