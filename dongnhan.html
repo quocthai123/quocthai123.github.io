@@ -396,107 +396,34 @@
             printDateStr = `Ngày ${dParts[0]} tháng ${dParts[1]} năm ${dParts[2]}`;
         }
 
+        // ---------------------------------------------------------
+        // ĐOẠN CODE THÊM MỚI ĐỂ XỬ LÝ ĐỊA CHỈ
+        // ---------------------------------------------------------
+        let diaChiDaXuLy = data.dia_chi || '';
+        const matchQN = diaChiDaXuLy.match(/Quảng Nam/i);
+        const matchDN = diaChiDaXuLy.match(/Đà Nẵng/i);
+
+        if (matchQN) {
+            diaChiDaXuLy = diaChiDaXuLy.substring(0, matchQN.index + matchQN[0].length);
+        } else if (matchDN) {
+            diaChiDaXuLy = diaChiDaXuLy.substring(0, matchDN.index + matchDN[0].length);
+        }
+        // ---------------------------------------------------------
+
         const printContent = `
             <html>
             <head>
                 <title>In Phiếu Chỉ Định - ${data.ho_ten}</title>
-                <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39&display=swap" rel="stylesheet">
-                <style>
-                    /* Cỡ chữ nội dung thành 13 */
-                    body { font-family: 'Times New Roman', Times, serif; font-size: 13pt; line-height: 1.4; color: #000; margin: 0; background-color: #fff; }
-                    .print-container { width: 100%; max-width: 100%; padding: 5mm; margin: 0 auto; box-sizing: border-box; }
-                    
-                    /* Bỏ logo, căn giữa tiêu đề trang */
-                    .header-container { width: 100%; text-align: center; margin-bottom: 10px; }
-                    .header-so-yte { font-size: 12pt; margin: 0; }
-                    .header-title-clinic { font-size: 16pt; font-weight: bold; margin: 0; text-decoration: underline; }
-                    .header-info { font-size: 12pt; margin: 2px 0; }
-                    
-                    h1 { font-size: 20pt; font-weight: bold; text-align: center; margin: 5px 0 10px 0; text-transform: uppercase; }
-                    
-                    .info-row { margin-bottom: 4px; display: flex; }
-                    .info-value { font-weight: bold; }
-                    /* Khoa phòng không in đậm, không xuống dòng */
-                    .khoa-phong-text { font-weight: normal; white-space: nowrap; }
-                    
-                    table.dv-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 20px; }
-                    table.dv-table th, table.dv-table td { border: 1px solid #000; padding: 5px; font-size: 13pt; }
-                    table.dv-table th { font-weight: bold; text-align: center; }
-                    
-                    .footer-grid { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 15px; }
-                    .barcode-container { text-align: center; width: 40%; }
-                    .barcode-font { font-family: 'Libre Barcode 39', cursive; font-size: 45px; line-height: 1; }
-                    .signature-container { text-align: center; width: 50%; }
-                    
-                   @media print {
-    body { background-color: #fff; margin: 0; }
-    @page { size: A4 portrait; margin: 5mm 8mm; } 
-}
-                </style>
+                ...
             </head>
             <body>
                 <div class="print-container">
-                    <div class="header-container">
-                        <div class="header-so-yte">${tenSoYTe}</div>
-                        <div class="header-title-clinic">PHÒNG KHÁM ĐA KHOA ĐỒNG NHÂN</div>
-                        <div class="header-info">${diaChiPK}</div>
-                        <div class="header-info">Điện thoại: 0235 3877244</div>
-                    </div>
-
-                    <h1>PHIẾU CHỈ ĐỊNH</h1>
-
-                    <div class="info-row">
-                        <div style="flex: 5.5;">Họ và tên : <span class="info-value" style="text-transform: uppercase;">${data.ho_ten || ''}</span></div>
-                        <div style="flex: 2.5;">Tuổi: <span class="info-value">${data.tuoi || ''} tuổi</span></div>
-                        <div style="flex: 2;">Giới tính: <span class="info-value">${data.gioi_tinh || ''}</span></div>
-                    </div>
-                    
+                    ...
                     <div class="info-row">
                         <div style="white-space: nowrap;">Địa chỉ :&nbsp;&nbsp;</div>
-                        <div style="flex: 1;">${data.dia_chi || ''}</div>
+                        <div style="flex: 1;">${diaChiDaXuLy}</div>
                     </div>
-                    
-                    <div class="info-row">
-                        <div style="flex: 1;">Khoa phòng: <span class="khoa-phong-text">Phòng khám răng hàm mặt 01</span></div>
-                        <div style="flex: 0.8;">Đối tượng : <span class="info-value">BHYT</span></div>
-                    </div>
-                    
-                    <div class="info-row">
-                        <div style="white-space: nowrap;">Chẩn đoán :&nbsp;&nbsp;</div>
-                        <div style="flex: 1;">${combinedChanDoan}</div>
-                    </div>
-
-                    <table class="dv-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 8%;">STT</th>
-                                <th style="width: 62%;">Tên dịch vụ</th>
-                                <th style="width: 10%;">SL</th>
-                                <th style="width: 20%;">Yêu Cầu</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${tableRows}
-                        </tbody>
-                    </table>
-
-                    <div class="footer-grid">
-                        <div class="barcode-container">
-                            <div class="barcode-font">*${targetMabn}*</div>
-                            <div style="font-weight: bold;">${targetMabn}</div>
-                            <div style="margin-top: 5px;">Số phiếu: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</div>
-                        </div>
-                        <div class="signature-container">
-                            <div style="font-style: italic; margin-bottom: 5px;">${printDateStr}</div>
-                            <div style="font-weight: bold; font-size: 14pt;">BÁC SĨ CHỈ ĐỊNH</div>
-                            <div style="height: 60px;"></div>
-                            <div style="font-weight: bold; font-size: 14pt;">${data.bs_thuchien || ''}</div>
-                        </div>
-                    </div>
-                </div>
-                <script>window.onload = function() { window.print(); }<\/script>
-            </body>
-            </html>
+                    ...
         `;
 
         const printWindow = window.open('', '_blank');
