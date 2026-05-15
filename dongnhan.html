@@ -395,6 +395,11 @@
             const dParts = targetDate.split('/');
             printDateStr = `Ngày ${dParts[0]} tháng ${dParts[1]} năm ${dParts[2]}`;
         }
+        let diaChiBN = data.dia_chi || '';
+        const matchDiaChi = diaChiBN.match(/(Quảng Nam|Đà Nẵng)/i);
+        if (matchDiaChi) {
+            diaChiBN = diaChiBN.substring(0, matchDiaChi.index + matchDiaChi[0].length);
+        }
 
         const printContent = `
             <html>
@@ -453,7 +458,7 @@
                     
                     <div class="info-row">
                         <div style="white-space: nowrap;">Địa chỉ :&nbsp;&nbsp;</div>
-                        <div style="flex: 1;">${data.dia_chi || ''}</div>
+                        <div style="flex: 1;">${diaChiBN}</div>
                     </div>
                     
                     <div class="info-row">
