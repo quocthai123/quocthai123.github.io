@@ -3,37 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tra Cứu Dữ Liệu RHM & In Phiếu - Cập Nhật Tính Năng Sửa</title>
+    <title>Quản Lý Dữ Liệu RHM & In Phiếu Thủ Thuật</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
-        body { font-family: Tahoma, sans-serif; margin: 20px; background-color: #f4f7f6; }
-        .container { max-width: 1400px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #333; }
-        .search-box { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
-        input[type="date"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: Tahoma; }
-        button { padding: 8px 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
-        .btn-print { background-color: #28a745; font-size: 11px; padding: 5px 10px; }
-        .btn-print:hover { background-color: #218838; }
-        .btn-edit { background-color: #ffc107; color: #000; font-size: 11px; padding: 5px 10px; margin-right: 5px; }
-        .btn-edit:hover { background-color: #e0a800; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        /* GIAO DIỆN CHÍNH */
+        body { font-family: Tahoma, sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
+        .container { max-width: 1450px; margin: 0 auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* THANH TÌM KIẾM */
+        .search-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; background: #e9ecef; padding: 15px; border-radius: 8px; }
+        input[type="date"], input[type="text"] { padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-family: Tahoma; }
+        button { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-search { background-color: #007bff; color: white; }
+        .btn-search:hover { background-color: #0056b3; }
+        .btn-group { background-color: #6c757d; color: white; }
+
+        /* BẢNG DỮ LIỆU */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; background: white; }
+        th, td { border: 1px solid #dee2e6; padding: 12px 8px; text-align: left; }
         th { background-color: #007bff; color: white; position: sticky; top: 0; white-space: nowrap; }
-        #loading { text-align: center; color: #666; font-style: italic; display: none; margin-top: 10px; }
-        .no-data { text-align: center; color: red; font-weight: bold; margin-top: 20px; }
-        
-        /* CSS cho Modal (Popup Sửa Dữ Liệu) */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 8px; width: 600px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); font-family: Tahoma, sans-serif; }
-        .modal-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #007bff; border-bottom: 1px solid #ddd; padding-bottom: 10px;}
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px;}
-        .form-group input[type="text"], .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: Tahoma; font-size: 13px;}
-        .form-group textarea { height: 120px; resize: vertical; }
-        .btn-save { background-color: #28a745; color: #fff; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-save:hover { background-color: #218838; }
-        .btn-cancel { background-color: #6c757d; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        tr:hover { background-color: #f1f4f9; }
+
+        /* NÚT THAO TÁC */
+        .btn-edit { background-color: #ffc107; color: #212529; font-size: 11px; padding: 6px 12px; }
+        .btn-print-cd { background-color: #17a2b8; color: white; font-size: 11px; padding: 6px 12px; margin-bottom: 4px; display: block; width: 100%; }
+        .btn-print-pt { background-color: #28a745; color: white; font-size: 11px; padding: 6px 12px; display: block; width: 100%; }
+
+        /* MODAL CHỈNH SỬA */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
+        .modal-content { background-color: #fff; margin: 5% auto; padding: 25px; border-radius: 10px; width: 650px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        .modal-header { font-size: 20px; font-weight: bold; margin-bottom: 20px; color: #007bff; border-bottom: 2px solid #f1f1f1; padding-bottom: 10px;}
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-family: Tahoma; }
+        .form-group textarea { height: 100px; }
+        .quick-fill-area { background: #f0f7ff; padding: 15px; border-radius: 8px; border-left: 5px solid #17a2b8; margin-bottom: 20px; }
+        .btn-save { background-color: #28a745; color: white; padding: 10px 25px; }
+        .btn-cancel { background-color: #6c757d; color: white; padding: 10px 25px; margin-right: 10px; }
     </style>
 </head>
 <body>
@@ -42,15 +50,14 @@
     <h2>Tra Cứu Dữ Liệu & In Phiếu Thủ Thuật</h2>
     
     <div class="search-box">
-        <input type="date" id="searchDate" title="Chọn ngày">
-        <input type="text" id="searchName" placeholder="Nhập tên bệnh nhân..." style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: Tahoma; min-width: 200px;">
-        
-        <button onclick="searchData()">Tra cứu</button>
-        <button onclick="groupByPatient()" style="background-color: #6c757d;">Nhóm theo Bệnh nhân</button>
+        <input type="date" id="searchDate">
+        <input type="text" id="searchName" placeholder="Tên bệnh nhân..." style="min-width: 250px;">
+        <button class="btn-search" onclick="searchData()">Tra cứu</button>
+        <button class="btn-group" onclick="groupByPatient()">Nhóm theo Bệnh nhân</button>
     </div>
 
-    <div id="loading">Đang đồng bộ dữ liệu từ hệ thống...</div>
-    <div id="noDataMessage" class="no-data" style="display: none;">Không tìm thấy dữ liệu cho ngày này.</div>
+    <div id="loading" style="text-align:center; display:none; font-style:italic;">Đang tải dữ liệu hệ thống...</div>
+    <div id="noDataMessage" style="text-align:center; color:red; display:none; font-weight:bold;">Không tìm thấy dữ liệu.</div>
 
     <div style="overflow-x:auto;">
         <table id="resultTable" style="display: none;">
@@ -68,7 +75,7 @@
                     <th>Bắt đầu</th>
                     <th>Kết thúc</th>
                     <th>BS thực hiện</th>
-                    <th style="min-width: 120px;">Thao tác</th>
+                    <th style="min-width: 130px;">Thao tác</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -78,29 +85,29 @@
 
 <div id="editModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header" id="modalTitle">Chỉnh sửa thông tin trước khi in</div>
+        <div class="modal-header" id="modalTitle">Chỉnh sửa thông tin</div>
         
         <div class="form-group">
             <label>Thời gian kết thúc:</label>
-            <input type="text" id="editKetThuc" placeholder="VD: 14:30 02/01/2024">
+            <input type="text" id="editKetThuc" placeholder="HH:mm dd/MM/yyyy">
         </div>
 
         <div class="form-group">
             <label>Chẩn đoán:</label>
-            <input type="text" id="editChanDoan" placeholder="Nhập chẩn đoán mới...">
+            <input type="text" id="editChanDoan">
         </div>
 
-        <div class="form-group" style="background-color: #e9ecef; padding: 10px; border-radius: 4px; border-left: 4px solid #17a2b8;">
-            <label style="color: #0056b3; margin-bottom: 8px;">Điền nhanh vị trí răng (thay thế hàng loạt dấu ...):</label>
+        <div class="quick-fill-area">
+            <label style="color: #0056b3;">Điền nhanh vị trí răng (thay ... hoặc …):</label>
             <div style="display: flex; gap: 10px;">
-                <input type="text" id="quickFillInput" placeholder="VD: 72, 82" style="flex: 1;">
-                <button type="button" onclick="applyQuickFill()" style="background-color: #17a2b8; color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; font-weight: bold;">Áp dụng</button>
+                <input type="text" id="quickFillInput" placeholder="Ví dụ: 36, 46" style="flex: 1;">
+                <button onclick="applyQuickFill()" style="background: #17a2b8; color: white;">Áp dụng</button>
             </div>
         </div>
 
         <div class="form-group">
             <label>Tóm tắt quá trình làm thủ thuật:</label>
-            <textarea id="editTomTat" placeholder="Nhập tóm tắt quá trình làm thủ thuật..."></textarea>
+            <textarea id="editTomTat"></textarea>
         </div>
         
         <div style="text-align: right;">
@@ -109,483 +116,198 @@
         </div>
     </div>
 </div>
+
 <script>
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQpmjgWq53GTt4cT8K_3yOGwYWHj8fbIcQqJGivg-2ZMwVl3dwrK5NzBXoK3-gCqPk7cnefZXfvD9Bs/pub?gid=607449787&single=true&output=csv';
-
-    let allData = [];
-    let isDataLoaded = false;
-    let currentFilteredData = []; 
-    let editingIndex = -1; // Biến lưu dòng đang được chỉnh sửa
+    let allData = [], currentFilteredData = [], isDataLoaded = false, editingIndex = -1;
 
     window.onload = function() {
         document.getElementById('loading').style.display = 'block';
         Papa.parse(CSV_URL, {
-            download: true,
-            header: true,
-            skipEmptyLines: true,
-            complete: function(results) {
+            download: true, header: true, skipEmptyLines: true,
+            complete: (results) => {
                 allData = results.data;
                 isDataLoaded = true;
                 document.getElementById('loading').style.display = 'none';
-            },
-            error: function(err) {
-                console.error("Lỗi khi tải CSV:", err);
-                document.getElementById('loading').innerText = "Lỗi khi kết nối dữ liệu!";
             }
         });
     };
 
+    // --- HÀM TRỢ GIÚP (HELPER FUNCTIONS) ---
+
     function standardizeDateTime(str) {
         if (!str) return '';
         str = str.trim();
-        let match1 = str.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s+(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-        if (match1) {
-            return `${match1[1].padStart(2, '0')}:${match1[2].padStart(2, '0')} ${match1[3].padStart(2, '0')}/${match1[4].padStart(2, '0')}/${match1[5]}`;
-        }
-        let match2 = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::\d{2})?$/);
-        if (match2) {
-            return `${match2[4].padStart(2, '0')}:${match2[5].padStart(2, '0')} ${match2[1].padStart(2, '0')}/${match2[2].padStart(2, '0')}/${match2[3]}`;
-        }
-        return str; 
+        let m1 = str.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s+(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (m1) return `${m1[1].padStart(2, '0')}:${m1[2].padStart(2, '0')} ${m1[3].padStart(2, '0')}/${m1[4].padStart(2, '0')}/${m1[5]}`;
+        let m2 = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::\d{2})?$/);
+        if (m2) return `${m2[4].padStart(2, '0')}:${m2[5].padStart(2, '0')} ${m2[1].padStart(2, '0')}/${m2[2].padStart(2, '0')}/${m2[3]}`;
+        return str;
     }
+
+    function addOneMinute(dateTimeStr) {
+        if (!dateTimeStr) return '';
+        const parts = dateTimeStr.split(' ');
+        if (parts.length !== 2) return dateTimeStr;
+        const [time, date] = parts;
+        const [hh, mm] = time.split(':');
+        const [d, m, y] = date.split('/');
+        let dObj = new Date(y, m - 1, d, hh, mm);
+        dObj.setMinutes(dObj.getMinutes() + 1);
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${pad(dObj.getHours())}:${pad(dObj.getMinutes())} ${pad(dObj.getDate())}/${pad(dObj.getMonth() + 1)}/${dObj.getFullYear()}`;
+    }
+
+    function processAddress(address) {
+        if (!address) return '';
+        const keywords = [/Quảng Nam/i, /Đà Nẵng/i];
+        for (let kw of keywords) {
+            let match = address.match(kw);
+            if (match) return address.substring(0, match.index + match[0].length);
+        }
+        return address;
+    }
+
+    // --- XỬ LÝ DỮ LIỆU BẢNG ---
 
     function searchData() {
         if (!isDataLoaded) return;
-        
         const dateInput = document.getElementById('searchDate').value;
         const nameInput = document.getElementById('searchName').value.trim().toLowerCase();
+        if (!dateInput && !nameInput) return alert("Nhập thông tin tìm kiếm!");
 
-        // Bắt lỗi nếu không nhập gì cả
-        if (!dateInput && !nameInput) {
-            alert("Vui lòng chọn ngày hoặc nhập tên bệnh nhân để tra cứu!");
-            return;
-        }
+        let targetDate = dateInput ? dateInput.split('-').reverse().join('/') : '';
 
-        let targetDate = '';
-        if (dateInput) {
-            const parts = dateInput.split('-');
-            targetDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-        }
-
-        // Lọc dữ liệu theo Ngày VÀ/HOẶC Tên
         currentFilteredData = allData.filter(row => {
-            const ngayVao = row['ngay_vao'] ? row['ngay_vao'].trim() : '';
-            const hoTen = row['ho_ten'] ? row['ho_ten'].trim().toLowerCase() : '';
-
-            let matchDate = true;
-            let matchName = true;
-
-            if (targetDate) {
-                matchDate = ngayVao.includes(targetDate);
-            }
-            if (nameInput) {
-                matchName = hoTen.includes(nameInput);
-            }
-
-            return matchDate && matchName && row['ho_ten']; // Phải có ho_ten mới hiển thị
+            const matchDate = targetDate ? (row['ngay_vao'] || '').includes(targetDate) : true;
+            const matchName = nameInput ? (row['ho_ten'] || '').toLowerCase().includes(nameInput) : true;
+            return matchDate && matchName && row['ho_ten'];
         });
 
         if (currentFilteredData.length === 0) {
             document.getElementById('resultTable').style.display = 'none';
             document.getElementById('noDataMessage').style.display = 'block';
-            return;
+        } else {
+            renderTable();
+            document.getElementById('noDataMessage').style.display = 'none';
+            document.getElementById('resultTable').style.display = 'table';
         }
-
-        renderTable();
-        document.getElementById('noDataMessage').style.display = 'none';
-        document.getElementById('resultTable').style.display = 'table';
     }
 
-    // --- HÀM XỬ LÝ NHÓM BỆNH NHÂN ---
-    function groupByPatient() {
-        if (currentFilteredData.length === 0) {
-            alert("Chưa có dữ liệu. Vui lòng tra cứu trước khi nhóm!");
-            return;
-        }
-
-        // Sắp xếp mảng hiện tại theo Tên bệnh nhân (ho_ten)
-        currentFilteredData.sort((a, b) => {
-            const nameA = (a.ho_ten || "").toLowerCase();
-            const nameB = (b.ho_ten || "").toLowerCase();
-            if (nameA < nameB) return -1;
-            if (nameA > nameB) return 1;
-            return 0;
-        });
-
-        // Vẽ lại bảng sau khi đã sắp xếp
-        renderTable();
-    }
-
-    // Tách riêng hàm render bảng để gọi lại sau khi Edit
     function renderTable() {
         const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = ''; 
-
+        tbody.innerHTML = '';
         currentFilteredData.forEach((row, index) => {
-            const namSinh = parseInt(row['nam_sinh']) || 0;
-            let namBaoCao = new Date().getFullYear();
-            if (row['ngay_vao']) {
-                const dateParts = row['ngay_vao'].split(' ');
-                const dateOnly = dateParts.find(p => p.includes('/'));
-                if (dateOnly) {
-                    namBaoCao = parseInt(dateOnly.split('/')[2]) || namBaoCao;
-                }
-            }
-            row.tuoi = namSinh > 0 ? (namBaoCao - namSinh) : ""; 
-
             row.y_lenh_fmt = standardizeDateTime(row['y_lenh']);
             row.bat_dau_fmt = standardizeDateTime(row['bat_dau']);
             row.ket_thuc_fmt = standardizeDateTime(row['ket_thuc']);
-
+            
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${row['STT'] || ''}</td>
                 <td>${row['mabn'] || ''}</td>
-                <td><strong>${row['ho_ten'] || ''}</strong></td>
-                <td>${row.tuoi}</td>
+                <td><strong>${row['ho_ten']}</strong></td>
+                <td>${row['tuoi'] || ''}</td>
                 <td>${row['gioi_tinh'] || ''}</td>
                 <td>${row['ngay_vao'] || ''}</td>
-                <td style="color: #d32f2f;">${row['chan_doan'] || ''}</td>
-                <td>${row['ten_dv'] || ''}</td>
+                <td style="color:red;">${row['chan_doan']}</td>
+                <td>${row['ten_dv']}</td>
                 <td>${row.y_lenh_fmt}</td>
-                <td style="color: #0056b3; font-weight: bold;">${row.bat_dau_fmt}</td>
-                <td style="color: #c82333; font-weight: bold;">${row.ket_thuc_fmt}</td>
-                <td>${row['bs_thuchien'] || ''}</td>
-                
+                <td style="color:blue;">${row.bat_dau_fmt}</td>
+                <td style="color:red;">${row.ket_thuc_fmt}</td>
+                <td>${row['bs_thuchien']}</td>
                 <td>
                     <button class="btn-edit" onclick="openModal(${index})">Sửa</button>
-                    <button class="btn-print" style="background-color: #17a2b8; margin-bottom: 3px;" onclick="printChiDinh(${index})">In Chỉ Định</button>
-                    <button class="btn-print" onclick="printPhieu(${index})">In Phiếu PTTT</button>
+                    <button class="btn-print-cd" onclick="printChiDinh(${index})">In Chỉ Định</button>
+                    <button class="btn-print-pt" onclick="printPhieu(${index})">In Phiếu PTTT</button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    // --- HÀM XỬ LÝ SỬA DỮ LIỆU ---
+    // --- MODAL & CHỈNH SỬA ---
+
     function openModal(index) {
         editingIndex = index;
         const data = currentFilteredData[index];
+        document.getElementById('modalTitle').innerText = `Sửa: ${data.ho_ten}`;
         
-        document.getElementById('modalTitle').innerText = `Chỉnh sửa thông tin - Bệnh nhân: ${data.ho_ten}`;
-        
-        // THÊM DÒNG NÀY: Tải thời gian kết thúc (lấy định dạng đã chuẩn hóa cho dễ nhìn)
-        document.getElementById('editKetThuc').value = data.ket_thuc_fmt || '';
-        
+        let kt = data.ket_thuc_fmt || data.ket_thuc || '';
+        if (!kt || kt.trim() === "") kt = addOneMinute(data.bat_dau_fmt);
+
+        document.getElementById('editKetThuc').value = kt;
         document.getElementById('editChanDoan').value = data.chan_doan || '';
         document.getElementById('editTomTat').value = data.tom_tat || '';
-        
-        // Xóa trống ô điền nhanh mỗi khi mở popup
-        document.getElementById('quickFillInput').value = '';
-        
         document.getElementById('editModal').style.display = 'block';
     }
 
-    function closeModal() {
-        document.getElementById('editModal').style.display = 'none';
-        editingIndex = -1;
-    }
+    function closeModal() { document.getElementById('editModal').style.display = 'none'; }
 
     function saveData() {
-        if (editingIndex === -1) return;
-        
-        // Lấy dữ liệu từ form
-        const newKetThuc = document.getElementById('editKetThuc').value.trim();
-        const newChanDoan = document.getElementById('editChanDoan').value;
-        const newTomTat = document.getElementById('editTomTat').value;
-        
-        // Cập nhật mảng hiển thị (Chỉ cập nhật ket_thuc nếu người dùng không xóa trắng ô đó)
-        if (newKetThuc !== "") {
-            currentFilteredData[editingIndex].ket_thuc = newKetThuc;
-        }
-        currentFilteredData[editingIndex].chan_doan = newChanDoan;
-        currentFilteredData[editingIndex].tom_tat = newTomTat;
-        
-        // Đóng form và vẽ lại bảng
+        const d = currentFilteredData[editingIndex];
+        d.ket_thuc = document.getElementById('editKetThuc').value;
+        d.chan_doan = document.getElementById('editChanDoan').value;
+        d.tom_tat = document.getElementById('editTomTat').value;
         closeModal();
         renderTable();
     }
-   // --- HÀM XỬ LÝ ĐIỀN NHANH ---
+
     function applyQuickFill() {
-        const fillValue = document.getElementById('quickFillInput').value.trim();
-        
-        if (!fillValue) {
-            alert("Vui lòng nhập giá trị cần điền (VD: 12)!");
-            return;
-        }
-
-        const tomTatElement = document.getElementById('editTomTat');
-        let currentText = tomTatElement.value;
-
-        // CẬP NHẬT: Tìm cả 3 dấu chấm rời (...) VÀ ký tự dấu 3 chấm liền (…)
-        const newText = currentText.replace(/(\.{3,}|…)/g, fillValue);
-
-        // Cập nhật lại vào ô Tóm tắt
-        tomTatElement.value = newText;
-        
-        // Xóa trống ô điền nhanh sau khi áp dụng xong
-        document.getElementById('quickFillInput').value = '';
-    }
-    function openModal(index) {
-        editingIndex = index;
-        const data = currentFilteredData[index];
-        
-        document.getElementById('modalTitle').innerText = `Chỉnh sửa thông tin - Bệnh nhân: ${data.ho_ten}`;
-        
-        // Tải các giá trị hiện có lên form
-        document.getElementById('editKetThuc').value = data.ket_thuc_fmt || data.ket_thuc || '';
-        document.getElementById('editChanDoan').value = data.chan_doan || '';
-        document.getElementById('editTomTat').value = data.tom_tat || '';
-        
-        // Xóa trống ô điền nhanh mỗi khi mở popup
-        document.getElementById('quickFillInput').value = '';
-        
-        document.getElementById('editModal').style.display = 'block';
+        const val = document.getElementById('quickFillInput').value;
+        const area = document.getElementById('editTomTat');
+        area.value = area.value.replace(/(\.{3,}|…)/g, val);
     }
 
-    // --- HÀM IN CHỈ ĐỊNH CẬP NHẬT THEO YÊU CẦU MỚI ---
+    // --- IN ẤN ---
+
     function printChiDinh(index) {
         const data = currentFilteredData[index];
-        const targetMabn = data.mabn;
-        
-        // Xác định ngày y lệnh hiện tại
-        let targetDate = "";
-        let recordDate = new Date();
-        if (data.y_lenh_fmt) {
-            const parts = data.y_lenh_fmt.split(' ');
-            targetDate = parts.find(p => p.includes('/')) || "";
-            if (targetDate) {
-                const dParts = targetDate.split('/');
-                recordDate = new Date(dParts[2], dParts[1] - 1, dParts[0]);
-            }
-        }
-
-        // Logic thay đổi địa chỉ phòng khám và Sở Y Tế theo mốc 01/07/2025
-        const thresholdDate = new Date(2025, 6, 1); // 01/07/2025
-        let tenSoYTe = "SỞ Y TẾ QUẢNG NAM";
-        let diaChiPK = "22 Hoàng Sa, TT Nam Phước , H. Duy Xuyên, Tỉnh Quảng Nam";
-        
-        if (recordDate >= thresholdDate) {
-            tenSoYTe = "SỞ Y TẾ ĐÀ NẴNG";
-            diaChiPK = "22 Hoàng Sa, xã Nam Phước, TP Đà Nẵng";
-        }
-
-        // Lọc tất cả dịch vụ của bệnh nhân trong cùng ngày
-        const services = allData.filter(row => {
-            let rowDate = "";
-            let y_lenh_fmt = standardizeDateTime(row['y_lenh']);
-            if (y_lenh_fmt) {
-                rowDate = y_lenh_fmt.split(' ').find(p => p.includes('/')) || "";
-            } else if (row['ngay_vao']) {
-                rowDate = row['ngay_vao'].split(' ').find(p => p.includes('/')) || "";
-            }
-            return row.mabn === targetMabn && rowDate === targetDate;
-        });
-
-        let combinedChanDoan = [...new Set(services.map(s => s.chan_doan).filter(c => c))].join(' - ');
-        if (!combinedChanDoan) combinedChanDoan = data.chan_doan || '';
-
-        let tableRows = '';
-        services.forEach((srv, i) => {
-            tableRows += `<tr><td style="text-align: center;">${i + 1}</td><td>${srv.ten_dv || ''}</td><td style="text-align: center;">1</td><td></td></tr>`;
-        });
-
-        let printDateStr = "Ngày ...... tháng ...... năm 20......";
-        if (targetDate) {
-            const dParts = targetDate.split('/');
-            printDateStr = `Ngày ${dParts[0]} tháng ${dParts[1]} năm ${dParts[2]}`;
-        }
-
-        // ---------------------------------------------------------
-        // ĐOẠN CODE THÊM MỚI ĐỂ XỬ LÝ ĐỊA CHỈ
-        // ---------------------------------------------------------
-        let diaChiDaXuLy = data.dia_chi || '';
-        const matchQN = diaChiDaXuLy.match(/Quảng Nam/i);
-        const matchDN = diaChiDaXuLy.match(/Đà Nẵng/i);
-
-        if (matchQN) {
-            diaChiDaXuLy = diaChiDaXuLy.substring(0, matchQN.index + matchQN[0].length);
-        } else if (matchDN) {
-            diaChiDaXuLy = diaChiDaXuLy.substring(0, matchDN.index + matchDN[0].length);
-        }
-        // ---------------------------------------------------------
-
-        const printContent = `
-            <html>
-            <head>
-                <title>In Phiếu Chỉ Định - ${data.ho_ten}</title>
-                ...
-            </head>
-            <body>
-                <div class="print-container">
-                    ...
-                    <div class="info-row">
-                        <div style="white-space: nowrap;">Địa chỉ :&nbsp;&nbsp;</div>
-                        <div style="flex: 1;">${diaChiDaXuLy}</div>
-                    </div>
-                    ...
-        `;
-
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(printContent);
-        printWindow.document.close();
+        const addr = processAddress(data.dia_chi);
+        const win = window.open('', '_blank');
+        win.document.write(`<html><head><title>In Chỉ Định</title><style>body{font-family:'Times New Roman';font-size:13pt;padding:20px;}</style></head>
+        <body>
+            <div style="text-align:center;font-weight:bold;">PHÒNG KHÁM ĐA KHOA ĐỒNG NHÂN</div>
+            <h1 style="text-align:center;">PHIẾU CHỈ ĐỊNH</h1>
+            <p>Bệnh nhân: <b>${data.ho_ten}</b> | Tuổi: ${data.tuoi} | Giới tính: ${data.gioi_tinh}</p>
+            <p>Địa chỉ: ${addr}</p>
+            <p>Chẩn đoán: ${data.chan_doan}</p>
+            <table border="1" style="width:100%;border-collapse:collapse;margin-top:10px;">
+                <tr><th>STT</th><th>Tên dịch vụ</th><th>SL</th></tr>
+                <tr><td align="center">1</td><td>${data.ten_dv}</td><td align="center">1</td></tr>
+            </table>
+            <div style="float:right;margin-top:30px;text-align:center;">
+                <i>Ngày...tháng...năm...</i><br><b>BÁC SĨ CHỈ ĐỊNH</b><br><br><br><br><b>${data.bs_thuchien}</b>
+            </div>
+            <script>window.print();<\/script>
+        </body></html>`);
+        win.document.close();
     }
-    // --- HÀM XỬ LÝ IN PHIẾU THỦ THUẬT ---
+
     function printPhieu(index) {
         const data = currentFilteredData[index];
-        
-        let signatureTime = "Ngày ...... tháng ...... năm 20......";
-        let tenSoYTe = "SỞ Y TẾ QUẢNG NAM"; // Giá trị mặc định
-        let recordDate = new Date(); 
-
-        if(data.bat_dau_fmt) {
-            const parts = data.bat_dau_fmt.split(' ');
-            if (parts.length > 1) {
-                const dateParts = parts[1].split('/');
-                if (dateParts.length === 3) {
-                    signatureTime = `Ngày ${dateParts[0]} tháng ${dateParts[1]} năm ${dateParts[2]}`;
-                    recordDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
-                }
-            }
-        }
-
-        const thresholdDate = new Date(2025, 6, 1); 
-        if (recordDate >= thresholdDate) {
-            tenSoYTe = "SỞ Y TẾ ĐÀ NẴNG";
-        }
-
-        const tomTatFormatted = data.tom_tat ? data.tom_tat.replace(/\n/g, '<br>') : (data.ten_dv || '');
-
-        const printContent = `
-            <html>
-            <head>
-                <title>In Phiếu Thủ Thuật - ${data.ho_ten}</title>
-                <style>
-                    body { font-family: 'Times New Roman', Times, serif; font-size: 14pt; line-height: 1.3; color: #000; margin: 0; background-color: #e9ecef; }
-                    .print-container { width: 210mm; min-height: 297mm; padding: 5mm 15mm; margin: 20px auto; background-color: #fff; box-sizing: border-box; box-shadow: 0 0 10px rgba(0,0,0,0.2); }
-                    .header-table { width: 100%; border: none; margin-bottom: 5px; } 
-                    .header-table td { padding: 0; vertical-align: top; border: none; }
-                    .text-right { text-align: right; }
-                    h1 { font-size: 17pt; font-weight: bold; text-align: center; margin: 5px 0 5px 0; }
-                    /* CẬP NHẬT: Đổi h2 (tiêu đề mục 1, 2) xuống size 13 */
-                    h2 { font-size: 13pt; font-weight: bold; margin: 5px 0 3px 0; } 
-                    .bold { font-weight: bold; }
-                    .row-flex { display: flex; justify-content: space-between; }
-                    .checkbox-box { display: inline-block; width: 12px; height: 12px; border: 1px solid #000; margin-right: 5px; vertical-align: middle;}
-                    table.signature { width: 100%; margin-top: 5px; border: none; }
-                    table.signature td { text-align: center; border: none; }
-                    .note-section { margin-top: 10px; font-size: 10pt; line-height: 1.2; text-align: justify; border-top: 1px dashed #ccc; padding-top: 5px; }
-                    
-                    /* CẬP NHẬT: Class ép font size 13 cho toàn bộ nội dung chính */
-                    .content-13 { font-size: 13pt; }
-
-                    @media print {
-                        body { 
-                            background-color: #fff; 
-                            -webkit-print-color-adjust: exact; 
-                            margin: 10mm 15mm 10mm 15mm !important; 
-                        }
-                        .print-container { 
-                            width: 100%; 
-                            min-height: auto; 
-                            margin: 0; 
-                            padding: 0; 
-                            box-shadow: none; 
-                        }
-                        @page { 
-                            size: A4 portrait; 
-                            margin: 0; 
-                        } 
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="print-container">
-                    <table class="header-table">
-                        <tr>
-                            <td style="width: 50%;">
-                                <div style="text-align: center; display: inline-block;">
-                                    ${tenSoYTe}<br>
-                                    <span class="bold" style="text-decoration: underline;">PHÒNG KHÁM ĐA KHOA ĐỒNG NHÂN</span>
-                                </div>
-                            </td>
-                            <td class="text-right" style="width: 50%;">
-                                <span class="bold">MS: PT-11</span><br>
-                                Mã người bệnh: ${data.mabn || ''}
-                            </td>
-                        </tr>
-                    </table>
-
-                    <h1>PHIẾU THỦ THUẬT</h1>
-
-                    <div class="content-13">
-                        <h2>1. Thông tin người bệnh</h2>
-                        <div class="row-flex">
-                            <div>Họ và tên: <span class="bold" style="text-transform: uppercase;">${data.ho_ten || ''}</span></div>
-                            <div>Tuổi: ${data.tuoi || ''}</div>
-                            <div>Giới tính: 
-                                <span class="checkbox-box" style="background-color: ${data.gioi_tinh?.toLowerCase() === 'nam' ? '#000' : '#fff'};"></span> Nam 
-                                &nbsp;&nbsp;
-                                <span class="checkbox-box" style="background-color: ${data.gioi_tinh?.toLowerCase() === 'nữ' ? '#000' : '#fff'};"></span> Nữ
-                            </div>
-                        </div>
-
-                        <h2>2. Nội dung</h2>
-                        <div>- Chẩn đoán trước thủ thuật: ${data.chan_doan || ''}</div>
-                        <div>- Chẩn đoán sau thủ thuật: ${data.chan_doan || ''}</div>
-                        
-                        <div>- Phương pháp làm thủ thuật: ${data.ten_dv || ''}</div>
-                        
-                        <div>- Loại thủ thuật: &nbsp;&nbsp; 
-                            <span class="checkbox-box"></span> Đặc biệt &nbsp;&nbsp;
-                            <span class="checkbox-box"></span> Loại I &nbsp;&nbsp;
-                            <span class="checkbox-box"></span> Loại II &nbsp;&nbsp;
-                            <span class="checkbox-box"></span> Loại III
-                        </div>
-                        <div>- Phương pháp vô cảm: ${data.ppvc || 'Các phương pháp vô cảm khác'}</div>
-                        <div>- Bác sỹ làm thủ thuật: ${data.bs_thuchien || ''}</div>
-                        <div>- Nhân viên phụ: ${(data.ktv1 || '') + ' ' + (data.ktv2 || '')}</div>
-                        <div>- Bác sỹ gây mê hồi sức (nếu có): Không</div>
-                        <div>- Thời gian làm thủ thuật: Từ ${data.bat_dau_fmt || '..........'} đến ${data.ket_thuc_fmt || '..........'}</div>
-                        
-                        <div class="bold" style="margin-top: 5px; text-transform: uppercase;">Tóm tắt quá trình làm thủ thuật</div>
-                        <div style="margin-top: 2px; min-height: 60px;">${tomTatFormatted}</div>
-                        
-                        <div style="margin-top: 5px;">- Các biến chứng trong quá trình làm thủ thuật: Không</div>
-                        <div>- Lượng máu mất: Không</div>
-                        <div>- Số mẫu bệnh phẩm (nếu có): Không</div>
-                        <div>- Số đăng ký của thiết bị cấy ghép (nếu có): ........................................</div>
-                    </div>
-                    <table class="signature">
-                        <tr>
-                            <td style="width: 50%;"></td>
-                            <td style="width: 50%;">
-                                <div><i>${signatureTime}</i></div>
-                                <div class="bold">Bác sỹ thực hiện</div>
-                                <div style="font-size: 10pt;">(Ký, ghi rõ họ tên)</div>
-                                <div style="height: 40px;"></div> 
-                                <div class="bold">${data.bs_thuchien || ''}</div>
-                            </td>
-                        </tr>
-                    </table>
-
-                    <div class="note-section">
-                        <div class="bold">Ghi chú:</div>
-                        <div>– Đối với các phẫu thuật phải sử dụng phiếu và vẽ lược đồ.</div>
-                        <div>– Đối với thủ thuật có sử dụng phương pháp vô cảm toàn thân hoặc phải thực hiện trong phòng mổ hoặc thủ thuật can thiệp đường mạch máu (không bao gồm tiêm, truyền), đường thở: Sử dụng phiếu thủ thuật và vẽ lược đồ thủ thuật (nếu cần thiết).</div>
-                        <div>– Đối với các thủ thuật khác: Không phải lập phiếu phẫu thuật/thủ thuật nhưng phải ghi chỉ định và nội dung thực hiện dịch vụ vào hồ sơ bệnh án và có chữ ký xác nhận của người bệnh hoặc người đại diện của người bệnh sau mỗi đợt điều trị (Thực hiện theo Thông tư 50/2017/TT-BYT).</div>
-                    </div>
-                </div>
-                <script>
-                    window.onload = function() { window.print(); }
-                <\/script>
-            </body>
-            </html>
-        `;
-
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(printContent);
-        printWindow.document.close();
+        const addr = processAddress(data.dia_chi);
+        const tomTat = (data.tom_tat || data.ten_dv).replace(/\n/g, '<br>');
+        const win = window.open('', '_blank');
+        win.document.write(`<html><head><title>Phiếu Thủ Thuật</title><style>body{font-family:'Times New Roman';font-size:13pt;padding:30px;line-height:1.5;}</style></head>
+        <body>
+            <div style="float:left;text-align:center;">SỞ Y TẾ...<br><b>PK ĐA KHOA ĐỒNG NHÂN</b></div>
+            <div style="float:right;">Mã BN: ${data.mabn}</div>
+            <div style="clear:both;"></div>
+            <h1 style="text-align:center;margin-top:20px;">PHIẾU THỦ THUẬT</h1>
+            <p>1. Họ tên: <b>${data.ho_ten.toUpperCase()}</b> | Tuổi: ${data.tuoi} | Giới tính: ${data.gioi_tinh}</p>
+            <p>2. Chẩn đoán: ${data.chan_doan}</p>
+            <p>3. Phương pháp: ${data.ten_dv}</p>
+            <p>4. Bác sĩ thực hiện: ${data.bs_thuchien}</p>
+            <p>5. Thời gian: Từ ${data.bat_dau_fmt} đến ${data.ket_thuc_fmt || '...'}</p>
+            <p><b>TÓM TẮT QUÁ TRÌNH:</b></p>
+            <div style="min-height:100px;border:1px solid #ccc;padding:10px;">${tomTat}</div>
+            <div style="float:right;margin-top:30px;text-align:center;">
+                <i>Ngày...tháng...năm...</i><br><b>BÁC SĨ THỰC HIỆN</b><br><br><br><br><b>${data.bs_thuchien}</b>
+            </div>
+            <script>window.print();<\/script>
+        </body></html>`);
+        win.document.close();
     }
 </script>
 </body>
