@@ -251,15 +251,12 @@
             <small>&copy; 2026 - Phát triển bởi Lê Quốc Thái. Phiên bản 2.7</small>
         </div>
     </footer>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/keycloak-js@23.0.7/dist/keycloak.min.js"></script>
     <script>
         let currentConfig = {};
         const DEFAULT_RULE = { allowOverlap: false, minTime: 5, maxTime: 120 };
         let globalProcessedData = []; 
-
-       let currentConfig = {};
-const DEFAULT_RULE = { allowOverlap: false, minTime: 5, maxTime: 120 };
-let globalProcessedData = []; 
 
 // 1. Khai báo máy chủ Keycloak
 var keycloak = new Keycloak({
@@ -651,8 +648,6 @@ document.getElementById('btnExport').classList.remove('d-none');
     XLSX.writeFile(wb, fileName);
 }
 
-    <script src="https://cdn.jsdelivr.net/npm/keycloak-js@23.0.7/dist/keycloak.min.js"></script>
     </script>
-
 </body>
 </html>
