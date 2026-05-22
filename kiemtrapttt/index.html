@@ -169,6 +169,10 @@
                     <button id="btnExport" class="btn btn-success btn-sm px-4 fw-bold shadow-sm d-none" onclick="exportToExcel()">
                         <i class="bi bi-file-earmark-excel me-1"></i> XUẤT LỖI
                     </button>
+
+                    <button onclick="keycloak.logout()" class="btn btn-outline-light btn-sm bg-danger text-white border-0 shadow-sm" title="Đăng xuất khỏi hệ thống">
+    <i class="bi bi-box-arrow-right"></i>
+</button>
                     
                     <a href="admin.html" class="btn btn-outline-light btn-sm bg-white text-dark border-0 shadow-sm" title="Cấu hình danh mục">
                         <i class="bi bi-gear-fill"></i>
@@ -253,7 +257,40 @@
         const DEFAULT_RULE = { allowOverlap: false, minTime: 5, maxTime: 120 };
         let globalProcessedData = []; 
 
-        window.onload = loadConfig;
+       let currentConfig = {};
+const DEFAULT_RULE = { allowOverlap: false, minTime: 5, maxTime: 120 };
+let globalProcessedData = []; 
+
+// 1. Khai báo máy chủ Keycloak
+var keycloak = new Keycloak({
+    url: 'https://sso.bvphcndt.vn',
+    realm: 'BVPHCN',
+    clientId: 'app-rasoat' // Thay đúng tên Client ID bạn đã tạo ở Phần 1
+});
+
+// 2. Ép buộc đăng nhập ngay khi mở trang
+window.onload = function() {
+    keycloak.init({ 
+        onLoad: 'login-required', // Thuộc tính này sẽ tự đá sang trang login nếu chưa đăng nhập
+        checkLoginIframe: false   // Tắt iframe để tránh lỗi chặn popup trên trình duyệt
+    }).then(function(authenticated) {
+        if (authenticated) {
+            console.log("Đã xác thực thành công qua SSO Bệnh viện!");
+            // Lấy thông tin user (Tùy chọn)
+            keycloak.loadUserProfile().then(function(profile) {
+                console.log("Xin chào: " + profile.firstName);
+            });
+            
+            // Bắt đầu chạy App của bạn
+            loadConfig();
+        } else {
+            window.location.reload();
+        }
+    }).catch(function() {
+        document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px; color:red;'>LỖI KẾT NỐI MÁY CHỦ XÁC THỰC SSO!</h2>";
+    });
+};
+
 
         async function loadConfig() {
             try {
@@ -613,6 +650,8 @@ document.getElementById('btnExport').classList.remove('d-none');
     const fileName = `Bao_cao_PTTT_Loi_${new Date().toLocaleDateString('vi-VN')}.xlsx`;
     XLSX.writeFile(wb, fileName);
 }
+
+        <script src="https://sso.bvphcndt.vn/js/keycloak.js"></script>
     </script>
 
 </body>
