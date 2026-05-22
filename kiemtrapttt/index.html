@@ -265,28 +265,34 @@ var keycloak = new Keycloak({
     clientId: 'app-rasoat_pttt' // Thay đúng tên Client ID bạn đã tạo ở Phần 1
 });
 
-// 2. Ép buộc đăng nhập ngay khi mở trang
-window.onload = function() {
-    keycloak.init({ 
-        onLoad: 'login-required', // Thuộc tính này sẽ tự đá sang trang login nếu chưa đăng nhập
-        checkLoginIframe: false   // Tắt iframe để tránh lỗi chặn popup trên trình duyệt
-    }).then(function(authenticated) {
-        if (authenticated) {
-            console.log("Đã xác thực thành công qua SSO Bệnh viện!");
-            // Lấy thông tin user (Tùy chọn)
-            keycloak.loadUserProfile().then(function(profile) {
-                console.log("Xin chào: " + profile.firstName);
+// Ép buộc đăng nhập ngay khi mở trang
+        window.onload = function() {
+            keycloak.init({ 
+                onLoad: 'login-required',
+                checkLoginIframe: false,
+                pkceMethod: 'S256' // BẮT BUỘC THÊM: Chuẩn bảo mật Token mới nhất dành cho Web tĩnh
+            }).then(function(authenticated) {
+                if (authenticated) {
+                    // Dọn dẹp cái đuôi #state=... loằng ngoằng trên URL cho đẹp và chuyên nghiệp
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    
+                    console.log("Đã xác thực thành công qua SSO Bệnh viện!");
+                    keycloak.loadUserProfile().then(function(profile) {
+                        console.log("Xin chào: " + profile.firstName);
+                    });
+                    
+                    // Bắt đầu chạy App của bạn
+                    loadConfig();
+                } else {
+                    // Tuyệt đối KHÔNG dùng window.location.reload() ở đây nữa để tránh kẹt vòng lặp
+                    keycloak.login();
+                }
+            }).catch(function(err) {
+                // In thẳng lỗi ra F12 để dễ bắt bệnh nếu còn vướng mắc
+                console.error("Chi tiết lỗi Token Keycloak:", err);
+                document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px; color:red;'>LỖI ĐỔI TOKEN SSO! (Vui lòng ấn F12 xem Console)</h2>";
             });
-            
-            // Bắt đầu chạy App của bạn
-            loadConfig();
-        } else {
-            window.location.reload();
-        }
-    }).catch(function() {
-        document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px; color:red;'>LỖI KẾT NỐI MÁY CHỦ XÁC THỰC SSO!</h2>";
-    });
-};
+        };
 
 
         async function loadConfig() {
