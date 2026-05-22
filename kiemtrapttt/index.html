@@ -252,7 +252,7 @@
         </div>
     </footer>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/keycloak-js@23.0.7/dist/keycloak.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/keycloak-js@latest/dist/keycloak.min.js"></script>
     <script>
         let currentConfig = {};
         const DEFAULT_RULE = { allowOverlap: false, minTime: 5, maxTime: 120 };
@@ -260,20 +260,20 @@
 
 // 1. Khai báo máy chủ Keycloak
 var keycloak = new Keycloak({
-    url: 'https://sso.bvphcndt.vn',
-    realm: 'BVPHCN',
-    clientId: 'app-rasoat_pttt' // Thay đúng tên Client ID bạn đã tạo ở Phần 1
-});
+            url: 'https://sso.bvphcndt.vn',
+            realm: 'BVPHCN',
+            clientId: 'app-rasoat_pttt' 
+        });
 
-// Ép buộc đăng nhập ngay khi mở trang
         window.onload = function() {
             keycloak.init({ 
                 onLoad: 'login-required',
                 checkLoginIframe: false,
-                pkceMethod: 'S256' // BẮT BUỘC THÊM: Chuẩn bảo mật Token mới nhất dành cho Web tĩnh
+                pkceMethod: 'S256',
+                responseMode: 'query' // THÊM DÒNG NÀY: Ép trả code qua đường dẫn an toàn
             }).then(function(authenticated) {
                 if (authenticated) {
-                    // Dọn dẹp cái đuôi #state=... loằng ngoằng trên URL cho đẹp và chuyên nghiệp
+                    // Xóa đuôi URL cho sạch sẽ
                     window.history.replaceState({}, document.title, window.location.pathname);
                     
                     console.log("Đã xác thực thành công qua SSO Bệnh viện!");
@@ -281,16 +281,13 @@ var keycloak = new Keycloak({
                         console.log("Xin chào: " + profile.firstName);
                     });
                     
-                    // Bắt đầu chạy App của bạn
                     loadConfig();
                 } else {
-                    // Tuyệt đối KHÔNG dùng window.location.reload() ở đây nữa để tránh kẹt vòng lặp
                     keycloak.login();
                 }
             }).catch(function(err) {
-                // In thẳng lỗi ra F12 để dễ bắt bệnh nếu còn vướng mắc
-                console.error("Chi tiết lỗi Token Keycloak:", err);
-                document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px; color:red;'>LỖI ĐỔI TOKEN SSO! (Vui lòng ấn F12 xem Console)</h2>";
+                console.error("Lỗi nội bộ Keycloak JS:", err);
+                document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px; color:red;'>LỖI ĐỔI TOKEN SSO! (Khả năng cao do sai giờ máy chủ)</h2>";
             });
         };
 
