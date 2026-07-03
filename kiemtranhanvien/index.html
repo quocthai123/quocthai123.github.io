@@ -121,7 +121,42 @@
         </div>
     </div>
 
+    <!-- Loading Overlay Modal -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl border border-slate-100 flex flex-col items-center text-center animate-fade-in">
+            <div class="relative w-20 h-20 mb-6 flex items-center justify-center">
+                <div class="absolute inset-0 rounded-full border-4 border-blue-100 animate-ping opacity-75"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
+                <div class="bg-blue-50 w-12 h-12 rounded-full flex items-center justify-center text-blue-600 shadow-inner">
+                    <i class="fas fa-stethoscope text-xl animate-pulse"></i>
+                </div>
+            </div>
+            
+            <h3 id="loadingTitle" class="text-lg font-bold text-slate-800 mb-2">Đang xử lý dữ liệu</h3>
+            <p id="loadingStatus" class="text-xs font-semibold text-blue-600 bg-blue-50 px-3.5 py-1.5 rounded-full mb-4 inline-flex items-center gap-2">
+                <i class="fas fa-circle-notch animate-spin text-[10px]"></i>
+                <span>Đang chuẩn bị...</span>
+            </p>
+            <p class="text-[11px] text-slate-400 leading-relaxed max-w-xs">Vui lòng đợi trong giây lát, hệ thống đang thực hiện kiểm tra và đối soát các danh mục theo quy định.</p>
+        </div>
+    </div>
+
     <script>
+        function showLoading(title, statusText) {
+            const overlay = document.getElementById('loadingOverlay');
+            document.getElementById('loadingTitle').innerText = title || "Đang xử lý dữ liệu";
+            document.querySelector('#loadingStatus span').innerText = statusText || "Đang thực hiện...";
+            overlay.classList.remove('hidden');
+        }
+
+        function updateLoading(statusText) {
+            document.querySelector('#loadingStatus span').innerText = statusText;
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
         // CẬP NHẬT CẤU TRÚC CỘT MỚI
         const COL = {
             NV_MA_KHOA: "MA_KHOA",
@@ -163,6 +198,9 @@
                 return;
             }
 
+            showLoading("Phân tích & Đối soát", "Đang nạp quy tắc chuẩn từ BHXH...");
+            await new Promise(r => setTimeout(r, 50));
+
             try {
                 const response = await fetch('mapping_bhxh.json');
                 let mapRulesDict = {};
@@ -176,10 +214,14 @@
                     });
                 }
 
+                updateLoading("Đang đọc & phân tích tệp Nhân viên (NV)...");
+                await new Promise(r => setTimeout(r, 50));
                 const dataNV = await readExcel(fileNV);
                 window.rawNVData = dataNV;
                 document.getElementById('statusIndicator').classList.remove('hidden');
                 
+                updateLoading("Đang đọc & đối soát tệp Khoa phòng (KP)...");
+                await new Promise(r => setTimeout(r, 50));
                 const dataKP = await readExcel(fileKP);
                 const mapKhoaPhong = {};
                 const validTenKhoaSet = new Set();
@@ -191,6 +233,9 @@
                         validTenKhoaSet.add(row[COL.KP_TEN_KHOA].toString().trim());
                     }
                 });
+
+                updateLoading(`Đang kiểm tra 11 quy tắc lỗi cho ${dataNV.length} nhân sự...`);
+                await new Promise(r => setTimeout(r, 50));
 
                 let errors = [];
                 let stt = 1;
@@ -321,9 +366,14 @@
                         errors.push({ stt: stt++, ma: ql.ma, ten: ql.ten, loai: "Lỗi Vị trí", chitiet: `Phát hiện ${listQuanLy.length} người chịu trách nhiệm chuyên môn (Đang khai báo mã Vị trí ${ql.goc}).`, goc: ql.goc });
                     });
                 }
+                
+                updateLoading("Đang tổng hợp & hiển thị báo cáo...");
+                await new Promise(r => setTimeout(r, 100));
                 renderResult(errors);
             } catch (e) {
                 alert("❌ Lỗi: " + e.message);
+            } finally {
+                hideLoading();
             }
         }
 
@@ -406,13 +456,17 @@
             fillTable(filtered);
         }
 
-        function exportToExcel() {
+        async function exportToExcel() {
             if (!window.rawNVData) {
                 alert("⚠️ Hãy chạy kiểm tra trước khi xuất!");
                 return;
             }
             
-            const mapViTri = {
+            showLoading("Xuất tệp báo cáo", "Đang chuẩn hóa danh mục & dịch mã...");
+            await new Promise(r => setTimeout(r, 50));
+
+            try {
+                const mapViTri = {
     "1": "người chịu trách nhiệm chuyên môn",
     "2": "Trưởng khoa/ Trưởng đơn nguyên/người phụ trách phòng khám chuyên khoa đối với cơ sở khám bệnh, chữa bệnh có hình thức tổ chức là phòng khám liên chuyên khoa",
     "3": "người chịu trách nhiệm chuyên môn kiêm Trưởng khoa",
@@ -486,10 +540,18 @@ const mapChucDanh = {
                 };
             });
 
-            const ws = XLSX.utils.json_to_sheet(exportData);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Báo cáo");
-            XLSX.writeFile(wb, "Bao_cao_Nhan_vien_Y_te.xlsx");
+                updateLoading("Đang đóng gói tệp Excel (XLSX)...");
+                await new Promise(r => setTimeout(r, 50));
+
+                const ws = XLSX.utils.json_to_sheet(exportData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Báo cáo");
+                XLSX.writeFile(wb, "Bao_cao_Nhan_vien_Y_te.xlsx");
+            } catch (e) {
+                alert("❌ Lỗi xuất file: " + e.message);
+            } finally {
+                hideLoading();
+            }
         }
     </script>
 </body>
