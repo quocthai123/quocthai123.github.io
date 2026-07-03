@@ -136,6 +136,7 @@
             NV_TUNGAY: "TU_NGAY", // Đã đổi từ TUNGAY
             NV_CDNN: "CHUCDANH_NN",
             NV_VI_TRI: "VI_TRI",
+            NV_DVKT_KHAC: "DVKT_KHAC",
             KP_MA_KHOA: "MA_KHOA",
             KP_TEN_KHOA: "TEN_KHOA"
         };
@@ -201,10 +202,12 @@
                     
                     const rawGioiTinh = nv[COL.NV_GIOI_TINH] ? nv[COL.NV_GIOI_TINH].toString().trim() : "";
                     const rawNgayCap = nv[COL.NV_NGAY_CAP_CCHN] ? nv[COL.NV_NGAY_CAP_CCHN].toString().trim() : "";
-                    const rawMaKhoa = nv[COL.NV_MA_KHOA] ? nv[COL.NV_MA_KHOA].toString().trim() : "";
+                    const origMaKhoa = nv[COL.NV_MA_KHOA] !== undefined && nv[COL.NV_MA_KHOA] !== null ? nv[COL.NV_MA_KHOA].toString() : "";
+                    const rawMaKhoa = origMaKhoa.trim();
                     const rawPhamVi = nv[COL.NV_PHAM_VI] ? nv[COL.NV_PHAM_VI].toString().trim() : "";
                     const rawChucDanh = nv[COL.NV_CDNN] ? nv[COL.NV_CDNN].toString().trim() : "";
                     const rawViTri = nv[COL.NV_VI_TRI] ? nv[COL.NV_VI_TRI].toString().trim() : "";
+                    const origDVKT = nv[COL.NV_DVKT_KHAC] !== undefined && nv[COL.NV_DVKT_KHAC] !== null ? nv[COL.NV_DVKT_KHAC].toString() : "";
 
                     // 1. CHECK REQUIRED (Bỏ qua CCHN nếu chức danh = 9)
                     let missingFields = [];
@@ -245,6 +248,9 @@
                     }
 
                     // Khoa Phong Logic
+                    if (origMaKhoa !== "" && /\s/.test(origMaKhoa)) {
+                        errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Sai Mã Khoa", chitiet: `Mã khoa bị thừa khoảng trắng (không được có khoảng trắng trước, sau hoặc sau dấu ;).`, goc: origMaKhoa });
+                    }
                     const listMaKhoa = splitAndTrim(rawMaKhoa);
                     listMaKhoa.forEach(ma => {
                         if (!mapKhoaPhong.hasOwnProperty(ma)) {
@@ -267,6 +273,23 @@
                             if (validScopeCount > 0 && !isTitleValid) {
                                 errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Sai Chức danh", chitiet: `Chức danh không khớp phạm vi chuyên môn.`, goc: rawChucDanh });
                             }
+                        }
+                    }
+                    
+                    // DVKT_KHAC Logic
+                    if (origDVKT.trim() !== "") {
+                        const listDVKT = origDVKT.split(';');
+                        const isInvalidLen = listDVKT.some(code => code.trim().length !== 7);
+                        const hasWhitespace = /\s/.test(origDVKT);
+                        if (isInvalidLen || hasWhitespace) {
+                            errors.push({ 
+                                stt: stt++, 
+                                ma: soDinhDanh, 
+                                ten: hoTen, 
+                                loai: "Lỗi Định dạng", 
+                                chitiet: `Cột DVKT_KHAC sai định dạng (mỗi mã phải đúng 7 ký tự, cách nhau bởi dấu ;, không được chứa khoảng trắng).`, 
+                                goc: origDVKT 
+                            });
                         }
                     }
                     
@@ -433,7 +456,7 @@ const mapChucDanh = {
                     "CHUCDANH_NN": chucDanhCode,
                     "TEN_VI_TRI": tenViTriXuat,
                     "MA_VI_TRI": viTriCode,
-                    "DVKT_KHAC": nv["DVKT_KHAC"] || "",
+                    "DVKT_KHAC": nv[COL.NV_DVKT_KHAC] || "",
                     "VB_PHANCONG": nv["VB_PHANCONG"] || "",
                     "THOIGIAN_LV": "07h30 đến 17h thứ 2,3,4,5,6,7,CN",
                     "THOIGIAN_DK": nv["THOIGIAN_DK"] || "",
