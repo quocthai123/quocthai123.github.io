@@ -94,7 +94,7 @@
                     <button onclick="filterTable('all')" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-xs font-semibold hover:bg-slate-900 transition-colors">Tất cả</button>
                     <button onclick="filterTable('Thiếu dữ liệu')" class="px-4 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-200 border border-red-200 transition-colors">Thiếu thông tin</button>
                     <button onclick="filterTable('Lỗi Định dạng')" class="px-4 py-2 bg-orange-100 text-orange-700 rounded-lg text-xs font-semibold hover:bg-orange-200 border border-orange-200 transition-colors">Lỗi Format</button>
-                    <button onclick="filterTable('Sai Mã Khoa')" class="px-4 py-2 bg-rose-100 text-rose-700 rounded-lg text-xs font-semibold hover:bg-rose-200 border border-rose-200 transition-colors">Sai Khoa</button>
+                    <button onclick="filterTable('Khoa')" class="px-4 py-2 bg-rose-100 text-rose-700 rounded-lg text-xs font-semibold hover:bg-rose-200 border border-rose-200 transition-colors">Sai Khoa</button>
                     <button onclick="filterTable('Sai Chức danh')" class="px-4 py-2 bg-amber-100 text-amber-700 rounded-lg text-xs font-semibold hover:bg-amber-200 border border-amber-200 transition-colors">Sai Chức danh</button>
                     <button onclick="filterTable('Lỗi Vị trí')" class="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold hover:bg-purple-200 border border-purple-200 transition-colors">Lỗi Vị trí</button>
                 </div>
@@ -182,9 +182,13 @@
                 
                 const dataKP = await readExcel(fileKP);
                 const mapKhoaPhong = {};
+                const validTenKhoaSet = new Set();
                 dataKP.forEach(row => {
                     if (row[COL.KP_MA_KHOA]) {
                         mapKhoaPhong[row[COL.KP_MA_KHOA].toString().trim()] = row[COL.KP_TEN_KHOA] || "";
+                    }
+                    if (row[COL.KP_TEN_KHOA]) {
+                        validTenKhoaSet.add(row[COL.KP_TEN_KHOA].toString().trim());
                     }
                 });
 
@@ -204,6 +208,8 @@
                     const rawNgayCap = nv[COL.NV_NGAY_CAP_CCHN] ? nv[COL.NV_NGAY_CAP_CCHN].toString().trim() : "";
                     const origMaKhoa = nv[COL.NV_MA_KHOA] !== undefined && nv[COL.NV_MA_KHOA] !== null ? nv[COL.NV_MA_KHOA].toString() : "";
                     const rawMaKhoa = origMaKhoa.trim();
+                    const origTenKhoa = nv[COL.NV_TEN_KHOA] !== undefined && nv[COL.NV_TEN_KHOA] !== null ? nv[COL.NV_TEN_KHOA].toString() : "";
+                    const rawTenKhoa = origTenKhoa.trim();
                     const rawPhamVi = nv[COL.NV_PHAM_VI] ? nv[COL.NV_PHAM_VI].toString().trim() : "";
                     const rawChucDanh = nv[COL.NV_CDNN] ? nv[COL.NV_CDNN].toString().trim() : "";
                     const rawViTri = nv[COL.NV_VI_TRI] ? nv[COL.NV_VI_TRI].toString().trim() : "";
@@ -255,6 +261,16 @@
                     listMaKhoa.forEach(ma => {
                         if (!mapKhoaPhong.hasOwnProperty(ma)) {
                             errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Sai Mã Khoa", chitiet: `Mã khoa '${ma}' không có trong DM.`, goc: rawMaKhoa });
+                        }
+                    });
+
+                    if (origTenKhoa !== "" && (origTenKhoa !== origTenKhoa.trim() || origTenKhoa.includes("; ") || origTenKhoa.includes(" ;") || /\s{2,}/.test(origTenKhoa))) {
+                        errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Sai Tên Khoa", chitiet: `Tên khoa bị thừa khoảng trắng (không được có khoảng trắng trước, sau hoặc sau dấu ;).`, goc: origTenKhoa });
+                    }
+                    const listTenKhoa = splitAndTrim(rawTenKhoa);
+                    listTenKhoa.forEach(ten => {
+                        if (!validTenKhoaSet.has(ten)) {
+                            errors.push({ stt: stt++, ma: soDinhDanh, ten: hoTen, loai: "Sai Tên Khoa", chitiet: `Tên khoa '${ten}' không có trong DM.`, goc: rawTenKhoa });
                         }
                     });
 
