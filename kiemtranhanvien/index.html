@@ -340,15 +340,24 @@
                     // DVKT_KHAC Logic
                     if (origDVKT.trim() !== "") {
                         const listDVKT = origDVKT.split(';');
-                        const isInvalidLen = listDVKT.some(code => code.trim().length !== 7);
-                        const hasWhitespace = /\s/.test(origDVKT);
-                        if (isInvalidLen || hasWhitespace) {
+                        const invalidCodes = [];
+                        listDVKT.forEach((code) => {
+                            if (code === "") {
+                                invalidCodes.push(`[trống/dấu ; thừa]`);
+                            } else if (/\s/.test(code)) {
+                                invalidCodes.push(`'${code}' (có khoảng trắng)`);
+                            } else if (code.length !== 7) {
+                                invalidCodes.push(`'${code}' (${code.length} ký tự)`);
+                            }
+                        });
+                        if (invalidCodes.length > 0) {
+                            const displayErrors = invalidCodes.slice(0, 8).join(', ') + (invalidCodes.length > 8 ? `... (+${invalidCodes.length - 8} mã khác)` : '');
                             errors.push({ 
                                 stt: stt++, 
                                 ma: soDinhDanh, 
                                 ten: hoTen, 
                                 loai: "Lỗi Định dạng", 
-                                chitiet: `Cột DVKT_KHAC sai định dạng (mỗi mã phải đúng 7 ký tự, cách nhau bởi dấu ;, không được chứa khoảng trắng).`, 
+                                chitiet: `Cột DVKT_KHAC sai định dạng tại: ${displayErrors} (yêu cầu mỗi mã đúng 7 ký tự, không có khoảng trắng).`, 
                                 goc: origDVKT 
                             });
                         }
