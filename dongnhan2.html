@@ -23,11 +23,11 @@
         .btn-print:hover { background-color: #218838; }
         .loading { text-align: center; font-style: italic; color: #666; }
 
-        /* ================= CSS CHO BẢN IN KHỔ A4 ĐỨNG, CHỪA LỀ RỘNG ================= */
+        /* ================= CSS CHO BẢN IN ================= */
         @media print {
             @page {
                 size: A4 portrait; /* Khổ A4 đứng chuẩn */
-                margin: 20mm; /* Chừa lề rộng 2cm bốn xung quanh để không bị mất dữ liệu */
+                margin: 15mm 10mm; /* Lề trên/dưới 1.5cm, lề trái/phải 1cm để mở rộng không gian */
             }
             
             * {
@@ -41,7 +41,7 @@
                 padding: 0; 
                 margin: 0; 
                 font-family: "Times New Roman", Times, serif; 
-                font-size: 13pt; /* Cỡ chữ cân đối trên khổ A4 */
+                font-size: 12pt; /* Giảm cỡ chữ 1 chút để thanh thoát hơn trên A4 */
             }
             
             .print-container { 
@@ -64,7 +64,7 @@
             .content-table { width: 100%; border-collapse: collapse; margin-top: 15px; table-layout: fixed; }
             .content-table th, .content-table td { 
                 border: 1px solid #000; 
-                padding: 8px; 
+                padding: 8px 5px; 
                 vertical-align: top; 
                 word-wrap: break-word; 
             }
@@ -131,9 +131,10 @@
 
         <table class="patient-info">
             <tr>
-                <td style="width: 45%;">Họ và tên: <b id="pr_name"></b></td>
-                <td style="width: 25%;">Tuổi: <span id="pr_age"></span> tuổi</td>
-                <td style="width: 30%;">Giới tính: <span id="pr_gender"></span></td>
+                <!-- Tăng độ rộng cột Họ Tên để không bị rớt dòng -->
+                <td style="width: 55%;">Họ và tên: <b id="pr_name"></b></td>
+                <td style="width: 20%;">Tuổi: <span id="pr_age"></span> tuổi</td>
+                <td style="width: 25%;">Giới tính: <span id="pr_gender"></span></td>
             </tr>
             <tr>
                 <td colspan="3">Số thẻ BHYT: <span id="pr_bhyt"></span></td>
@@ -148,11 +149,12 @@
         <table class="content-table">
             <thead>
                 <tr>
-                    <th style="width: 12%;">Ngày</th>
-                    <th style="width: 10%;">Giờ,<br>phút</th>
-                    <th style="width: 33%;">Theo dõi diễn biến</th>
-                    <th style="width: 32%;">Thực hiện y lệnh/ chăm sóc</th>
-                    <th style="width: 13%;">Ký tên</th>
+                    <!-- Cân đối lại Tỷ lệ các cột để vừa đẹp -->
+                    <th style="width: 13%;">Ngày</th>
+                    <th style="width: 9%;">Giờ,<br>phút</th>
+                    <th style="width: 30%;">Theo dõi diễn biến</th>
+                    <th style="width: 30%;">Thực hiện y lệnh/ chăm sóc</th>
+                    <th style="width: 18%;">Ký tên</th>
                 </tr>
             </thead>
             <tbody>
