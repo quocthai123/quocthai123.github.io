@@ -23,15 +23,15 @@
         .btn-print:hover { background-color: #218838; }
         .loading { text-align: center; font-style: italic; color: #666; }
 
-        /* ================= CSS CHO BẢN IN KHỔ A5 ================= */
+        /* ================= CSS CHO BẢN IN KHỔ A4 ĐỨNG, CHỪA LỀ RỘNG ================= */
         @media print {
             @page {
-                size: A5; /* Đặt khổ giấy A5 */
-                margin: 10mm; /* Căn lề 1cm mỗi bên */
+                size: A4 portrait; /* Khổ A4 đứng chuẩn */
+                margin: 20mm; /* Chừa lề rộng 2cm bốn xung quanh để không bị mất dữ liệu */
             }
             
             * {
-                box-sizing: border-box; /* Bắt buộc để viền bảng không bị tràn ra ngoài */
+                box-sizing: border-box; 
             }
 
             .screen-only { display: none !important; }
@@ -41,7 +41,7 @@
                 padding: 0; 
                 margin: 0; 
                 font-family: "Times New Roman", Times, serif; 
-                font-size: 11pt; /* Giảm font chữ cho vừa A5 */
+                font-size: 13pt; /* Cỡ chữ cân đối trên khổ A4 */
             }
             
             .print-container { 
@@ -49,29 +49,29 @@
                 display: block !important; 
             }
             
-            .header-table { width: 100%; border: none; margin-bottom: 15px; }
+            .header-table { width: 100%; border: none; margin-bottom: 20px; }
             .header-table td { border: none; padding: 0; vertical-align: top; }
             .header-left { font-weight: bold; text-align: left; width: 60%; }
             .header-right { text-align: left; width: 40%; }
             
-            .title { text-align: center; margin: 15px 0; }
-            .title h1 { margin: 0; font-size: 14pt; font-weight: bold; }
-            .title p { margin: 5px 0; font-size: 11pt; }
+            .title { text-align: center; margin: 20px 0; }
+            .title h1 { margin: 0; font-size: 16pt; font-weight: bold; }
+            .title p { margin: 5px 0; font-size: 13pt; }
             
-            .patient-info { width: 100%; border: none; margin-bottom: 10px; line-height: 1.5; table-layout: fixed; }
-            .patient-info td { border: none; padding: 2px 0; vertical-align: top; word-wrap: break-word; }
+            .patient-info { width: 100%; border: none; margin-bottom: 15px; line-height: 1.6; table-layout: fixed; }
+            .patient-info td { border: none; padding: 3px 0; vertical-align: top; word-wrap: break-word; }
             
-            .content-table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
+            .content-table { width: 100%; border-collapse: collapse; margin-top: 15px; table-layout: fixed; }
             .content-table th, .content-table td { 
                 border: 1px solid #000; 
-                padding: 5px; 
+                padding: 8px; 
                 vertical-align: top; 
-                word-wrap: break-word; /* Ép chữ dài phải xuống dòng */
+                word-wrap: break-word; 
             }
             .content-table th { font-weight: bold; text-align: center; }
             
             /* Căn dưới cho chữ ký */
-            .sign-cell { height: 90px; position: relative; text-align: center; vertical-align: bottom !important; font-weight: bold; padding-bottom: 5px !important;}
+            .sign-cell { height: 110px; position: relative; text-align: center; vertical-align: bottom !important; font-weight: bold; padding-bottom: 8px !important;}
         }
         
         .print-container { display: none; }
@@ -131,9 +131,9 @@
 
         <table class="patient-info">
             <tr>
-                <td style="width: 50%;">Họ và tên: <b id="pr_name"></b></td>
+                <td style="width: 45%;">Họ và tên: <b id="pr_name"></b></td>
                 <td style="width: 25%;">Tuổi: <span id="pr_age"></span> tuổi</td>
-                <td style="width: 25%;">Giới tính: <span id="pr_gender"></span></td>
+                <td style="width: 30%;">Giới tính: <span id="pr_gender"></span></td>
             </tr>
             <tr>
                 <td colspan="3">Số thẻ BHYT: <span id="pr_bhyt"></span></td>
@@ -150,9 +150,9 @@
                 <tr>
                     <th style="width: 12%;">Ngày</th>
                     <th style="width: 10%;">Giờ,<br>phút</th>
-                    <th style="width: 32%;">Theo dõi diễn biến</th>
-                    <th style="width: 31%;">Thực hiện y lệnh/ chăm sóc</th>
-                    <th style="width: 15%;">Ký tên</th>
+                    <th style="width: 33%;">Theo dõi diễn biến</th>
+                    <th style="width: 32%;">Thực hiện y lệnh/ chăm sóc</th>
+                    <th style="width: 13%;">Ký tên</th>
                 </tr>
             </thead>
             <tbody>
