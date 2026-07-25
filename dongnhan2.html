@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>In Phiếu Chăm Sóc</title>
+    <!-- Thư viện PapaParse dùng để đọc dữ liệu CSV từ Google Sheets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        /* ================= CSS CHO GIAO DIỆN MÀN HÌNH (KHÔNG IN) ================= */
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .app-container { max-width: 1200px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; }
+        .control-panel { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; justify-content: center;}
+        .control-panel input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 250px; }
+        .control-panel button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .control-panel button:hover { background-color: #0056b3; }
+        
+        table.data-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        table.data-table th, table.data-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        table.data-table th { background-color: #007bff; color: white; }
+        .btn-print { background-color: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+        .btn-print:hover { background-color: #218838; }
+        .loading { text-align: center; font-style: italic; color: #666; }
+
+        /* ================= CSS CHO BẢN IN (KHI BẤM IN TRÌNH DUYỆT SẼ DÙNG CSS NÀY) ================= */
+        @media print {
+            .screen-only { display: none !important; }
+            body { background-color: #fff; padding: 0; margin: 0; font-family: "Times New Roman", Times, serif; font-size: 14pt; }
+            .print-container { width: 100%; display: block !important; padding: 20px; }
+            
+            .header-table { width: 100%; border: none; margin-bottom: 20px; }
+            .header-table td { border: none; padding: 2px; vertical-align: top; }
+            .header-left { font-weight: bold; text-align: left; }
+            .header-right { text-align: left; padding-left: 50px !important; }
+            
+            .title { text-align: center; margin: 20px 0; }
+            .title h1 { margin: 0; font-size: 18pt; font-weight: bold; }
+            .title p { margin: 5px 0; font-size: 14pt; }
+            
+            .patient-info { width: 100%; border: none; margin-bottom: 10px; line-height: 1.6; }
+            .patient-info td { border: none; padding: 2px; vertical-align: top;}
+            
+            .content-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+            .content-table th, .content-table td { border: 1px solid #000; padding: 8px; vertical-align: top; }
+            .content-table th { font-weight: bold; text-align: center; }
+            
+            /* Căn dưới cho chữ ký */
+            .sign-cell { height: 120px; position: relative; text-align: center; vertical-align: bottom !important; font-weight: bold; padding-bottom: 10px !important;}
+        }
+        
+        .print-container { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- GIAO DIỆN TRANG WEB -->
+    <div class="app-container screen-only">
+        <h2>HỆ THỐNG IN PHIẾU CHĂM SÓC</h2>
+        
+        <div class="control-panel">
+            <input type="text" id="searchName" placeholder="Nhập tên bệnh nhân...">
+            <input type="text" id="searchDate" placeholder="Ngày ra (VD: 01/04/2026)">
+            <button onclick="renderTable()">Tìm kiếm</button>
+            <button onclick="loadData()" style="background-color: #17a2b8;">Tải lại dữ liệu</button>
+        </div>
+
+        <div id="loadingMessage" class="loading">Đang tải dữ liệu từ Google Sheets, vui lòng đợi...</div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Họ và tên</th>
+                    <th>Năm sinh</th>
+                    <th>Ngày ra</th>
+                    <th>Chẩn đoán</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody id="dataTableBody">
+                <!-- Dữ liệu sẽ được render vào đây -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- MẪU BẢN IN (BỊ ẨN ĐI TRÊN MÀN HÌNH) -->
+    <div class="print-container" id="printSection">
+        <table class="header-table">
+            <tr>
+                <td class="header-left">
+                    Sở Y Tế Đà Nẵng<br>
+                    PHÒNG KHÁM ĐA KHOA ĐÔNG NHÂN
+                </td>
+                <td class="header-right">
+                    MS: 09/BV-01<br>
+                    Số vào viện:
+                </td>
+            </tr>
+        </table>
+
+        <div class="title">
+            <h1>PHIẾU CHĂM SÓC</h1>
+            <p>Số: 1</p>
+        </div>
+
+        <table class="patient-info">
+            <tr>
+                <td style="width: 50%;">Họ và tên: <b id="pr_name"></b></td>
+                <td style="width: 25%;">Tuổi: <span id="pr_age"></span> tuổi</td>
+                <td style="width: 25%;">Giới tính: <span id="pr_gender"></span></td>
+            </tr>
+            <tr>
+                <td colspan="3">Số thẻ BHYT: <span id="pr_bhyt"></span></td>
+            </tr>
+            <tr>
+                <td style="width: 40%;">Khoa: Răng hàm mặt &nbsp;&nbsp;&nbsp;&nbsp; Buồng:</td>
+                <td style="width: 20%;">Giường:</td>
+                <td style="width: 40%;">Chẩn đoán: <span id="pr_diagnose"></span></td>
+            </tr>
+        </table>
+
+        <table class="content-table">
+            <thead>
+                <tr>
+                    <th style="width: 10%;">Ngày</th>
+                    <th style="width: 10%;">Giờ,<br>phút</th>
+                    <th style="width: 30%;">Theo dõi diễn biến</th>
+                    <th style="width: 35%;">Thực hiện y lệnh/ chăm sóc</th>
+                    <th style="width: 15%;">Ký tên</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="pr_date" style="text-align: center;"></td>
+                    <td id="pr_time" style="text-align: center;"></td>
+                    <td>
+                        - Sinh hiệu ổn<br>
+                        - Niêm mạc hồng<br>
+                        - Bệnh nhân giảm đau.
+                    </td>
+                    <td>
+                        - Dùng thuốc theo đơn<br>
+                        - Hướng dẫn bệnh nhân vệ sinh răng miệng.
+                    </td>
+                    <td class="sign-cell" id="pr_signer">
+                        <!-- Tên người ký sẽ được chèn vào góc dưới ô này -->
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- MÃ XỬ LÝ DỮ LIỆU & LOGIC -->
+    <script>
+        // Link CSV từ Google Sheet (Thay thế /edit bằng /gviz/tq?tqx=out:csv)
+        const sheetID = '14JsW998T3KjchRtNtz7xP8RAReRUvWW3ukwA9hziRHk';
+        const csvURL = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:csv`;
+        
+        let globalData = [];
+
+        // Tải dữ liệu khi vừa mở trang
+        window.onload = function() {
+            loadData();
+        };
+
+        function loadData() {
+            document.getElementById('loadingMessage').style.display = 'block';
+            document.getElementById('dataTableBody').innerHTML = '';
+            
+            Papa.parse(csvURL, {
+                download: true,
+                header: true, // Lấy dòng đầu tiên làm key
+                skipEmptyLines: true,
+                complete: function(results) {
+                    globalData = results.data;
+                    document.getElementById('loadingMessage').style.display = 'none';
+                    renderTable();
+                },
+                error: function(err) {
+                    alert("Lỗi khi tải dữ liệu từ Google Sheets: " + err);
+                    document.getElementById('loadingMessage').innerText = "Không thể tải dữ liệu.";
+                }
+            });
+        }
+
+        // Render dữ liệu ra bảng trên màn hình
+        function renderTable() {
+            const tbody = document.getElementById('dataTableBody');
+            tbody.innerHTML = '';
+            
+            const searchName = document.getElementById('searchName').value.toLowerCase().trim();
+            const searchDate = document.getElementById('searchDate').value.trim();
+
+            let stt = 1;
+            globalData.forEach((row, index) => {
+                const hoTen = (row['Họ tên người bệnh'] || '').toLowerCase();
+                const ngayRaRaw = row['Ngày ra'] || '';
+                
+                // Lọc dữ liệu
+                if (searchName && !hoTen.includes(searchName)) return;
+                if (searchDate && !ngayRaRaw.includes(searchDate)) return;
+                
+                // Chỉ hiển thị nếu có tên bệnh nhân
+                if (!hoTen) return;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${stt++}</td>
+                    <td><b>${row['Họ tên người bệnh'] || ''}</b></td>
+                    <td>${row['Năm sinh'] || ''}</td>
+                    <td>${ngayRaRaw}</td>
+                    <td>${row['Chẩn đoán'] || ''}</td>
+                    <td>
+                        <button class="btn-print" onclick="printPhieu(${index})">In Phiếu</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Logic điền template bản in và gọi lệnh In
+        function printPhieu(index) {
+            const row = globalData[index];
+            
+            // 1. Họ và tên
+            document.getElementById('pr_name').innerText = row['Họ tên người bệnh'] || '';
+            
+            // 2. Tuổi = 2026 - Năm sinh
+            const namSinh = parseInt(row['Năm sinh']) || 2026;
+            document.getElementById('pr_age').innerText = 2026 - namSinh;
+            
+            // 3. Giới tính
+            document.getElementById('pr_gender').innerText = row['Giới tính'] || '';
+            
+            // 4. BHYT
+            document.getElementById('pr_bhyt').innerText = row['SỐ BHYT'] || '';
+            
+            // 5. Chẩn đoán
+            document.getElementById('pr_diagnose').innerText = row['Chẩn đoán'] || '';
+            
+            // 6. Xử lý "Ngày ra" tách thành Ngày và (Giờ, phút - 3->7 phút)
+            const ngayRaRaw = row['Ngày ra'] || '';
+            let datePart = '';
+            let timePart = '';
+            
+            // Thường Google Sheet sẽ xuất ra định dạng "08:48 01/04/2026"
+            const parts = ngayRaRaw.split(' ');
+            if (parts.length >= 2) {
+                timePart = parts[0]; 
+                datePart = parts[1];
+                
+                // Trừ ngẫu nhiên từ 3 đến 7 phút
+                const [hStr, mStr] = timePart.split(':');
+                if (hStr && mStr) {
+                    let dObj = new Date();
+                    dObj.setHours(parseInt(hStr));
+                    dObj.setMinutes(parseInt(mStr));
+                    
+                    const randomMinus = Math.floor(Math.random() * 5) + 3; // Lấy ngẫu nhiên 3 -> 7
+                    dObj.setMinutes(dObj.getMinutes() - randomMinus);
+                    
+                    const newH = dObj.getHours().toString().padStart(2, '0');
+                    const newM = dObj.getMinutes().toString().padStart(2, '0');
+                    timePart = `${newH}:${newM}`;
+                }
+            } else {
+                datePart = ngayRaRaw; 
+            }
+            
+            document.getElementById('pr_date').innerText = datePart;
+            document.getElementById('pr_time').innerText = timePart;
+            
+            // 7. Người thực hiện 1 (Căn dưới cùng)
+            const nguoiTH = row['Người thực hiện 1'] || '';
+            document.getElementById('pr_signer').innerText = nguoiTH;
+
+            // Gọi lệnh in của trình duyệt
+            window.print();
+        }
+    </script>
+</body>
+</html>
