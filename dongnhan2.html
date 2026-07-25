@@ -27,7 +27,7 @@
         @media print {
             @page {
                 size: A4 portrait; /* Khổ A4 đứng chuẩn */
-                margin: 15mm 10mm; /* Lề trên/dưới 1.5cm, lề trái/phải 1cm để mở rộng không gian */
+                margin: 15mm 10mm; /* Lề trên/dưới 1.5cm, lề trái/phải 1cm */
             }
             
             * {
@@ -41,7 +41,7 @@
                 padding: 0; 
                 margin: 0; 
                 font-family: "Times New Roman", Times, serif; 
-                font-size: 12pt; /* Giảm cỡ chữ 1 chút để thanh thoát hơn trên A4 */
+                font-size: 12pt; 
             }
             
             .print-container { 
@@ -131,25 +131,27 @@
 
         <table class="patient-info">
             <tr>
-                <!-- Tăng độ rộng cột Họ Tên để không bị rớt dòng -->
-                <td style="width: 55%;">Họ và tên: <b id="pr_name"></b></td>
-                <td style="width: 20%;">Tuổi: <span id="pr_age"></span> tuổi</td>
+                <td style="width: 50%;">Họ và tên: <b id="pr_name"></b></td>
+                <td style="width: 25%;">Tuổi: <span id="pr_age"></span> tuổi</td>
                 <td style="width: 25%;">Giới tính: <span id="pr_gender"></span></td>
             </tr>
             <tr>
                 <td colspan="3">Số thẻ BHYT: <span id="pr_bhyt"></span></td>
             </tr>
             <tr>
-                <td style="width: 45%;">Khoa: Răng hàm mặt &nbsp;&nbsp;&nbsp;&nbsp; Buồng:</td>
-                <td style="width: 15%;">Giường:</td>
-                <td style="width: 40%;">Chẩn đoán: <span id="pr_diagnose"></span></td>
+                <td>Khoa: Răng hàm mặt</td>
+                <td>Buồng:</td>
+                <td>Giường:</td>
+            </tr>
+            <!-- Tách Chẩn đoán xuống một dòng riêng biệt, dùng colspan="3" để chiếm full chiều ngang -->
+            <tr>
+                <td colspan="3" style="padding-top: 5px;">Chẩn đoán: <span id="pr_diagnose"></span></td>
             </tr>
         </table>
 
         <table class="content-table">
             <thead>
                 <tr>
-                    <!-- Cân đối lại Tỷ lệ các cột để vừa đẹp -->
                     <th style="width: 13%;">Ngày</th>
                     <th style="width: 9%;">Giờ,<br>phút</th>
                     <th style="width: 30%;">Theo dõi diễn biến</th>
