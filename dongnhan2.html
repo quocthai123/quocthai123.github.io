@@ -252,30 +252,38 @@
             document.getElementById('pr_bhyt').innerText = row['SỐ BHYT'] || '';
             document.getElementById('pr_diagnose').innerText = row['Chẩn đoán'] || '';
             
+            // 1. Lấy Ngày ra
             const ngayRaRaw = row['Ngày ra'] || '';
             let datePart = '';
+            const partsNgayRa = ngayRaRaw.split(' ');
+            if (partsNgayRa.length >= 2) {
+                datePart = partsNgayRa[1];
+            } else {
+                datePart = ngayRaRaw; 
+            }
+            
+            // 2. Lấy Giờ từ cột "TC Bắt đầu" và cộng 50->70 phút
+            const tcBatDauRaw = row['TC Bắt đầu'] || '';
             let timePart = '';
             
-            const parts = ngayRaRaw.split(' ');
-            if (parts.length >= 2) {
-                timePart = parts[0]; 
-                datePart = parts[1];
+            if (tcBatDauRaw) {
+                const partsBatDau = tcBatDauRaw.split(' ');
+                const timeStr = partsBatDau[0]; // Giả định chuỗi dạng "07:43 01/04/2026"
+                const [hStr, mStr] = timeStr.split(':');
                 
-                const [hStr, mStr] = timePart.split(':');
-                if (hStr && mStr) {
+                if (hStr !== undefined && mStr !== undefined) {
                     let dObj = new Date();
-                    dObj.setHours(parseInt(hStr));
-                    dObj.setMinutes(parseInt(mStr));
+                    dObj.setHours(parseInt(hStr, 10));
+                    dObj.setMinutes(parseInt(mStr, 10));
                     
-                    const randomMinus = Math.floor(Math.random() * 5) + 3; 
-                    dObj.setMinutes(dObj.getMinutes() - randomMinus);
+                    // Tạo số phút ngẫu nhiên từ 50 đến 70
+                    const randomAddMinutes = Math.floor(Math.random() * 21) + 50; 
+                    dObj.setMinutes(dObj.getMinutes() + randomAddMinutes);
                     
                     const newH = dObj.getHours().toString().padStart(2, '0');
                     const newM = dObj.getMinutes().toString().padStart(2, '0');
                     timePart = `${newH}:${newM}`;
                 }
-            } else {
-                datePart = ngayRaRaw; 
             }
             
             document.getElementById('pr_date').innerText = datePart;
