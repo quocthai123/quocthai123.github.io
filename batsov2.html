@@ -660,9 +660,10 @@
             <p style="font-size: 13px; color: #64748b; margin: 5px 0;">
                 Dán chuỗi dữ liệu mã QR CCCD (chuẩn Bộ Công An gồm 7 trường phân tách bằng dấu <code>|</code>) hoặc chọn mẫu bên dưới:
             </p>
-            <div style="margin-bottom: 8px;">
+            <div style="margin-bottom: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
                 <button class="btn-tool" onclick="setSampleCCCD(1)">Mẫu 1: Nguyễn Văn An</button>
                 <button class="btn-tool" onclick="setSampleCCCD(2)">Mẫu 2: Trần Thị Mai</button>
+                <button class="btn-tool" onclick="setSampleCCCD(3)" style="color: #0056b3; font-weight: bold;">Mẫu 3: Lê Quốc Thái (Mã máy Zebra)</button>
             </div>
             <textarea class="test-input" id="test-cccd-input" placeholder="Ví dụ: 087098001234|334657890|NGUYỄN VĂN AN|15081995|Nam|Số 123 Nguyễn Huệ, P.1, TP Cao Lãnh, Đồng Tháp|25052021"></textarea>
             <div style="display: flex; justify-content: flex-end; gap: 10px;">
@@ -771,22 +772,77 @@
         }
 
         /* ==========================================================
-           BỘ TỰ ĐỘNG GIẢI MÃ TIẾNG VIỆT TỪ MÁY QUÉT ZEBRA (ALT-NUMPAD)
-           Giải mã các cụm byte 01950170, 022501870145... thành
-           ký tự tiếng Việt chuẩn có dấu (LÊ QUỐC THÁI, Đồng Tháp...)
+           BỘ TỰ ĐỘNG GIẢI MÃ TIẾNG VIỆT TỪ MÁY QUÉT ZEBRA USB
+           Hỗ trợ 100% cả 2 dạng dữ liệu phát ra từ máy quét Zebra:
+           1. Chế độ Alt-Numpad: Dãy số decimal (01950170, 022501870145...)
+           2. Chế độ Windows-1252 / ISO-8859-1 (Mojibake):
+              LÃª Quá»‘c ThÃ¡i -> Lê Quốc Thái
+              Tá»• 1, áº¤p Tá»‹nh Ä□Ã´ng... -> Tổ 1, Ấp Tịnh Đông...
+           Tự động chuyển đổi về Tiếng Việt Unicode UTF-8 chuẩn có dấu.
            ========================================================== */
-        function decodeAltNumpadUTF8(text) {
+        const CP1252_SPECIAL_MAP = {
+            0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84,
+            0x2026: 0x85, 0x2020: 0x86, 0x2021: 0x87, 0x02C6: 0x88,
+            0x2030: 0x89, 0x0160: 0x8A, 0x2039: 0x8B, 0x0152: 0x8C,
+            0x017D: 0x8E, 0x2018: 0x91, 0x2019: 0x92, 0x201C: 0x93,
+            0x201D: 0x94, 0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97,
+            0x02DC: 0x98, 0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B,
+            0x0153: 0x9C, 0x017E: 0x9E, 0x0178: 0x9F
+        };
+
+        function fixVietnameseText(text) {
             if (!text || typeof text !== 'string') return text;
-            return text.replace(/(?:0[12]\d{2})+/g, function(match) {
+
+            // 1. Phục hồi từ dãy số Alt-Numpad (01950170, 022501870145...)
+            if (/(?:0[12]\d{2})+/.test(text)) {
+                text = text.replace(/(?:0[12]\d{2})+/g, function(match) {
+                    try {
+                        const chunks = match.match(/0[12]\d{2}/g);
+                        if (!chunks) return match;
+                        const bytes = new Uint8Array(chunks.map(c => parseInt(c, 10)));
+                        return new TextDecoder('utf-8').decode(bytes);
+                    } catch (e) {
+                        return match;
+                    }
+                });
+            }
+
+            // 2. Nhận diện và phục hồi lỗi bảng mã Windows-1252 / ISO-8859-1 (Mojibake)
+            // Nhận dạng các cặp byte đặc trưng của tiếng Việt bị lỗi mã hóa:
+            const hasMojibake = /Ã[\u0080-\u00FF]|Ä|áº|á»|Â[\u0080-\u00FF]|[\uFFFD\u25A1\u25A0]/.test(text);
+            if (hasMojibake) {
+                // Xử lý ký tự 'Đ' (0xC4 0x90) và 'đ' (0xC4 0x91):
+                // Do byte 0x90 không nằm trong Win1252 chuẩn, máy quét thường xuất ra:
+                // Ä□, Ä?, Ä kèm ký tự vô hình, hoặc Ä đứng trước nguyên âm (ÄÃ´ng -> Đông)
+                let cleaned = text.replace(/Ä[\uFFFD\u25A1\u25A0\?]|Ä(?=[\s\u00C0-\u00FF])/g, '\xC4\x90');
+                cleaned = cleaned.replace(/Ä\u2018/g, '\xC4\x91'); // đ
+                cleaned = cleaned.replace(/Ä(?=[Ãáâêôù])/g, '\xC4\x90');
+
                 try {
-                    const chunks = match.match(/0[12]\d{2}/g);
-                    if (!chunks) return match;
-                    const bytes = new Uint8Array(chunks.map(c => parseInt(c, 10)));
-                    return new TextDecoder('utf-8').decode(bytes);
-                } catch (e) {
-                    return match;
+                    const bytes = [];
+                    for (let i = 0; i < cleaned.length; i++) {
+                        const code = cleaned.charCodeAt(i);
+                        if (CP1252_SPECIAL_MAP[code] !== undefined) {
+                            bytes.push(CP1252_SPECIAL_MAP[code]);
+                        } else if (code <= 0xFF) {
+                            bytes.push(code);
+                        } else if (code === 0xFFFD || code === 0x25A1 || code === 0x25A0) {
+                            bytes.push(0x90);
+                        } else {
+                            const utfBytes = new TextEncoder().encode(cleaned[i]);
+                            for (let b of utfBytes) bytes.push(b);
+                        }
+                    }
+                    const decoded = new TextDecoder('utf-8', { fatal: false }).decode(new Uint8Array(bytes));
+                    if (decoded && decoded.length > 0) {
+                        text = decoded;
+                    }
+                } catch (err) {
+                    console.warn("Lỗi giải mã Mojibake:", err);
                 }
-            });
+            }
+
+            return text;
         }
 
         /* ==========================================================
@@ -803,10 +859,10 @@
             if (parts.length >= 6) {
                 const cccd = parts[0].trim();
                 const cmnd = parts[1].trim();
-                const hoTen = decodeAltNumpadUTF8(parts[2].trim());
+                const hoTen = fixVietnameseText(parts[2].trim());
                 const rawDob = parts[3].trim();
-                const gioiTinh = parts[4].trim();
-                const diaChi = decodeAltNumpadUTF8(parts[5].trim());
+                const gioiTinh = fixVietnameseText(parts[4].trim());
+                const diaChi = fixVietnameseText(parts[5].trim());
                 const rawNgayCap = parts[6] ? parts[6].trim() : '';
 
                 // Format ngày sinh ddMMyyyy -> dd/MM/yyyy
@@ -1057,7 +1113,8 @@
            ========================================================== */
         const sampleCCCDs = {
             1: "087098001234|334657890|NGUYỄN VĂN AN|15081995|Nam|Số 123 Nguyễn Huệ, Phường 1, TP Cao Lãnh, Tỉnh Đồng Tháp|25052021",
-            2: "087199005678||TRẦN THỊ MAI|02032000|Nữ|Ấp Bình Hòa, Xã Mỹ Hội, Huyện Cao Lãnh, Tỉnh Đồng Tháp|12102022"
+            2: "087199005678||TRẦN THỊ MAI|02032000|Nữ|Ấp Bình Hòa, Xã Mỹ Hội, Huyện Cao Lãnh, Tỉnh Đồng Tháp|12102022",
+            3: "087097013089|341884923|LÃª Quá»‘c ThÃ¡i|08071997|Nam|Tá»• 1, áº¤p Tá»‹nh Ä\uFFFDÃ´ng, Tá»‹nh Thá»›i, Cao LÃ£nh, Ä\uFFFDá»“ng ThÃ¡p|28122021"
         };
 
         function openTestModal() {
