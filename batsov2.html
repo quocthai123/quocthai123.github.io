@@ -771,6 +771,25 @@
         }
 
         /* ==========================================================
+           BỘ TỰ ĐỘNG GIẢI MÃ TIẾNG VIỆT TỪ MÁY QUÉT ZEBRA (ALT-NUMPAD)
+           Giải mã các cụm byte 01950170, 022501870145... thành
+           ký tự tiếng Việt chuẩn có dấu (LÊ QUỐC THÁI, Đồng Tháp...)
+           ========================================================== */
+        function decodeAltNumpadUTF8(text) {
+            if (!text || typeof text !== 'string') return text;
+            return text.replace(/(?:0[12]\d{2})+/g, function(match) {
+                try {
+                    const chunks = match.match(/0[12]\d{2}/g);
+                    if (!chunks) return match;
+                    const bytes = new Uint8Array(chunks.map(c => parseInt(c, 10)));
+                    return new TextDecoder('utf-8').decode(bytes);
+                } catch (e) {
+                    return match;
+                }
+            });
+        }
+
+        /* ==========================================================
            BỘ PHÂN TÍCH MÃ QR CĂN CƯỚC CÔNG DÂN (CCCD)
            Định dạng chuẩn BCA:
            Số CCCD|Số CMND cũ|Họ và tên|Ngày sinh|Giới tính|Địa chỉ thường trú|Ngày cấp
@@ -784,10 +803,10 @@
             if (parts.length >= 6) {
                 const cccd = parts[0].trim();
                 const cmnd = parts[1].trim();
-                const hoTen = parts[2].trim();
+                const hoTen = decodeAltNumpadUTF8(parts[2].trim());
                 const rawDob = parts[3].trim();
                 const gioiTinh = parts[4].trim();
-                const diaChi = parts[5].trim();
+                const diaChi = decodeAltNumpadUTF8(parts[5].trim());
                 const rawNgayCap = parts[6] ? parts[6].trim() : '';
 
                 // Format ngày sinh ddMMyyyy -> dd/MM/yyyy
