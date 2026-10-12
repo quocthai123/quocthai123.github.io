@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kiosk Lấy Số Bệnh Viện - Tích Hợp Quét CCCD</title>
-    <!-- Thư viện quét mã QR qua Camera (nếu có kết nối mạng) -->
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <title>Kiosk Lấy Số Bệnh Viện - Máy Quét Zebra CCCD</title>
     <style>
         /* --- CẤU HÌNH GIAO DIỆN CHUNG --- */
         :root {
@@ -16,6 +14,7 @@
             --accent-color: #ff9800;
             --dark-color: #2c3e50;
             --bg-color: #eef2f7;
+            --zebra-red: #ff1e27;
         }
 
         * {
@@ -106,22 +105,22 @@
             line-height: 1.1;
         }
 
-        /* --- KHU VỰC THAO TÁC CHÍNH (2 CỘT: QUÉT CCCD & LẤY SỐ THƯỜNG) --- */
+        /* --- KHU VỰC THAO TÁC CHÍNH (2 CỘT: MÁY QUÉT ZEBRA & LẤY SỐ THƯỜNG) --- */
         .main-body {
             flex: 1;
             display: grid;
-            grid-template-columns: 1.25fr 1fr;
-            gap: 25px;
+            grid-template-columns: 1.35fr 1fr;
+            gap: 28px;
             align-items: stretch;
             margin: 20px 0;
         }
 
-        /* KHU VỰC QUÉT CCCD */
+        /* KHU VỰC MÁY QUÉT ZEBRA USB */
         .cccd-scanner-panel {
             background: linear-gradient(145deg, #ffffff, #f0f7ff);
             border: 2.5px dashed #007bff;
             border-radius: 20px;
-            padding: 25px;
+            padding: 28px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -130,11 +129,6 @@
             position: relative;
             box-shadow: 0 10px 30px rgba(0, 123, 255, 0.08);
             transition: all 0.3s ease;
-        }
-
-        .cccd-scanner-panel.active-scan {
-            border-color: #28a745;
-            background: #f0fff4;
         }
 
         .badge-recommended {
@@ -153,69 +147,71 @@
 
         .scanner-visual {
             position: relative;
-            width: 170px;
-            height: 120px;
+            width: 200px;
+            height: 130px;
             border: 3px solid #0066cc;
-            border-radius: 14px;
+            border-radius: 16px;
             background: #ffffff;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-bottom: 18px;
-            box-shadow: inset 0 0 20px rgba(0,102,204,0.1);
+            box-shadow: inset 0 0 20px rgba(0,102,204,0.08), 0 8px 20px rgba(0,0,0,0.06);
             overflow: hidden;
         }
 
         .cccd-card-mockup {
-            font-size: 55px;
+            font-size: 60px;
         }
 
-        .scan-laser {
+        /* Tia quét laser màu đỏ đặc trưng của máy quét Zebra */
+        .scan-laser-red {
             position: absolute;
             width: 100%;
-            height: 3px;
-            background: #00d2ff;
-            box-shadow: 0 0 12px 3px rgba(0, 210, 255, 0.85);
-            animation: laserMove 2.2s infinite ease-in-out;
+            height: 3.5px;
+            background: var(--zebra-red);
+            box-shadow: 0 0 14px 4px rgba(255, 30, 39, 0.85);
+            animation: laserZebra 2.2s infinite ease-in-out;
         }
 
-        @keyframes laserMove {
-            0% { top: 5%; opacity: 0.3; }
-            50% { top: 90%; opacity: 1; }
-            100% { top: 5%; opacity: 0.3; }
+        @keyframes laserZebra {
+            0% { top: 8%; opacity: 0.3; }
+            50% { top: 88%; opacity: 1; }
+            100% { top: 8%; opacity: 0.3; }
         }
 
         .panel-heading {
             color: var(--primary-dark);
-            font-size: 26px;
+            font-size: 27px;
             font-weight: 800;
-            margin: 0 0 8px 0;
+            margin: 0 0 10px 0;
             text-transform: uppercase;
         }
 
         .panel-desc {
-            color: #4a5568;
-            font-size: 17px;
-            margin: 0 0 15px 0;
-            max-width: 90%;
-            line-height: 1.4;
+            color: #334155;
+            font-size: 18px;
+            margin: 0 0 16px 0;
+            max-width: 92%;
+            line-height: 1.5;
         }
 
         .scanner-status-indicator {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             background: #e6f4ea;
             color: #137333;
-            font-size: 14px;
-            font-weight: 600;
-            padding: 6px 16px;
+            font-size: 15px;
+            font-weight: 700;
+            padding: 8px 20px;
             border-radius: 30px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
+            border: 1px solid #ceead6;
         }
 
         .status-dot {
-            width: 10px; height: 10px;
+            width: 12px; height: 12px;
             background-color: #34a853;
             border-radius: 50%;
             animation: pulseDot 1.5s infinite;
@@ -227,30 +223,11 @@
             100% { transform: scale(0.9); opacity: 0.7; }
         }
 
-        .scanner-controls {
-            display: flex;
-            gap: 12px;
+        .zebra-guide-note {
+            font-size: 13.5px;
+            color: #64748b;
+            font-style: italic;
             margin-top: 5px;
-        }
-
-        .btn-cam-scan {
-            background: #f1f5f9;
-            border: 1.5px solid #cbd5e1;
-            color: #334155;
-            padding: 10px 20px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
-        }
-
-        .btn-cam-scan:hover {
-            background: #e2e8f0;
-            border-color: #94a3b8;
         }
 
         /* KHU VỰC LẤY SỐ THƯỜNG */
@@ -258,7 +235,7 @@
             background: #ffffff;
             border: 2px solid #e2e8f0;
             border-radius: 20px;
-            padding: 25px;
+            padding: 28px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -269,7 +246,7 @@
 
         .regular-title {
             color: #475569;
-            font-size: 22px;
+            font-size: 23px;
             font-weight: 700;
             margin: 0 0 10px 0;
             text-transform: uppercase;
@@ -277,9 +254,9 @@
 
         .regular-desc {
             color: #64748b;
-            font-size: 15px;
+            font-size: 15.5px;
             margin: 0 0 25px 0;
-            line-height: 1.4;
+            line-height: 1.45;
         }
 
         .btn-print-regular {
@@ -312,7 +289,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding-top: 12px;
+            padding-top: 14px;
             border-top: 1px solid #edf2f7;
             font-size: 14px;
             color: #888;
@@ -435,34 +412,7 @@
             margin-top: 10px;
         }
 
-        /* --- MODAL CAMERA SCANNER --- */
-        .modal-camera {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-cam-content {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            width: 520px;
-            max-width: 95%;
-            text-align: center;
-        }
-
-        #qr-reader {
-            width: 100%;
-            border-radius: 12px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-
-        /* --- MODAL GIẢ LẬP / TEST SCANNER --- */
+        /* --- MODAL GIẢ LẬP / TEST MÁY QUÉT --- */
         .modal-test {
             display: none;
             position: fixed;
@@ -498,7 +448,7 @@
         #print-area { display: none; }
         @media print {
             body * { visibility: hidden; }
-            .screen-container, .overlay-success, .modal-camera, .modal-test { display: none !important; }
+            .screen-container, .overlay-success, .modal-test { display: none !important; }
             #print-area, #print-area * { visibility: visible; }
             #print-area {
                 display: block !important;
@@ -558,6 +508,15 @@
 </head>
 <body>
 
+    <!-- Ô INPUT ẨN ĐỂ NHẬN DỮ LIỆU TỪ MÁY QUÉT ZEBRA USB (AUTO-FOCUS LIÊN TỤC) -->
+    <input type="text" 
+           id="zebra-scanner-input" 
+           autocomplete="off" 
+           autocorrect="off" 
+           autocapitalize="off" 
+           spellcheck="false" 
+           style="position: fixed; top: -100px; left: -100px; opacity: 0; pointer-events: none;" />
+
     <!-- MÀN HÌNH CHÍNH CỦA KIOSK -->
     <div class="screen-container">
         <!-- HEADER -->
@@ -580,32 +539,27 @@
 
         <!-- MAIN BODY (2 KHU VỰC) -->
         <div class="main-body">
-            <!-- CỘT 1: QUÉT CCCD -->
+            <!-- CỘT 1: MÁY QUÉT ZEBRA USB -->
             <div class="cccd-scanner-panel" id="scanner-panel">
                 <div class="badge-recommended">Khuyên dùng • Ưu tiên xử lý</div>
                 
                 <div class="scanner-visual">
                     <span class="cccd-card-mockup">💳</span>
-                    <div class="scan-laser"></div>
+                    <div class="scan-laser-red"></div>
                 </div>
 
                 <h2 class="panel-heading">Quét Căn Cước Công Dân</h2>
                 <p class="panel-desc">
-                    Đặt mã QR trên thẻ <strong>Căn cước công dân (CCCD)</strong> vào đầu đọc thẻ để tự động in số khám kèm thông tin cá nhân.
+                    Đặt mã QR trên thẻ <strong>Căn cước công dân (CCCD)</strong> vào tia quét của máy đọc Zebra để tự động in số khám kèm thông tin cá nhân.
                 </p>
 
                 <div class="scanner-status-indicator">
                     <span class="status-dot"></span>
-                    <span>Đầu quét Barcode / QR đã sẵn sàng</span>
+                    <span>Máy quét Zebra USB đã sẵn sàng</span>
                 </div>
 
-                <div class="scanner-controls">
-                    <button class="btn-cam-scan" onclick="openCameraScanner()">
-                        <span>📷</span> Quét qua Camera
-                    </button>
-                    <button class="btn-cam-scan" onclick="openTestModal()">
-                        <span>🧪</span> Thử nghiệm CCCD
-                    </button>
+                <div class="zebra-guide-note">
+                    * Đưa mã QR đối diện đầu quét Zebra ở cự ly 10 - 20 cm
                 </div>
             </div>
 
@@ -630,6 +584,7 @@
         <div class="footer-bar">
             <div>📍 BV PHCN Tỉnh Đồng Tháp • Hỗ trợ tiếp đón: 0277.xxx.xxxx</div>
             <div class="admin-tools">
+                <button class="btn-tool" onclick="openTestModal()">🧪 Thử nghiệm CCCD</button>
                 <button class="btn-tool" onclick="testBeepSound()">🔊 Thử loa</button>
                 <button class="btn-tool danger" onclick="manualReset()">⚙️ Reset STT về 0</button>
             </div>
@@ -668,16 +623,7 @@
         </div>
     </div>
 
-    <!-- MODAL QUÉT CAMERA QR -->
-    <div class="modal-camera" id="camera-modal">
-        <div class="modal-cam-content">
-            <h3 style="margin-top: 0; color: #0066cc;">Quét Mã QR CCCD Qua Camera</h3>
-            <div id="qr-reader"></div>
-            <button class="btn-tool" style="margin-top: 10px; padding: 10px 25px;" onclick="closeCameraScanner()">Đóng Camera</button>
-        </div>
-    </div>
-
-    <!-- MODAL GIẢ LẬP / TEST MÁY QUÉT -->
+    <!-- MODAL GIẢ LẬP / TEST MÁY QUÉT (DÀNH CHO KỸ THUẬT VIÊN) -->
     <div class="modal-test" id="test-modal">
         <div class="modal-test-card">
             <h3 style="margin-top: 0; color: #1e293b;">🧪 Kiểm thử quét mã QR CCCD</h3>
@@ -720,10 +666,9 @@
         const KEY_DATE = 'last_print_date_v2';
         const KEY_COUNT = 'current_count_v2';
 
-        let html5QrScanner = null;
         let isProcessing = false;
 
-        // Âm thanh Beep bằng Web Audio API (chuẩn Kiosk không cần file mp3 ngoài)
+        // Âm thanh Beep bằng Web Audio API (chuẩn Kiosk POS không cần file mp3 ngoài)
         function playBeep(freq = 1200, duration = 120) {
             try {
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -740,7 +685,7 @@
                 osc.start();
                 osc.stop(ctx.currentTime + duration / 1000);
             } catch (err) {
-                console.log("Audio not supported or blocked", err);
+                console.log("Audio error", err);
             }
         }
 
@@ -775,7 +720,7 @@
         function getFormattedDateTime() {
             const now = new Date();
             const dateStr = now.toLocaleDateString('en-GB'); 
-            const timeStr = now.toLocaleTimeString('vi-VN', { hour12: false });
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: 'numeric', second: 'numeric' });
             return `Ngày in: ${dateStr} ${timeStr}`;
         }
 
@@ -884,6 +829,7 @@
                 setTimeout(() => {
                     document.getElementById('success-overlay').style.display = 'none';
                     isProcessing = false;
+                    ensureZebraFocus();
                 }, 2500);
             }, 600);
         }
@@ -899,7 +845,7 @@
             const formattedNum = String(newNum).padStart(2, '0');
             const timeStr = getFormattedDateTime();
 
-            // Cập nhật Mẫu in nhiệt
+            // Cập nhật Mẫu in nhiệt (Giống 100% bản gốc)
             document.getElementById('ticket-num').innerText = formattedNum;
             document.getElementById('ticket-time').innerText = timeStr;
             const sNameElem = document.getElementById('service-name-print');
@@ -911,89 +857,89 @@
             setTimeout(() => {
                 window.print();
                 isProcessing = false;
+                ensureZebraFocus();
             }, 250);
         }
 
         /* ==========================================================
-           LẮNG NGHE MÁY QUÉT MÃ VẠCH / QR PHẦN CỨNG (USB SCANNER)
-           Máy quét mã vạch hoạt động như bàn phím ảo (Keyboard Wedge),
-           gửi các ký tự liên tục với tốc độ rất cao và kết thúc bằng Enter.
+           TỐI ƯU HÓA MÁY QUÉT ZEBRA USB (KEYBOARD WEDGE)
+           Hệ thống sử dụng cơ chế kép:
+           1. Ô input ẩn luôn tự động giữ Focus để hứng trọn vẹn chuỗi từ Zebra.
+           2. Bộ đệm phím toàn cục (Global Window Keydown Listener) dự phòng.
            ========================================================== */
-        let barcodeBuffer = '';
+        const zebraInput = document.getElementById('zebra-scanner-input');
+
+        function ensureZebraFocus() {
+            if (document.activeElement && (document.activeElement.id === 'test-cccd-input' || document.activeElement.tagName === 'BUTTON')) {
+                return;
+            }
+            if (zebraInput && document.activeElement !== zebraInput) {
+                zebraInput.focus();
+            }
+        }
+
+        // Tự động kiểm tra và duy trì Focus cho máy quét Zebra mỗi 500ms
+        setInterval(ensureZebraFocus, 500);
+        document.addEventListener('click', () => setTimeout(ensureZebraFocus, 60));
+
+        function processScannedBarcode(rawString) {
+            if (!rawString || rawString.length < 15) return;
+            const patient = parseCCCDData(rawString);
+            if (patient) {
+                handleCCCDDetected(patient);
+            } else {
+                playBeep(400, 300);
+                console.warn("Mã quét không đúng cấu trúc CCCD chuẩn:", rawString);
+            }
+        }
+
+        // 1. Lắng nghe trực tiếp trên ô input ẩn của Zebra
+        zebraInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const val = this.value;
+                this.value = '';
+                processScannedBarcode(val);
+            }
+        });
+
+        // 2. Lớp dự phòng: Lắng nghe toàn cục trên window
+        let globalBuffer = '';
         let lastKeyTime = Date.now();
+        let zebraTimer = null;
 
         window.addEventListener('keydown', function(e) {
-            // Không can thiệp nếu đang nhập liệu trong ô textarea test
+            // Không can thiệp nếu đang nhập trong ô textarea test
             if (e.target && e.target.id === 'test-cccd-input') return;
 
             const now = Date.now();
-            
-            // Nếu 2 phím cách nhau quá 120ms thì reset buffer (do con người gõ chậm)
             if (now - lastKeyTime > 120) {
-                barcodeBuffer = '';
+                globalBuffer = '';
             }
             lastKeyTime = now;
 
             if (e.key === 'Enter') {
-                if (barcodeBuffer.length >= 15) {
+                if (globalBuffer.length >= 15) {
                     e.preventDefault();
-                    const patient = parseCCCDData(barcodeBuffer);
-                    if (patient) {
-                        handleCCCDDetected(patient);
-                    } else {
-                        // Nếu quét chuỗi không đúng định dạng CCCD
-                        playBeep(400, 300);
-                        alert("Mã QR không đúng cấu trúc CCCD chuẩn: " + barcodeBuffer);
-                    }
-                    barcodeBuffer = '';
+                    processScannedBarcode(globalBuffer);
+                    globalBuffer = '';
+                    if (zebraInput) zebraInput.value = '';
                 }
             } else if (e.key.length === 1) {
-                barcodeBuffer += e.key;
+                globalBuffer += e.key;
+                
+                // Trường hợp máy quét Zebra cấu hình không có phím Enter (No Suffix):
+                // Tự động nhận diện sau 120ms ngừng gõ nếu chuỗi hợp lệ
+                clearTimeout(zebraTimer);
+                zebraTimer = setTimeout(() => {
+                    if (globalBuffer.length >= 25 && globalBuffer.includes('|')) {
+                        processScannedBarcode(globalBuffer);
+                        globalBuffer = '';
+                        if (zebraInput) zebraInput.value = '';
+                    }
+                }, 130);
             }
         });
-
-        /* ==========================================================
-           QUÉT QUA CAMERA / WEBCAM KIOSK
-           ========================================================== */
-        function openCameraScanner() {
-            if (typeof Html5Qrcode === 'undefined') {
-                alert("Không thể tải thư viện quét Camera do máy Kiosk chưa kết nối Internet. Vui lòng sử dụng máy quét mã vạch USB!");
-                return;
-            }
-            document.getElementById('camera-modal').style.display = 'flex';
-            
-            html5QrScanner = new Html5Qrcode("qr-reader");
-            html5QrScanner.start(
-                { facingMode: "environment" },
-                { fps: 15, qrbox: { width: 300, height: 250 } },
-                (decodedText) => {
-                    const patient = parseCCCDData(decodedText);
-                    if (patient) {
-                        closeCameraScanner();
-                        handleCCCDDetected(patient);
-                    } else {
-                        console.log("Scanned text is not standard CCCD:", decodedText);
-                    }
-                },
-                (errorMessage) => {
-                    // Quét từng frame chưa thấy QR, bỏ qua
-                }
-            ).catch(err => {
-                console.error("Camera start error", err);
-                alert("Không thể khởi động Camera: " + err);
-                closeCameraScanner();
-            });
-        }
-
-        function closeCameraScanner() {
-            if (html5QrScanner) {
-                html5QrScanner.stop().then(() => {
-                    html5QrScanner.clear();
-                    html5QrScanner = null;
-                }).catch(err => console.log(err));
-            }
-            document.getElementById('camera-modal').style.display = 'none';
-        }
 
         /* ==========================================================
            MODAL GIẢ LẬP / KIỂM THỬ CCCD
@@ -1010,6 +956,7 @@
 
         function closeTestModal() {
             document.getElementById('test-modal').style.display = 'none';
+            ensureZebraFocus();
         }
 
         function setSampleCCCD(id) {
@@ -1027,8 +974,9 @@
             }
         }
 
-        // Khởi động cập nhật màn hình
+        // Khởi tạo trạng thái ban đầu
         updateScreen();
+        ensureZebraFocus();
     </script>
 </body>
 </html>
