@@ -494,9 +494,8 @@
             resize: vertical;
         }
 
-        /* --- MẪU IN PHIẾU (THERMAL PRINT TEMPLATE) --- */
+        /* --- MẪU IN (GIỐNG HỆT BẢN GỐC CHO MÁY IN NHIỆT XP80) --- */
         #print-area { display: none; }
-        
         @media print {
             body * { visibility: hidden; }
             .screen-container, .overlay-success, .modal-camera, .modal-test { display: none !important; }
@@ -506,85 +505,50 @@
                 position: absolute;
                 top: 0; left: 0;
                 width: 100%;
+                text-align: center;
                 color: black;
-                font-family: 'Times New Roman', serif;
-                padding: 5px 10px;
-                box-sizing: border-box;
             }
-
-            .print-header {
-                text-align: center;
-                border-bottom: 1.5px dashed #000;
-                padding-bottom: 8px;
-                margin-bottom: 8px;
-            }
-
-            .print-hospital-name {
-                font-size: 17px;
-                font-weight: bold;
-                text-transform: uppercase;
-                margin: 0;
-            }
-
-            .print-service-title {
-                font-size: 19px;
-                font-weight: bold;
-                margin: 6px 0 0 0;
-            }
-
-            .print-ticket-body {
-                text-align: center;
-                margin: 10px 0;
-            }
-
-            .print-ticket-label {
-                font-size: 15px;
-                text-transform: uppercase;
-                margin-bottom: 2px;
-            }
-
-            .print-ticket-number {
-                font-family: Arial, sans-serif;
-                font-size: 85px;
-                font-weight: 900;
-                line-height: 1;
-                margin: 4px 0;
-            }
-
-            .print-patient-box {
-                border-top: 1.5px dashed #000;
-                border-bottom: 1.5px dashed #000;
-                padding: 8px 2px;
-                margin: 10px 0;
-                font-size: 14px;
-                line-height: 1.5;
-                text-align: left;
-            }
-
-            .print-patient-name {
+            .hospital-name-print {
+                font-family: "Times New Roman", serif;
                 font-size: 16px;
                 font-weight: bold;
                 text-transform: uppercase;
+                margin: 5px 0;
             }
-
-            .print-footer {
-                text-align: center;
-                font-size: 12px;
-                line-height: 1.4;
-                margin-top: 8px;
-            }
-
-            .print-time {
-                font-size: 12px;
-                font-style: italic;
-                margin-bottom: 4px;
-            }
-
-            .print-note {
-                font-size: 12px;
+            .service-name-print {
+                font-family: "Times New Roman", serif;
+                font-size: 20px;
                 font-weight: bold;
+                margin-bottom: 5px;
             }
-
+            .ticket-number-print {
+                font-family: Arial, sans-serif;
+                font-size: 100px;
+                font-weight: 900;
+                line-height: 1;
+                margin: 5px 0;
+            }
+            .patient-info-print {
+                font-family: "Times New Roman", serif;
+                font-size: 14px;
+                text-align: left;
+                margin: 6px 0;
+                padding: 6px 0;
+                border-top: 1px dashed black;
+                border-bottom: 1px dashed black;
+                line-height: 1.4;
+            }
+            .patient-name-print {
+                font-size: 15px;
+                font-weight: bold;
+                text-transform: uppercase;
+            }
+            .print-time-print {
+                font-family: "Times New Roman", serif;
+                font-size: 12px;
+                margin-top: 5px;
+                margin-bottom: 20px;
+            }
             @page {
                 margin: 0;
                 size: auto;
@@ -732,34 +696,21 @@
         </div>
     </div>
 
-    <!-- MẪU IN PHIẾU NHIỆT (PRINT TEMPLATE) -->
+    <!-- MẪU IN PHIẾU NHIỆT (GIỐNG HỆT BẢN GỐC CHO MÁY IN XP80) -->
     <div id="print-area">
-        <div class="print-header">
-            <div class="print-hospital-name">BV PHCN ĐỒNG THÁP</div>
-            <div class="print-service-title" id="print-service-name">PHIẾU KHÁM BỆNH</div>
-        </div>
+        <div class="hospital-name-print">BV PHCN ĐỒNG THÁP</div>
+        <div class="service-name-print" id="service-name-print">Khám bệnh</div>
+        <div class="ticket-number-print" id="ticket-num">00</div>
 
-        <div class="print-ticket-body">
-            <div class="print-ticket-label">SỐ THỨ TỰ</div>
-            <div class="print-ticket-number" id="ticket-num">00</div>
-        </div>
-
-        <!-- KHUNG THÔNG TIN CCCD TRÊN PHIẾU IN -->
-        <div class="print-patient-box" id="print-patient-info" style="display: none;">
-            <div>Họ tên: <span class="print-patient-name" id="print-p-name">NGUYỄN VĂN AN</span></div>
-            <div>CCCD: <strong id="print-p-cccd">087098001234</strong></div>
+        <!-- THÔNG TIN CCCD (CHỈ HIỂN THỊ KHI CÓ QUÉT CCCD) -->
+        <div class="patient-info-print" id="print-patient-info" style="display: none;">
+            <div>Họ tên: <span class="patient-name-print" id="print-p-name">NGUYỄN VĂN AN</span></div>
+            <div>Số CCCD: <strong id="print-p-cccd">087098001234</strong></div>
             <div>Ngày sinh: <span id="print-p-dob">15/08/1995</span> - Giới tính: <span id="print-p-gender">Nam</span></div>
-            <div style="font-size: 12px; margin-top: 3px;">Địa chỉ: <span id="print-p-address">TP Cao Lãnh, Đồng Tháp</span></div>
+            <div>Địa chỉ: <span id="print-p-address">TP Cao Lãnh, Đồng Tháp</span></div>
         </div>
 
-        <div class="print-patient-box" id="print-no-cccd-info" style="display: none; text-align: center; font-style: italic;">
-            *(Bệnh nhân chưa quét CCCD)*
-        </div>
-
-        <div class="print-footer">
-            <div class="print-time" id="ticket-time">Ngày in: 12/10/2026 10:30:00</div>
-            <div class="print-note">Vui lòng theo dõi màn hình tại sảnh chờ!</div>
-        </div>
+        <div class="print-time-print" id="ticket-time">Ngày in: ...</div>
     </div>
 
     <script>
@@ -911,7 +862,8 @@
             // 2. Cập nhật dữ liệu vào Mẫu in nhiệt
             document.getElementById('ticket-num').innerText = formattedNum;
             document.getElementById('ticket-time').innerText = timeStr;
-            document.getElementById('print-service-name').innerText = "PHIẾU KHÁM BỆNH (CCCD)";
+            const sNameElem = document.getElementById('service-name-print');
+            if (sNameElem) sNameElem.innerText = "Khám bệnh";
             
             // Điền thông tin CCCD vào phiếu in
             document.getElementById('print-p-name').innerText = patient.hoTen;
@@ -921,7 +873,6 @@
             document.getElementById('print-p-address').innerText = patient.diaChi;
             
             document.getElementById('print-patient-info').style.display = 'block';
-            document.getElementById('print-no-cccd-info').style.display = 'none';
 
             updateScreen();
 
@@ -951,9 +902,9 @@
             // Cập nhật Mẫu in nhiệt
             document.getElementById('ticket-num').innerText = formattedNum;
             document.getElementById('ticket-time').innerText = timeStr;
-            document.getElementById('print-service-name').innerText = "PHIẾU KHÁM BỆNH";
+            const sNameElem = document.getElementById('service-name-print');
+            if (sNameElem) sNameElem.innerText = "Khám bệnh";
             document.getElementById('print-patient-info').style.display = 'none';
-            document.getElementById('print-no-cccd-info').style.display = 'block';
 
             updateScreen();
 
