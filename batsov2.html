@@ -223,6 +223,32 @@
             100% { transform: scale(0.9); opacity: 0.7; }
         }
 
+        .scanner-input-container {
+            width: 88%;
+            margin: 8px 0 14px 0;
+        }
+
+        .scanner-input-box {
+            width: 100%;
+            padding: 13px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            color: #004c99;
+            background: #ffffff;
+            border: 2px solid #0066cc;
+            border-radius: 14px;
+            outline: none;
+            box-shadow: 0 0 15px rgba(0, 102, 204, 0.15);
+            transition: all 0.25s ease;
+        }
+
+        .scanner-input-box:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 20px rgba(40, 167, 69, 0.35);
+            background: #f0fff4;
+        }
+
         .zebra-guide-note {
             font-size: 13.5px;
             color: #64748b;
@@ -544,6 +570,19 @@
                     Đặt mã QR trên thẻ <strong>Căn cước công dân (CCCD)</strong> vào tia quét của máy đọc Zebra để tự động in số khám kèm thông tin cá nhân.
                 </p>
 
+                <!-- Ô NHẬN DỮ LIỆU MÁY QUÉT ZEBRA (CHẶN HOÀN TOÀN NHẢY TAB TRÌNH DUYỆT) -->
+                <div class="scanner-input-container">
+                    <input type="text" 
+                           id="barcode-input" 
+                           class="scanner-input-box" 
+                           placeholder="👉 Đầu đọc Zebra sẵn sàng • Đưa thẻ CCCD vào quét..." 
+                           autocomplete="off" 
+                           autocorrect="off" 
+                           autocapitalize="off" 
+                           spellcheck="false" 
+                           autofocus />
+                </div>
+
                 <div class="scanner-status-indicator">
                     <span class="status-dot"></span>
                     <span>Máy quét Zebra USB đã sẵn sàng</span>
@@ -820,6 +859,7 @@
                 setTimeout(() => {
                     document.getElementById('success-overlay').style.display = 'none';
                     isProcessing = false;
+                    resetScannerInput();
                 }, 2500);
             }, 600);
         }
@@ -847,18 +887,47 @@
             setTimeout(() => {
                 window.print();
                 isProcessing = false;
+                resetScannerInput();
             }, 250);
         }
 
         /* ==========================================================
-           TỐI ƯU HÓA MÁY QUÉT ZEBRA USB (CHẶN NHẢY TAB TRÌNH DUYỆT)
-           1. Chặn đứng các phím tắt trình duyệt (Ctrl+T mở tab mới, Tab, Ctrl+N...)
-              do Unikey kẹt phím Ctrl hoặc máy quét gửi control key.
-           2. Gom chuỗi trực tiếp từ bộ đệm sự kiện phím toàn cục (Capture Phase).
+           TỐI ƯU HÓA MÁY QUÉT ZEBRA USB (CHẶN HOÀN TOÀN NHẢY TAB)
+           1. Luôn giữ con trỏ chuột trong ô #barcode-input để Edge KHÔNG
+              bao giờ coi dữ liệu quét là phím tắt trình duyệt.
+           2. Chặn triệt để các phím Tab, Ctrl+T, Ctrl+N...
+           3. Hỗ trợ máy quét có Enter hoặc không có Enter (timeout).
            ========================================================== */
+        const barcodeInput = document.getElementById('barcode-input');
         let globalBuffer = '';
         let lastKeyTime = Date.now();
         let zebraTimer = null;
+        let inputTimer = null;
+
+        function resetScannerInput() {
+            if (barcodeInput) {
+                barcodeInput.value = '';
+                barcodeInput.focus();
+            }
+            globalBuffer = '';
+        }
+
+        function ensureInputFocus() {
+            if (document.activeElement && (document.activeElement.id === 'test-cccd-input' || document.activeElement.tagName === 'BUTTON')) {
+                return;
+            }
+            if (barcodeInput && document.activeElement !== barcodeInput) {
+                barcodeInput.focus();
+            }
+        }
+
+        // Tự động duy trì con trỏ chuột trong ô nhập liệu mỗi 400ms
+        setInterval(ensureInputFocus, 400);
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#test-modal')) {
+                setTimeout(ensureInputFocus, 30);
+            }
+        });
 
         function processScannedBarcode(rawString) {
             if (!rawString || rawString.length < 15) return;
@@ -871,64 +940,98 @@
             }
         }
 
-        // Bắt sự kiện ở Capture Phase (useCapture: true) để chặn trước khi Edge mở Tab mới
+        // 1. Xử lý trực tiếp trên ô #barcode-input
+        if (barcodeInput) {
+            barcodeInput.addEventListener('keydown', function(e) {
+                // Chặn đứng phím Tab (ngăn focus nhảy sang nút khác hoặc thanh duyệt web)
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+
+                // Chặn phím Ctrl kết hợp
+                if (e.ctrlKey) {
+                    const k = (e.key || '').toLowerCase();
+                    if (k === 't' || k === 'n' || k === 'w' || k === 'j') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                }
+
+                // Khi máy quét kết thúc bằng Enter
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const val = this.value.trim();
+                    if (val.length >= 15) {
+                        this.value = '';
+                        processScannedBarcode(val);
+                    }
+                }
+            });
+
+            // Lắng nghe sự kiện input (cho máy quét không cấu hình Enter)
+            barcodeInput.addEventListener('input', function() {
+                clearTimeout(inputTimer);
+                inputTimer = setTimeout(() => {
+                    const val = barcodeInput.value.trim();
+                    if (val.length >= 25 && val.includes('|')) {
+                        barcodeInput.value = '';
+                        processScannedBarcode(val);
+                    }
+                }, 130);
+            });
+        }
+
+        // 2. Lắng nghe dự phòng tầng cao nhất (Capture Phase)
         window.addEventListener('keydown', function(e) {
-            // Không can thiệp nếu đang nhập thủ công trong modal test
             if (e.target && e.target.id === 'test-cccd-input') return;
 
-            const now = Date.now();
-            const timeDiff = now - lastKeyTime;
-            lastKeyTime = now;
-
-            // 1. CHẶN TRIỆT ĐỂ VIỆC NHẢY TAB DO UNIKEY HOẶC MÁY QUÉT:
-            // Phím Tab làm văng focus sang nút (+) mở tab của trình duyệt
+            // Chặn Tab và Ctrl+T ở cấp độ toàn cục
             if (e.key === 'Tab') {
                 e.preventDefault();
                 e.stopPropagation();
             }
 
-            // Phím Ctrl kết hợp (Ctrl+T mở tab mới, Ctrl+N, Ctrl+W...)
             if (e.ctrlKey) {
                 const k = (e.key || '').toLowerCase();
-                if (k === 't' || k === 'n' || k === 'w' || k === 'j' || k === 'p' || k === 's' || k === 'u' || k === 'l') {
+                if (k === 't' || k === 'n' || k === 'w' || k === 'j' || k === 'p' || k === 's' || k === 'u') {
                     e.preventDefault();
                     e.stopPropagation();
                 }
             }
 
-            // Nếu đang mở hộp thoại in, chặn mọi phím quét dồn để không văng lệnh vào trình duyệt
             if (isProcessing) {
                 e.preventDefault();
                 return;
             }
 
-            // 2. Gom dữ liệu từ máy quét:
-            // Nếu 2 phím cách nhau quá 150ms -> reset buffer (tránh gom phím người dùng gõ tay)
-            if (timeDiff > 150) {
-                globalBuffer = '';
-            }
-
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                e.stopPropagation();
-                if (globalBuffer.length >= 15) {
-                    processScannedBarcode(globalBuffer);
+            // Nếu con trỏ chuột không ở trong ô barcodeInput thì gom bằng buffer
+            if (document.activeElement !== barcodeInput) {
+                const now = Date.now();
+                if (now - lastKeyTime > 150) {
                     globalBuffer = '';
                 }
-            } else if (e.key && e.key.length === 1) {
-                // Gom ký tự (lấy đúng ký tự kể cả khi Ctrl bị kẹt do Unikey)
-                globalBuffer += e.key;
+                lastKeyTime = now;
 
-                // Tự động nhận diện sau 140ms ngừng bắn phím (nếu máy quét không có hậu tố Enter)
-                clearTimeout(zebraTimer);
-                zebraTimer = setTimeout(() => {
-                    if (globalBuffer.length >= 25 && globalBuffer.includes('|')) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (globalBuffer.length >= 15) {
                         processScannedBarcode(globalBuffer);
                         globalBuffer = '';
                     }
-                }, 140);
+                } else if (e.key && e.key.length === 1) {
+                    globalBuffer += e.key;
+                    clearTimeout(zebraTimer);
+                    zebraTimer = setTimeout(() => {
+                        if (globalBuffer.length >= 25 && globalBuffer.includes('|')) {
+                            processScannedBarcode(globalBuffer);
+                            globalBuffer = '';
+                        }
+                    }, 140);
+                }
             }
-        }, true); // useCapture: true
+        }, true);
 
         /* ==========================================================
            MODAL GIẢ LẬP / KIỂM THỬ CCCD
@@ -964,6 +1067,7 @@
 
         // Khởi tạo trạng thái ban đầu
         updateScreen();
+        resetScannerInput();
     </script>
 </body>
 </html>
