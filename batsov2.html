@@ -1024,6 +1024,12 @@
                     e.stopPropagation();
                 }
 
+                // Chặn phím Alt (ngăn kích hoạt thanh menu / focus của trình duyệt)
+                if (e.key === 'Alt') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+
                 // Chặn phím Ctrl kết hợp
                 if (e.ctrlKey) {
                     const k = (e.key || '').toLowerCase();
@@ -1062,8 +1068,8 @@
         window.addEventListener('keydown', function(e) {
             if (e.target && e.target.id === 'test-cccd-input') return;
 
-            // Chặn Tab và Ctrl+T ở cấp độ toàn cục
-            if (e.key === 'Tab') {
+            // Chặn Tab, Alt và Ctrl+T ở cấp độ toàn cục
+            if (e.key === 'Tab' || e.key === 'Alt') {
                 e.preventDefault();
                 e.stopPropagation();
             }
