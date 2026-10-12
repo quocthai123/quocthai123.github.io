@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiosk Lấy Số Bệnh Viện - Tích Hợp Quét CCCD</title>
+    <!-- Thư viện quét mã QR qua Camera (nếu có kết nối mạng) -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        /* --- CẤU HÌNH GIAO DIỆN CHUNG --- */
+        :root {
+            --primary-color: #0066cc;
+            --primary-dark: #004c99;
+            --primary-light: #e6f0fa;
+            --success-color: #28a745;
+            --accent-color: #ff9800;
+            --dark-color: #2c3e50;
+            --bg-color: #eef2f7;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0; padding: 0;
+            height: 100vh; width: 100vw;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden;
+        }
+
+        .screen-container {
+            background: white;
+            width: 96%; height: 96%;
+            border-radius: 24px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.12);
+            display: flex; flex-direction: column;
+            justify-content: space-between;
+            padding: 24px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* --- PHẦN HEADER --- */
+        .header-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #edf2f7;
+            padding-bottom: 15px;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .hospital-logo {
+            height: 85px; width: auto;
+            object-fit: contain;
+        }
+
+        .header-title-box {
+            text-align: left;
+        }
+
+        .main-title {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 30px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sub-title {
+            margin: 4px 0 0 0;
+            font-size: 18px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .number-display-box {
+            background: linear-gradient(135deg, #f8fafc, #edf2f7);
+            border: 2px solid #e2e8f0;
+            padding: 10px 24px;
+            border-radius: 16px;
+            text-align: right;
+        }
+
+        .number-display-label {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .number-display-value {
+            font-size: 34px;
+            color: #e53e3e;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+
+        /* --- KHU VỰC THAO TÁC CHÍNH (2 CỘT: QUÉT CCCD & LẤY SỐ THƯỜNG) --- */
+        .main-body {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1.25fr 1fr;
+            gap: 25px;
+            align-items: stretch;
+            margin: 20px 0;
+        }
+
+        /* KHU VỰC QUÉT CCCD */
+        .cccd-scanner-panel {
+            background: linear-gradient(145deg, #ffffff, #f0f7ff);
+            border: 2.5px dashed #007bff;
+            border-radius: 20px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 123, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .cccd-scanner-panel.active-scan {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .badge-recommended {
+            position: absolute;
+            top: -14px;
+            background: linear-gradient(90deg, #ff7e5f, #feb47b);
+            color: white;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 6px 18px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 10px rgba(255, 126, 95, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .scanner-visual {
+            position: relative;
+            width: 170px;
+            height: 120px;
+            border: 3px solid #0066cc;
+            border-radius: 14px;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 18px;
+            box-shadow: inset 0 0 20px rgba(0,102,204,0.1);
+            overflow: hidden;
+        }
+
+        .cccd-card-mockup {
+            font-size: 55px;
+        }
+
+        .scan-laser {
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: #00d2ff;
+            box-shadow: 0 0 12px 3px rgba(0, 210, 255, 0.85);
+            animation: laserMove 2.2s infinite ease-in-out;
+        }
+
+        @keyframes laserMove {
+            0% { top: 5%; opacity: 0.3; }
+            50% { top: 90%; opacity: 1; }
+            100% { top: 5%; opacity: 0.3; }
+        }
+
+        .panel-heading {
+            color: var(--primary-dark);
+            font-size: 26px;
+            font-weight: 800;
+            margin: 0 0 8px 0;
+            text-transform: uppercase;
+        }
+
+        .panel-desc {
+            color: #4a5568;
+            font-size: 17px;
+            margin: 0 0 15px 0;
+            max-width: 90%;
+            line-height: 1.4;
+        }
+
+        .scanner-status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #e6f4ea;
+            color: #137333;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 6px 16px;
+            border-radius: 30px;
+            margin-bottom: 14px;
+        }
+
+        .status-dot {
+            width: 10px; height: 10px;
+            background-color: #34a853;
+            border-radius: 50%;
+            animation: pulseDot 1.5s infinite;
+        }
+
+        @keyframes pulseDot {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
+
+        .scanner-controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 5px;
+        }
+
+        .btn-cam-scan {
+            background: #f1f5f9;
+            border: 1.5px solid #cbd5e1;
+            color: #334155;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-cam-scan:hover {
+            background: #e2e8f0;
+            border-color: #94a3b8;
+        }
+
+        /* KHU VỰC LẤY SỐ THƯỜNG */
+        .regular-number-panel {
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.04);
+        }
+
+        .regular-title {
+            color: #475569;
+            font-size: 22px;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+        }
+
+        .regular-desc {
+            color: #64748b;
+            font-size: 15px;
+            margin: 0 0 25px 0;
+            line-height: 1.4;
+        }
+
+        .btn-print-regular {
+            background: linear-gradient(135deg, #475569, #334155);
+            color: white;
+            border: none;
+            padding: 25px 45px;
+            border-radius: 40px;
+            font-family: inherit;
+            font-size: 24px;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #1e293b, 0 15px 25px rgba(0,0,0,0.15);
+            transition: all 0.1s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            width: 85%;
+        }
+
+        .btn-print-regular:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #1e293b, 0 8px 15px rgba(0,0,0,0.15);
+        }
+
+        /* --- FOOTER & TOOLBAR --- */
+        .footer-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 12px;
+            border-top: 1px solid #edf2f7;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .admin-tools {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-tool {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-tool:hover {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .btn-tool.danger:hover {
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        /* --- MODAL / OVERLAY QUÉT THÀNH CÔNG --- */
+        .overlay-success {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: 24px;
+            width: 580px;
+            max-width: 90%;
+            padding: 35px 40px;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.85); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-icon-success {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+
+        .modal-title {
+            color: #28a745;
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0 0 15px 0;
+            text-transform: uppercase;
+        }
+
+        .patient-card-preview {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 18px 24px;
+            text-align: left;
+            margin: 15px 0 20px 0;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .patient-card-preview .patient-name {
+            font-size: 22px;
+            font-weight: 800;
+            color: #0056b3;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .patient-field {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px dashed #e2e8f0;
+            padding: 4px 0;
+        }
+
+        .patient-field:last-child {
+            border-bottom: none;
+        }
+
+        .ticket-number-badge {
+            display: inline-block;
+            background: #e53e3e;
+            color: white;
+            font-size: 42px;
+            font-weight: 900;
+            padding: 6px 30px;
+            border-radius: 16px;
+            margin: 10px 0;
+            box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
+        }
+
+        .modal-printing-alert {
+            color: #64748b;
+            font-size: 15px;
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+        /* --- MODAL CAMERA SCANNER --- */
+        .modal-camera {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-cam-content {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            width: 520px;
+            max-width: 95%;
+            text-align: center;
+        }
+
+        #qr-reader {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        /* --- MODAL GIẢ LẬP / TEST SCANNER --- */
+        .modal-test {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-test-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            width: 550px;
+            max-width: 90%;
+            text-align: left;
+        }
+
+        .test-input {
+            width: 100%;
+            height: 90px;
+            padding: 10px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            margin: 10px 0;
+            resize: vertical;
+        }
+
+        /* --- MẪU IN PHIẾU (THERMAL PRINT TEMPLATE) --- */
+        #print-area { display: none; }
+        
+        @media print {
+            body * { visibility: hidden; }
+            .screen-container, .overlay-success, .modal-camera, .modal-test { display: none !important; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area {
+                display: block !important;
+                position: absolute;
+                top: 0; left: 0;
+                width: 100%;
+                color: black;
+                font-family: 'Times New Roman', serif;
+                padding: 5px 10px;
+                box-sizing: border-box;
+            }
+
+            .print-header {
+                text-align: center;
+                border-bottom: 1.5px dashed #000;
+                padding-bottom: 8px;
+                margin-bottom: 8px;
+            }
+
+            .print-hospital-name {
+                font-size: 17px;
+                font-weight: bold;
+                text-transform: uppercase;
+                margin: 0;
+            }
+
+            .print-service-title {
+                font-size: 19px;
+                font-weight: bold;
+                margin: 6px 0 0 0;
+            }
+
+            .print-ticket-body {
+                text-align: center;
+                margin: 10px 0;
+            }
+
+            .print-ticket-label {
+                font-size: 15px;
+                text-transform: uppercase;
+                margin-bottom: 2px;
+            }
+
+            .print-ticket-number {
+                font-family: Arial, sans-serif;
+                font-size: 85px;
+                font-weight: 900;
+                line-height: 1;
+                margin: 4px 0;
+            }
+
+            .print-patient-box {
+                border-top: 1.5px dashed #000;
+                border-bottom: 1.5px dashed #000;
+                padding: 8px 2px;
+                margin: 10px 0;
+                font-size: 14px;
+                line-height: 1.5;
+                text-align: left;
+            }
+
+            .print-patient-name {
+                font-size: 16px;
+                font-weight: bold;
+                text-transform: uppercase;
+            }
+
+            .print-footer {
+                text-align: center;
+                font-size: 12px;
+                line-height: 1.4;
+                margin-top: 8px;
+            }
+
+            .print-time {
+                font-size: 12px;
+                font-style: italic;
+                margin-bottom: 4px;
+            }
+
+            .print-note {
+                font-size: 12px;
+                font-weight: bold;
+            }
+
+            @page {
+                margin: 0;
+                size: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- MÀN HÌNH CHÍNH CỦA KIOSK -->
+    <div class="screen-container">
+        <!-- HEADER -->
+        <div class="header-section">
+            <div class="header-brand">
+                <img src="/img/logopng-removebg-preview.png" 
+                     onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%230066cc\' stroke-width=\'2\'><path d=\'M22 12h-4l-3 9L9 3l-3 9H2\'></path></svg>'"
+                     alt="Logo" class="hospital-logo">
+                <div class="header-title-box">
+                    <h1 class="main-title">BỆNH VIỆN PHỤC HỒI CHỨC NĂNG</h1>
+                    <div class="sub-title">Hệ thống cấp số thứ tự khám bệnh tự động</div>
+                </div>
+            </div>
+            
+            <div class="number-display-box">
+                <div class="number-display-label">Số vừa cấp</div>
+                <div class="number-display-value" id="screen-number">--</div>
+            </div>
+        </div>
+
+        <!-- MAIN BODY (2 KHU VỰC) -->
+        <div class="main-body">
+            <!-- CỘT 1: QUÉT CCCD -->
+            <div class="cccd-scanner-panel" id="scanner-panel">
+                <div class="badge-recommended">Khuyên dùng • Ưu tiên xử lý</div>
+                
+                <div class="scanner-visual">
+                    <span class="cccd-card-mockup">💳</span>
+                    <div class="scan-laser"></div>
+                </div>
+
+                <h2 class="panel-heading">Quét Căn Cước Công Dân</h2>
+                <p class="panel-desc">
+                    Đặt mã QR trên thẻ <strong>Căn cước công dân (CCCD)</strong> vào đầu đọc thẻ để tự động in số khám kèm thông tin cá nhân.
+                </p>
+
+                <div class="scanner-status-indicator">
+                    <span class="status-dot"></span>
+                    <span>Đầu quét Barcode / QR đã sẵn sàng</span>
+                </div>
+
+                <div class="scanner-controls">
+                    <button class="btn-cam-scan" onclick="openCameraScanner()">
+                        <span>📷</span> Quét qua Camera
+                    </button>
+                    <button class="btn-cam-scan" onclick="openTestModal()">
+                        <span>🧪</span> Thử nghiệm CCCD
+                    </button>
+                </div>
+            </div>
+
+            <!-- CỘT 2: LẤY SỐ KHÔNG CẦN CCCD -->
+            <div class="regular-number-panel">
+                <h3 class="regular-title">Không mang CCCD?</h3>
+                <p class="regular-desc">
+                    Dành cho bệnh nhân chưa có CCCD hoặc chưa sẵn sàng thẻ. Vui lòng bấm nút bên dưới:
+                </p>
+
+                <button class="btn-print-regular" onclick="processPrintRegular()">
+                    <span style="font-size: 38px;">🖨️</span>
+                    <span>Bấm Lấy Số Thường</span>
+                </button>
+                <div style="margin-top: 15px; font-size: 13px; color: #94a3b8; font-style: italic;">
+                    * Lưu ý: Phiếu khám sẽ không có thông tin định danh
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer-bar">
+            <div>📍 BV PHCN Tỉnh Đồng Tháp • Hỗ trợ tiếp đón: 0277.xxx.xxxx</div>
+            <div class="admin-tools">
+                <button class="btn-tool" onclick="testBeepSound()">🔊 Thử loa</button>
+                <button class="btn-tool danger" onclick="manualReset()">⚙️ Reset STT về 0</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL THÔNG BÁO QUÉT CCCD THÀNH CÔNG -->
+    <div class="overlay-success" id="success-overlay">
+        <div class="modal-card">
+            <div class="modal-icon-success">✅</div>
+            <h2 class="modal-title">Quét CCCD Thành Công!</h2>
+            
+            <div class="patient-card-preview" id="preview-patient-info">
+                <div class="patient-name" id="preview-name">NGUYỄN VĂN A</div>
+                <div class="patient-field">
+                    <span>Số CCCD:</span>
+                    <strong id="preview-cccd">087098001234</strong>
+                </div>
+                <div class="patient-field">
+                    <span>Ngày sinh:</span>
+                    <strong id="preview-dob">15/08/1990</strong>
+                </div>
+                <div class="patient-field">
+                    <span>Giới tính:</span>
+                    <strong id="preview-gender">Nam</strong>
+                </div>
+                <div class="patient-field">
+                    <span>Địa chỉ:</span>
+                    <span id="preview-address" style="text-align: right; max-width: 65%;">Cao Lãnh, Đồng Tháp</span>
+                </div>
+            </div>
+
+            <div>Số thứ tự của quý khách:</div>
+            <div class="ticket-number-badge" id="preview-ticket-num">01</div>
+            <div class="modal-printing-alert">Đang tiến hành in phiếu... Vui lòng đợi lấy phiếu tại khe máy in!</div>
+        </div>
+    </div>
+
+    <!-- MODAL QUÉT CAMERA QR -->
+    <div class="modal-camera" id="camera-modal">
+        <div class="modal-cam-content">
+            <h3 style="margin-top: 0; color: #0066cc;">Quét Mã QR CCCD Qua Camera</h3>
+            <div id="qr-reader"></div>
+            <button class="btn-tool" style="margin-top: 10px; padding: 10px 25px;" onclick="closeCameraScanner()">Đóng Camera</button>
+        </div>
+    </div>
+
+    <!-- MODAL GIẢ LẬP / TEST MÁY QUÉT -->
+    <div class="modal-test" id="test-modal">
+        <div class="modal-test-card">
+            <h3 style="margin-top: 0; color: #1e293b;">🧪 Kiểm thử quét mã QR CCCD</h3>
+            <p style="font-size: 13px; color: #64748b; margin: 5px 0;">
+                Dán chuỗi dữ liệu mã QR CCCD (chuẩn Bộ Công An gồm 7 trường phân tách bằng dấu <code>|</code>) hoặc chọn mẫu bên dưới:
+            </p>
+            <div style="margin-bottom: 8px;">
+                <button class="btn-tool" onclick="setSampleCCCD(1)">Mẫu 1: Nguyễn Văn An</button>
+                <button class="btn-tool" onclick="setSampleCCCD(2)">Mẫu 2: Trần Thị Mai</button>
+            </div>
+            <textarea class="test-input" id="test-cccd-input" placeholder="Ví dụ: 087098001234|334657890|NGUYỄN VĂN AN|15081995|Nam|Số 123 Nguyễn Huệ, P.1, TP Cao Lãnh, Đồng Tháp|25052021"></textarea>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn-tool" onclick="closeTestModal()">Hủy</button>
+                <button class="btn-tool" style="background: #0066cc; color: white; border: none;" onclick="runTestScan()">Giả lập Quét Thẻ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MẪU IN PHIẾU NHIỆT (PRINT TEMPLATE) -->
+    <div id="print-area">
+        <div class="print-header">
+            <div class="print-hospital-name">BV PHCN ĐỒNG THÁP</div>
+            <div class="print-service-title" id="print-service-name">PHIẾU KHÁM BỆNH</div>
+        </div>
+
+        <div class="print-ticket-body">
+            <div class="print-ticket-label">SỐ THỨ TỰ</div>
+            <div class="print-ticket-number" id="ticket-num">00</div>
+        </div>
+
+        <!-- KHUNG THÔNG TIN CCCD TRÊN PHIẾU IN -->
+        <div class="print-patient-box" id="print-patient-info" style="display: none;">
+            <div>Họ tên: <span class="print-patient-name" id="print-p-name">NGUYỄN VĂN AN</span></div>
+            <div>CCCD: <strong id="print-p-cccd">087098001234</strong></div>
+            <div>Ngày sinh: <span id="print-p-dob">15/08/1995</span> - Giới tính: <span id="print-p-gender">Nam</span></div>
+            <div style="font-size: 12px; margin-top: 3px;">Địa chỉ: <span id="print-p-address">TP Cao Lãnh, Đồng Tháp</span></div>
+        </div>
+
+        <div class="print-patient-box" id="print-no-cccd-info" style="display: none; text-align: center; font-style: italic;">
+            *(Bệnh nhân chưa quét CCCD)*
+        </div>
+
+        <div class="print-footer">
+            <div class="print-time" id="ticket-time">Ngày in: 12/10/2026 10:30:00</div>
+            <div class="print-note">Vui lòng theo dõi màn hình tại sảnh chờ!</div>
+        </div>
+    </div>
+
+    <script>
+        /* ==========================================================
+           CẤU HÌNH & TRẠNG THÁI HỆ THỐNG
+           ========================================================== */
+        const KEY_DATE = 'last_print_date_v2';
+        const KEY_COUNT = 'current_count_v2';
+
+        let html5QrScanner = null;
+        let isProcessing = false;
+
+        // Âm thanh Beep bằng Web Audio API (chuẩn Kiosk không cần file mp3 ngoài)
+        function playBeep(freq = 1200, duration = 120) {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration / 1000);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration / 1000);
+            } catch (err) {
+                console.log("Audio not supported or blocked", err);
+            }
+        }
+
+        function testBeepSound() {
+            playBeep(1200, 150);
+            setTimeout(() => playBeep(1800, 150), 120);
+        }
+
+        /* ==========================================================
+           QUẢN LÝ SỐ THỨ TỰ (LOCAL STORAGE)
+           ========================================================== */
+        function getToday() { 
+            return new Date().toLocaleDateString('vi-VN'); 
+        }
+
+        function getNextNumber() {
+            const today = getToday();
+            const lastDate = localStorage.getItem(KEY_DATE);
+            let count = parseInt(localStorage.getItem(KEY_COUNT) || '0', 10);
+            
+            // Sang ngày mới -> Reset về 0
+            if (lastDate !== today) { 
+                count = 0; 
+                localStorage.setItem(KEY_DATE, today); 
+            }
+            
+            count++;
+            localStorage.setItem(KEY_COUNT, count);
+            return count;
+        }
+
+        function getFormattedDateTime() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-GB'); 
+            const timeStr = now.toLocaleTimeString('vi-VN', { hour12: false });
+            return `Ngày in: ${dateStr} ${timeStr}`;
+        }
+
+        function updateScreen() {
+            const current = localStorage.getItem(KEY_COUNT) || 0;
+            document.getElementById('screen-number').innerText = current > 0 ? String(current).padStart(2, '0') : '--';
+        }
+
+        function manualReset() {
+            const pass = prompt("⚠️ CẢNH BÁO: Nhập '0000' để xác nhận đặt lại số thứ tự về 0:");
+            if (pass === '0000') {
+                localStorage.setItem(KEY_COUNT, 0);
+                updateScreen();
+                alert("Đã đặt lại số thứ tự về 0 thành công!");
+            } else if (pass !== null) {
+                alert("Mã xác nhận không đúng!");
+            }
+        }
+
+        /* ==========================================================
+           BỘ PHÂN TÍCH MÃ QR CĂN CƯỚC CÔNG DÂN (CCCD)
+           Định dạng chuẩn BCA:
+           Số CCCD|Số CMND cũ|Họ và tên|Ngày sinh|Giới tính|Địa chỉ thường trú|Ngày cấp
+           ========================================================== */
+        function parseCCCDData(rawText) {
+            if (!rawText || typeof rawText !== 'string') return null;
+            const cleaned = rawText.trim();
+            const parts = cleaned.split('|');
+            
+            // Mã CCCD chuẩn có từ 6 đến 7 trường phân tách bằng '|'
+            if (parts.length >= 6) {
+                const cccd = parts[0].trim();
+                const cmnd = parts[1].trim();
+                const hoTen = parts[2].trim();
+                const rawDob = parts[3].trim();
+                const gioiTinh = parts[4].trim();
+                const diaChi = parts[5].trim();
+                const rawNgayCap = parts[6] ? parts[6].trim() : '';
+
+                // Format ngày sinh ddMMyyyy -> dd/MM/yyyy
+                let dob = rawDob;
+                if (rawDob.length === 8) {
+                    dob = `${rawDob.substr(0,2)}/${rawDob.substr(2,2)}/${rawDob.substr(4,4)}`;
+                }
+
+                return {
+                    cccd: cccd,
+                    cmnd: cmnd,
+                    hoTen: hoTen,
+                    dob: dob,
+                    gioiTinh: gioiTinh,
+                    diaChi: diaChi,
+                    isCCCD: true
+                };
+            }
+            return null;
+        }
+
+        /* ==========================================================
+           XỬ LÝ IN PHIẾU (CÓ CCCD & KHÔNG CÓ CCCD)
+           ========================================================== */
+        // Trường hợp 1: In khi có thông tin CCCD
+        function handleCCCDDetected(patient) {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            // Âm thanh báo nhận diện thành công
+            playBeep(1400, 100);
+            setTimeout(() => playBeep(1900, 180), 90);
+
+            const newNum = getNextNumber();
+            const formattedNum = String(newNum).padStart(2, '0');
+            const timeStr = getFormattedDateTime();
+
+            // 1. Cập nhật Modal Preview trên màn hình Kiosk
+            document.getElementById('preview-name').innerText = patient.hoTen;
+            document.getElementById('preview-cccd').innerText = patient.cccd;
+            document.getElementById('preview-dob').innerText = patient.dob;
+            document.getElementById('preview-gender').innerText = patient.gioiTinh;
+            document.getElementById('preview-address').innerText = patient.diaChi;
+            document.getElementById('preview-ticket-num').innerText = formattedNum;
+            document.getElementById('success-overlay').style.display = 'flex';
+
+            // 2. Cập nhật dữ liệu vào Mẫu in nhiệt
+            document.getElementById('ticket-num').innerText = formattedNum;
+            document.getElementById('ticket-time').innerText = timeStr;
+            document.getElementById('print-service-name').innerText = "PHIẾU KHÁM BỆNH (CCCD)";
+            
+            // Điền thông tin CCCD vào phiếu in
+            document.getElementById('print-p-name').innerText = patient.hoTen;
+            document.getElementById('print-p-cccd').innerText = patient.cccd;
+            document.getElementById('print-p-dob').innerText = patient.dob;
+            document.getElementById('print-p-gender').innerText = patient.gioiTinh;
+            document.getElementById('print-p-address').innerText = patient.diaChi;
+            
+            document.getElementById('print-patient-info').style.display = 'block';
+            document.getElementById('print-no-cccd-info').style.display = 'none';
+
+            updateScreen();
+
+            // 3. Tiến hành in sau 500ms để người dùng kịp nhìn thấy thông tin
+            setTimeout(() => {
+                window.print();
+                
+                // Sau khi in xong, tự động đóng modal sau 2.5 giây trở lại màn hình chờ
+                setTimeout(() => {
+                    document.getElementById('success-overlay').style.display = 'none';
+                    isProcessing = false;
+                }, 2500);
+            }, 600);
+        }
+
+        // Trường hợp 2: Bấm in thường (Không có CCCD)
+        function processPrintRegular() {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            playBeep(1000, 150);
+
+            const newNum = getNextNumber();
+            const formattedNum = String(newNum).padStart(2, '0');
+            const timeStr = getFormattedDateTime();
+
+            // Cập nhật Mẫu in nhiệt
+            document.getElementById('ticket-num').innerText = formattedNum;
+            document.getElementById('ticket-time').innerText = timeStr;
+            document.getElementById('print-service-name').innerText = "PHIẾU KHÁM BỆNH";
+            document.getElementById('print-patient-info').style.display = 'none';
+            document.getElementById('print-no-cccd-info').style.display = 'block';
+
+            updateScreen();
+
+            setTimeout(() => {
+                window.print();
+                isProcessing = false;
+            }, 250);
+        }
+
+        /* ==========================================================
+           LẮNG NGHE MÁY QUÉT MÃ VẠCH / QR PHẦN CỨNG (USB SCANNER)
+           Máy quét mã vạch hoạt động như bàn phím ảo (Keyboard Wedge),
+           gửi các ký tự liên tục với tốc độ rất cao và kết thúc bằng Enter.
+           ========================================================== */
+        let barcodeBuffer = '';
+        let lastKeyTime = Date.now();
+
+        window.addEventListener('keydown', function(e) {
+            // Không can thiệp nếu đang nhập liệu trong ô textarea test
+            if (e.target && e.target.id === 'test-cccd-input') return;
+
+            const now = Date.now();
+            
+            // Nếu 2 phím cách nhau quá 120ms thì reset buffer (do con người gõ chậm)
+            if (now - lastKeyTime > 120) {
+                barcodeBuffer = '';
+            }
+            lastKeyTime = now;
+
+            if (e.key === 'Enter') {
+                if (barcodeBuffer.length >= 15) {
+                    e.preventDefault();
+                    const patient = parseCCCDData(barcodeBuffer);
+                    if (patient) {
+                        handleCCCDDetected(patient);
+                    } else {
+                        // Nếu quét chuỗi không đúng định dạng CCCD
+                        playBeep(400, 300);
+                        alert("Mã QR không đúng cấu trúc CCCD chuẩn: " + barcodeBuffer);
+                    }
+                    barcodeBuffer = '';
+                }
+            } else if (e.key.length === 1) {
+                barcodeBuffer += e.key;
+            }
+        });
+
+        /* ==========================================================
+           QUÉT QUA CAMERA / WEBCAM KIOSK
+           ========================================================== */
+        function openCameraScanner() {
+            if (typeof Html5Qrcode === 'undefined') {
+                alert("Không thể tải thư viện quét Camera do máy Kiosk chưa kết nối Internet. Vui lòng sử dụng máy quét mã vạch USB!");
+                return;
+            }
+            document.getElementById('camera-modal').style.display = 'flex';
+            
+            html5QrScanner = new Html5Qrcode("qr-reader");
+            html5QrScanner.start(
+                { facingMode: "environment" },
+                { fps: 15, qrbox: { width: 300, height: 250 } },
+                (decodedText) => {
+                    const patient = parseCCCDData(decodedText);
+                    if (patient) {
+                        closeCameraScanner();
+                        handleCCCDDetected(patient);
+                    } else {
+                        console.log("Scanned text is not standard CCCD:", decodedText);
+                    }
+                },
+                (errorMessage) => {
+                    // Quét từng frame chưa thấy QR, bỏ qua
+                }
+            ).catch(err => {
+                console.error("Camera start error", err);
+                alert("Không thể khởi động Camera: " + err);
+                closeCameraScanner();
+            });
+        }
+
+        function closeCameraScanner() {
+            if (html5QrScanner) {
+                html5QrScanner.stop().then(() => {
+                    html5QrScanner.clear();
+                    html5QrScanner = null;
+                }).catch(err => console.log(err));
+            }
+            document.getElementById('camera-modal').style.display = 'none';
+        }
+
+        /* ==========================================================
+           MODAL GIẢ LẬP / KIỂM THỬ CCCD
+           ========================================================== */
+        const sampleCCCDs = {
+            1: "087098001234|334657890|NGUYỄN VĂN AN|15081995|Nam|Số 123 Nguyễn Huệ, Phường 1, TP Cao Lãnh, Tỉnh Đồng Tháp|25052021",
+            2: "087199005678||TRẦN THỊ MAI|02032000|Nữ|Ấp Bình Hòa, Xã Mỹ Hội, Huyện Cao Lãnh, Tỉnh Đồng Tháp|12102022"
+        };
+
+        function openTestModal() {
+            document.getElementById('test-modal').style.display = 'flex';
+            setSampleCCCD(1);
+        }
+
+        function closeTestModal() {
+            document.getElementById('test-modal').style.display = 'none';
+        }
+
+        function setSampleCCCD(id) {
+            document.getElementById('test-cccd-input').value = sampleCCCDs[id] || '';
+        }
+
+        function runTestScan() {
+            const raw = document.getElementById('test-cccd-input').value;
+            const patient = parseCCCDData(raw);
+            if (patient) {
+                closeTestModal();
+                handleCCCDDetected(patient);
+            } else {
+                alert("Định dạng chuỗi không hợp lệ! Vui lòng kiểm tra lại cấu trúc mã QR CCCD.");
+            }
+        }
+
+        // Khởi động cập nhật màn hình
+        updateScreen();
+    </script>
+</body>
+</html>
