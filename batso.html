@@ -570,12 +570,13 @@
                     Đặt mã QR trên thẻ <strong>Căn cước công dân (CCCD)</strong> vào tia quét của máy đọc Zebra để tự động in số khám kèm thông tin cá nhân.
                 </p>
 
-                <!-- Ô NHẬN DỮ LIỆU MÁY QUÉT ZEBRA (CHẶN HOÀN TOÀN NHẢY TAB TRÌNH DUYỆT) -->
+                <!-- Ô NHẬN DỮ LIỆU MÁY QUÉT ZEBRA (CHẶN HOÀN TOÀN NHẢY TAB & BÀN PHÍM ẢO) -->
                 <div class="scanner-input-container">
                     <input type="text" 
                            id="barcode-input" 
                            class="scanner-input-box" 
                            placeholder="👉 Đầu đọc Zebra sẵn sàng • Đưa thẻ CCCD vào quét..." 
+                           inputmode="none" 
                            autocomplete="off" 
                            autocorrect="off" 
                            autocapitalize="off" 
@@ -593,11 +594,11 @@
                 </div>
             </div>
 
-            <!-- CỘT 2: LẤY SỐ KHÔNG CẦN CCCD -->
+            <!-- CỘT 2: LẤY SỐ KHÁM THƯỜNG -->
             <div class="regular-number-panel">
-                <h3 class="regular-title">Không mang CCCD?</h3>
+                <h3 class="regular-title">LẤY SỐ KHÁM THƯỜNG</h3>
                 <p class="regular-desc">
-                    Dành cho bệnh nhân chưa có CCCD hoặc chưa sẵn sàng thẻ. Vui lòng bấm nút bên dưới:
+                    Dành cho người bệnh lấy số thứ tự theo cách thông thường. Vui lòng bấm nút bên dưới:
                 </p>
 
                 <button class="btn-print-regular" onclick="processPrintRegular()">
@@ -885,12 +886,59 @@
         }
 
         /* ==========================================================
+           LƯU TRỮ VÀ ĐỒNG BỘ DỮ LIỆU VỚI MÀN HÌNH TIẾP NHẬN
+           Hỗ trợ đồng bộ tức thì qua BroadcastChannel và localStorage
+           ========================================================== */
+        const KEY_QUEUE = 'hospital_queue_list';
+        const queueChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('hospital_queue_channel') : null;
+
+        function saveTicketToQueue(ticketData) {
+            const today = getToday();
+            let queue = [];
+            try {
+                const raw = localStorage.getItem(KEY_QUEUE);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed.date === today && Array.isArray(parsed.list)) {
+                        queue = parsed.list;
+                    }
+                }
+            } catch (e) {
+                console.warn("Lỗi đọc danh sách tiếp nhận:", e);
+            }
+
+            queue.push(ticketData);
+
+            try {
+                localStorage.setItem(KEY_QUEUE, JSON.stringify({
+                    date: today,
+                    list: queue,
+                    lastUpdated: Date.now()
+                }));
+            } catch (e) {
+                console.warn("Lỗi lưu danh sách tiếp nhận:", e);
+            }
+
+            // Gửi tín hiệu sang màn hình Tiếp Nhận (nếu đang mở cùng máy hoặc mạng)
+            try {
+                if (queueChannel) {
+                    queueChannel.postMessage({
+                        type: 'NEW_TICKET',
+                        ticket: ticketData,
+                        queue: queue
+                    });
+                }
+            } catch (e) {}
+        }
+
+        /* ==========================================================
            XỬ LÝ IN PHIẾU (CÓ CCCD & KHÔNG CÓ CCCD)
            ========================================================== */
         // Trường hợp 1: In khi có thông tin CCCD
         function handleCCCDDetected(patient) {
             if (isProcessing) return;
             isProcessing = true;
+            if (barcodeInput) barcodeInput.blur(); // Tắt tiêu điểm để ẩn bàn phím ảo
 
             // Âm thanh báo nhận diện thành công
             playBeep(1400, 100);
@@ -899,6 +947,20 @@
             const newNum = getNextNumber();
             const formattedNum = String(newNum).padStart(2, '0');
             const timeStr = getFormattedDateTime();
+
+            // Lưu dữ liệu vào hàng đợi tiếp nhận
+            saveTicketToQueue({
+                stt: formattedNum,
+                time: timeStr,
+                timestamp: Date.now(),
+                type: 'CCCD',
+                hoTen: patient.hoTen,
+                cccd: patient.cccd,
+                dob: patient.dob,
+                gioiTinh: patient.gioiTinh,
+                diaChi: patient.diaChi,
+                status: 'waiting' // waiting | calling | completed | skipped
+            });
 
             // 1. Cập nhật Modal Preview trên màn hình Kiosk
             document.getElementById('preview-name').innerText = patient.hoTen;
@@ -943,12 +1005,27 @@
         function processPrintRegular() {
             if (isProcessing) return;
             isProcessing = true;
+            if (barcodeInput) barcodeInput.blur(); // Tắt tiêu điểm ngay lập tức ngăn mở bàn phím ảo
 
             playBeep(1000, 150);
 
             const newNum = getNextNumber();
             const formattedNum = String(newNum).padStart(2, '0');
             const timeStr = getFormattedDateTime();
+
+            // Lưu dữ liệu vào hàng đợi tiếp nhận
+            saveTicketToQueue({
+                stt: formattedNum,
+                time: timeStr,
+                timestamp: Date.now(),
+                type: 'REGULAR',
+                hoTen: 'Khách khám thường',
+                cccd: '',
+                dob: '',
+                gioiTinh: '',
+                diaChi: '',
+                status: 'waiting'
+            });
 
             // Cập nhật Mẫu in nhiệt (Giống 100% bản gốc)
             document.getElementById('ticket-num').innerText = formattedNum;
@@ -967,11 +1044,11 @@
         }
 
         /* ==========================================================
-           TỐI ƯU HÓA MÁY QUÉT ZEBRA USB (CHẶN HOÀN TOÀN NHẢY TAB)
+           TỐI ƯU HÓA MÁY QUÉT ZEBRA USB (CHẶN HOÀN TOÀN NHẢY TAB & BÀN PHÍM ẢO)
            1. Luôn giữ con trỏ chuột trong ô #barcode-input để Edge KHÔNG
               bao giờ coi dữ liệu quét là phím tắt trình duyệt.
-           2. Chặn triệt để các phím Tab, Ctrl+T, Ctrl+N...
-           3. Hỗ trợ máy quét có Enter hoặc không có Enter (timeout).
+           2. Chặn triệt để các phím Tab, Alt, Ctrl+T, Ctrl+N...
+           3. Dùng inputmode="none" để màn hình cảm ứng KHÔNG bao giờ bật Touch Keyboard.
            ========================================================== */
         const barcodeInput = document.getElementById('barcode-input');
         let globalBuffer = '';
@@ -982,26 +1059,42 @@
         function resetScannerInput() {
             if (barcodeInput) {
                 barcodeInput.value = '';
-                barcodeInput.focus();
+                if (!isProcessing) {
+                    barcodeInput.focus({ preventScroll: true });
+                }
             }
             globalBuffer = '';
         }
 
         function ensureInputFocus() {
-            if (document.activeElement && (document.activeElement.id === 'test-cccd-input' || document.activeElement.tagName === 'BUTTON')) {
+            if (isProcessing) return;
+            const active = document.activeElement;
+            if (active && (
+                active.id === 'test-cccd-input' || 
+                active.tagName === 'BUTTON' || 
+                active.closest('button') || 
+                active.closest('.btn-print-regular') ||
+                active.closest('#test-modal')
+            )) {
                 return;
             }
-            if (barcodeInput && document.activeElement !== barcodeInput) {
-                barcodeInput.focus();
+            if (barcodeInput && active !== barcodeInput) {
+                barcodeInput.focus({ preventScroll: true });
             }
         }
 
-        // Tự động duy trì con trỏ chuột trong ô nhập liệu mỗi 400ms
-        setInterval(ensureInputFocus, 400);
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('#test-modal')) {
-                setTimeout(ensureInputFocus, 30);
+        // Tự động duy trì con trỏ chuột trong ô nhập liệu nhẹ nhàng khi rảnh
+        setInterval(() => {
+            if (!isProcessing && !document.hidden) {
+                ensureInputFocus();
             }
+        }, 1500);
+
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('button') || e.target.closest('.btn-print-regular') || e.target.closest('#test-modal') || isProcessing) {
+                return;
+            }
+            setTimeout(ensureInputFocus, 100);
         });
 
         function processScannedBarcode(rawString) {

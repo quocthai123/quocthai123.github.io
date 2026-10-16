@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiosk Lấy Số Bệnh Viện - Máy Quét Zebra CCCD</title>
+    <style>
+        /* --- CẤU HÌNH GIAO DIỆN CHUNG --- */
+        :root {
+            --primary-color: #0066cc;
+            --primary-dark: #004c99;
+            --primary-light: #e6f0fa;
+            --success-color: #28a745;
+            --accent-color: #ff9800;
+            --dark-color: #2c3e50;
+            --bg-color: #eef2f7;
+            --zebra-red: #ff1e27;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0; padding: 0;
+            height: 100vh; width: 100vw;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden;
+        }
+
+        .screen-container {
+            background: white;
+            width: 96%; height: 96%;
+            border-radius: 24px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.12);
+            display: flex; flex-direction: column;
+            justify-content: space-between;
+            padding: 24px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* --- PHẦN HEADER --- */
+        .header-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #edf2f7;
+            padding-bottom: 15px;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .hospital-logo {
+            height: 85px; width: auto;
+            object-fit: contain;
+        }
+
+        .header-title-box {
+            text-align: left;
+        }
+
+        .main-title {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 30px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sub-title {
+            margin: 4px 0 0 0;
+            font-size: 18px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .number-display-box {
+            background: linear-gradient(135deg, #f8fafc, #edf2f7);
+            border: 2px solid #e2e8f0;
+            padding: 10px 24px;
+            border-radius: 16px;
+            text-align: right;
+        }
+
+        .number-display-label {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .number-display-value {
+            font-size: 34px;
+            color: #e53e3e;
+            font-weight: 900;
+            line-height: 1.1;
+        }
+
+        /* --- KHU VỰC THAO TÁC CHÍNH (2 CỘT: MÁY QUÉT ZEBRA & LẤY SỐ THƯỜNG) --- */
+        .main-body {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1.35fr 1fr;
+            gap: 28px;
+            align-items: stretch;
+            margin: 20px 0;
+        }
+
+        /* KHU VỰC MÁY QUÉT ZEBRA USB */
+        .cccd-scanner-panel {
+            background: linear-gradient(145deg, #ffffff, #f0f7ff);
+            border: 2.5px dashed #007bff;
+            border-radius: 20px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 123, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .badge-recommended {
+            position: absolute;
+            top: -14px;
+            background: linear-gradient(90deg, #ff7e5f, #feb47b);
+            color: white;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 6px 18px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 10px rgba(255, 126, 95, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .scanner-visual {
+            position: relative;
+            width: 200px;
+            height: 130px;
+            border: 3px solid #0066cc;
+            border-radius: 16px;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 18px;
+            box-shadow: inset 0 0 20px rgba(0,102,204,0.08), 0 8px 20px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+
+        .cccd-card-mockup {
+            font-size: 60px;
+        }
+
+        /* Tia quét laser màu đỏ đặc trưng của máy quét Zebra */
+        .scan-laser-red {
+            position: absolute;
+            width: 100%;
+            height: 3.5px;
+            background: var(--zebra-red);
+            box-shadow: 0 0 14px 4px rgba(255, 30, 39, 0.85);
+            animation: laserZebra 2.2s infinite ease-in-out;
+        }
+
+        @keyframes laserZebra {
+            0% { top: 8%; opacity: 0.3; }
+            50% { top: 88%; opacity: 1; }
+            100% { top: 8%; opacity: 0.3; }
+        }
+
+        .panel-heading {
+            color: var(--primary-dark);
+            font-size: 27px;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+        }
+
+        .panel-desc {
+            color: #334155;
+            font-size: 18px;
+            margin: 0 0 16px 0;
+            max-width: 92%;
+            line-height: 1.5;
+        }
+
+        .scanner-status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #e6f4ea;
+            color: #137333;
+            font-size: 15px;
+            font-weight: 700;
+            padding: 8px 20px;
+            border-radius: 30px;
+            margin-bottom: 12px;
+            border: 1px solid #ceead6;
+        }
+
+        .status-dot {
+            width: 12px; height: 12px;
+            background-color: #34a853;
+            border-radius: 50%;
+            animation: pulseDot 1.5s infinite;
+        }
+
+        @keyframes pulseDot {
+            0% { transform: scale(0.9); opacity: 0.7; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.7; }
+        }
+
+        .scanner-input-container {
+            width: 88%;
+            margin: 8px 0 14px 0;
+        }
+
+        .scanner-input-box {
+            width: 100%;
+            padding: 13px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            color: #004c99;
+            background: #ffffff;
+            border: 2px solid #0066cc;
+            border-radius: 14px;
+            outline: none;
+            box-shadow: 0 0 15px rgba(0, 102, 204, 0.15);
+            transition: all 0.25s ease;
+        }
+
+        .scanner-input-box:focus {
+            border-color: #28a745;
+            box-shadow: 0 0 20px rgba(40, 167, 69, 0.35);
+            background: #f0fff4;
+        }
+
+        .zebra-guide-note {
+            font-size: 13.5px;
+            color: #64748b;
+            font-style: italic;
+            margin-top: 5px;
+        }
+
+        /* KHU VỰC LẤY SỐ THƯỜNG */
+        .regular-number-panel {
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.04);
+        }
+
+        .regular-title {
+            color: #475569;
+            font-size: 23px;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+        }
+
+        .regular-desc {
+            color: #64748b;
+            font-size: 15.5px;
+            margin: 0 0 25px 0;
+            line-height: 1.45;
+        }
+
+        .btn-print-regular {
+            background: linear-gradient(135deg, #475569, #334155);
+            color: white;
+            border: none;
+            padding: 25px 45px;
+            border-radius: 40px;
+            font-family: inherit;
+            font-size: 24px;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #1e293b, 0 15px 25px rgba(0,0,0,0.15);
+            transition: all 0.1s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            width: 85%;
+        }
+
+        .btn-print-regular:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #1e293b, 0 8px 15px rgba(0,0,0,0.15);
+        }
+
+        /* --- FOOTER & TOOLBAR --- */
+        .footer-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 14px;
+            border-top: 1px solid #edf2f7;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .admin-tools {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-tool {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-tool:hover {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .btn-tool.danger:hover {
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+
+        /* --- MODAL / OVERLAY QUÉT THÀNH CÔNG --- */
+        .overlay-success {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: 24px;
+            width: 580px;
+            max-width: 90%;
+            padding: 35px 40px;
+            text-align: center;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.85); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-icon-success {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+
+        .modal-title {
+            color: #28a745;
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0 0 15px 0;
+            text-transform: uppercase;
+        }
+
+        .patient-card-preview {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 18px 24px;
+            text-align: left;
+            margin: 15px 0 20px 0;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .patient-card-preview .patient-name {
+            font-size: 22px;
+            font-weight: 800;
+            color: #0056b3;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .patient-field {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px dashed #e2e8f0;
+            padding: 4px 0;
+        }
+
+        .patient-field:last-child {
+            border-bottom: none;
+        }
+
+        .ticket-number-badge {
+            display: inline-block;
+            background: #e53e3e;
+            color: white;
+            font-size: 42px;
+            font-weight: 900;
+            padding: 6px 30px;
+            border-radius: 16px;
+            margin: 10px 0;
+            box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
+        }
+
+        .modal-printing-alert {
+            color: #64748b;
+            font-size: 15px;
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+        /* --- MODAL GIẢ LẬP / TEST MÁY QUÉT --- */
+        .modal-test {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-test-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            width: 550px;
+            max-width: 90%;
+            text-align: left;
+        }
+
+        .test-input {
+            width: 100%;
+            height: 90px;
+            padding: 10px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            margin: 10px 0;
+            resize: vertical;
+        }
+
+        /* --- MẪU IN (GIỐNG HỆT BẢN GỐC CHO MÁY IN NHIỆT XP80) --- */
+        #print-area { display: none; }
+        @media print {
+            body * { visibility: hidden; }
+            .screen-container, .overlay-success, .modal-test { display: none !important; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area {
+                display: block !important;
+                position: absolute;
+                top: 0; left: 0;
+                width: 100%;
+                text-align: center;
+                color: black;
+            }
+            .hospital-name-print {
+                font-family: "Times New Roman", serif;
+                font-size: 16px;
+                font-weight: bold;
+                text-transform: uppercase;
+                margin: 5px 0;
+            }
+            .service-name-print {
+                font-family: "Times New Roman", serif;
+                font-size: 20px;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+            .ticket-number-print {
+                font-family: Arial, sans-serif;
+                font-size: 100px;
+                font-weight: 900;
+                line-height: 1;
+                margin: 5px 0;
+            }
+            .patient-info-print {
+                font-family: "Times New Roman", serif;
+                font-size: 14px;
+                text-align: left;
+                margin: 6px 0;
+                padding: 6px 0;
+                border-top: 1px dashed black;
+                border-bottom: 1px dashed black;
+                line-height: 1.4;
+            }
+            .patient-name-print {
+                font-size: 15px;
+                font-weight: bold;
+                text-transform: uppercase;
+            }
+            .print-time-print {
+                font-family: "Times New Roman", serif;
+                font-size: 12px;
+                margin-top: 5px;
+                margin-bottom: 20px;
+            }
+            @page {
+                margin: 0;
+                size: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- MÀN HÌNH CHÍNH CỦA KIOSK -->
+    <div class="screen-container">
+        <!-- HEADER -->
+        <div class="header-section">
+            <div class="header-brand">
+                <img src="/img/logopng-removebg-preview.png" 
+                     onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%230066cc\' stroke-width=\'2\'><path d=\'M22 12h-4l-3 9L9 3l-3 9H2\'></path></svg>'"
+                     alt="Logo" class="hospital-logo">
+                <div class="header-title-box">
+                    <h1 class="main-title">BỆNH VIỆN PHỤC HỒI CHỨC NĂNG</h1>
+                    <div class="sub-title">Hệ thống cấp số thứ tự khám bệnh tự động</div>
+                </div>
+            </div>
+            
+            <div class="number-display-box">
+                <div class="number-display-label">Số vừa cấp</div>
+                <div class="number-display-value" id="screen-number">--</div>
+            </div>
+        </div>
+
+        <!-- MAIN BODY (2 KHU VỰC) -->
+        <div class="main-body">
+            <!-- CỘT 1: MÁY QUÉT ZEBRA USB -->
+            <div class="cccd-scanner-panel" id="scanner-panel">
+                <div class="badge-recommended">Khuyên dùng • Ưu tiên xử lý</div>
+                
+                <div class="scanner-visual">
+                    <span class="cccd-card-mockup">💳</span>
+                    <div class="scan-laser-red"></div>
+                </div>
+
+                <h2 class="panel-heading">Quét Căn Cước Công Dân</h2>
+                <p class="panel-desc">
+                    Đặt mã QR trên thẻ <strong>Căn cước công dân (CCCD)</strong> vào tia quét của máy đọc Zebra để tự động in số khám kèm thông tin cá nhân.
+                </p>
+
+                <!-- Ô NHẬN DỮ LIỆU MÁY QUÉT ZEBRA (CHẶN HOÀN TOÀN NHẢY TAB & BÀN PHÍM ẢO) -->
+                <div class="scanner-input-container">
+                    <input type="text" 
+                           id="barcode-input" 
+                           class="scanner-input-box" 
+                           placeholder="👉 Đầu đọc Zebra sẵn sàng • Đưa thẻ CCCD vào quét..." 
+                           inputmode="none" 
+                           autocomplete="off" 
+                           autocorrect="off" 
+                           autocapitalize="off" 
+                           spellcheck="false" 
+                           autofocus />
+                </div>
+
+                <div class="scanner-status-indicator">
+                    <span class="status-dot"></span>
+                    <span>Máy quét Zebra USB đã sẵn sàng</span>
+                </div>
+
+                <div class="zebra-guide-note">
+                    * Đưa mã QR đối diện đầu quét Zebra ở cự ly 10 - 20 cm
+                </div>
+            </div>
+
+            <!-- CỘT 2: LẤY SỐ KHÁM THƯỜNG -->
+            <div class="regular-number-panel">
+                <h3 class="regular-title">LẤY SỐ KHÁM THƯỜNG</h3>
+                <p class="regular-desc">
+                    Dành cho người bệnh lấy số thứ tự theo cách thông thường. Vui lòng bấm nút bên dưới:
+                </p>
+
+                <button class="btn-print-regular" onclick="processPrintRegular()">
+                    <span style="font-size: 38px;">🖨️</span>
+                    <span>Bấm Lấy Số Thường</span>
+                </button>
+                <div style="margin-top: 15px; font-size: 13px; color: #94a3b8; font-style: italic;">
+                    * Lưu ý: Phiếu khám sẽ không có thông tin định danh
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer-bar">
+            <div>📍 BV PHCN Tỉnh Đồng Tháp • Hỗ trợ tiếp đón: 0277.xxx.xxxx</div>
+            <div class="admin-tools">
+                <button class="btn-tool" onclick="openTestModal()">🧪 Thử nghiệm CCCD</button>
+                <button class="btn-tool" onclick="testBeepSound()">🔊 Thử loa</button>
+                <button class="btn-tool danger" onclick="manualReset()">⚙️ Reset STT về 0</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL THÔNG BÁO QUÉT CCCD THÀNH CÔNG -->
+    <div class="overlay-success" id="success-overlay">
+        <div class="modal-card">
+            <div class="modal-icon-success">✅</div>
+            <h2 class="modal-title">Quét CCCD Thành Công!</h2>
+            
+            <div class="patient-card-preview" id="preview-patient-info">
+                <div class="patient-name" id="preview-name">NGUYỄN VĂN A</div>
+                <div class="patient-field">
+                    <span>Số CCCD:</span>
+                    <strong id="preview-cccd">087098001234</strong>
+                </div>
+                <div class="patient-field">
+                    <span>Ngày sinh:</span>
+                    <strong id="preview-dob">15/08/1990</strong>
+                </div>
+                <div class="patient-field">
+                    <span>Giới tính:</span>
+                    <strong id="preview-gender">Nam</strong>
+                </div>
+                <div class="patient-field">
+                    <span>Địa chỉ:</span>
+                    <span id="preview-address" style="text-align: right; max-width: 65%;">Cao Lãnh, Đồng Tháp</span>
+                </div>
+            </div>
+
+            <div>Số thứ tự của quý khách:</div>
+            <div class="ticket-number-badge" id="preview-ticket-num">01</div>
+            <div class="modal-printing-alert">Đang tiến hành in phiếu... Vui lòng đợi lấy phiếu tại khe máy in!</div>
+        </div>
+    </div>
+
+    <!-- MODAL GIẢ LẬP / TEST MÁY QUÉT (DÀNH CHO KỸ THUẬT VIÊN) -->
+    <div class="modal-test" id="test-modal">
+        <div class="modal-test-card">
+            <h3 style="margin-top: 0; color: #1e293b;">🧪 Kiểm thử quét mã QR CCCD</h3>
+            <p style="font-size: 13px; color: #64748b; margin: 5px 0;">
+                Dán chuỗi dữ liệu mã QR CCCD (chuẩn Bộ Công An gồm 7 trường phân tách bằng dấu <code>|</code>) hoặc chọn mẫu bên dưới:
+            </p>
+            <div style="margin-bottom: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
+                <button class="btn-tool" onclick="setSampleCCCD(1)">Mẫu 1: Nguyễn Văn An</button>
+                <button class="btn-tool" onclick="setSampleCCCD(2)">Mẫu 2: Trần Thị Mai</button>
+                <button class="btn-tool" onclick="setSampleCCCD(3)" style="color: #0056b3; font-weight: bold;">Mẫu 3: Lê Quốc Thái (Mã máy Zebra)</button>
+            </div>
+            <textarea class="test-input" id="test-cccd-input" placeholder="Ví dụ: 087098001234|334657890|NGUYỄN VĂN AN|15081995|Nam|Số 123 Nguyễn Huệ, P.1, TP Cao Lãnh, Đồng Tháp|25052021"></textarea>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn-tool" onclick="closeTestModal()">Hủy</button>
+                <button class="btn-tool" style="background: #0066cc; color: white; border: none;" onclick="runTestScan()">Giả lập Quét Thẻ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MẪU IN PHIẾU NHIỆT (GIỐNG HỆT BẢN GỐC CHO MÁY IN XP80) -->
+    <div id="print-area">
+        <div class="hospital-name-print">BV PHCN ĐỒNG THÁP</div>
+        <div class="service-name-print" id="service-name-print">Khám bệnh</div>
+        <div class="ticket-number-print" id="ticket-num">00</div>
+
+        <!-- THÔNG TIN CCCD (CHỈ HIỂN THỊ KHI CÓ QUÉT CCCD) -->
+        <div class="patient-info-print" id="print-patient-info" style="display: none;">
+            <div>Họ tên: <span class="patient-name-print" id="print-p-name">NGUYỄN VĂN AN</span></div>
+            <div>Số CCCD: <strong id="print-p-cccd">087098001234</strong></div>
+            <div>Ngày sinh: <span id="print-p-dob">15/08/1995</span> - Giới tính: <span id="print-p-gender">Nam</span></div>
+            <div>Địa chỉ: <span id="print-p-address">TP Cao Lãnh, Đồng Tháp</span></div>
+        </div>
+
+        <div class="print-time-print" id="ticket-time">Ngày in: ...</div>
+    </div>
+
+    <script>
+        /* ==========================================================
+           CẤU HÌNH & TRẠNG THÁI HỆ THỐNG
+           ========================================================== */
+        const KEY_DATE = 'last_print_date_v2';
+        const KEY_COUNT = 'current_count_v2';
+
+        let isProcessing = false;
+
+        // Âm thanh Beep bằng Web Audio API (chuẩn Kiosk POS không cần file mp3 ngoài)
+        function playBeep(freq = 1200, duration = 120) {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration / 1000);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + duration / 1000);
+            } catch (err) {
+                console.log("Audio error", err);
+            }
+        }
+
+        function testBeepSound() {
+            playBeep(1200, 150);
+            setTimeout(() => playBeep(1800, 150), 120);
+        }
+
+        /* ==========================================================
+           QUẢN LÝ SỐ THỨ TỰ (LOCAL STORAGE)
+           ========================================================== */
+        function getToday() { 
+            return new Date().toLocaleDateString('vi-VN'); 
+        }
+
+        function getNextNumber() {
+            const today = getToday();
+            const lastDate = localStorage.getItem(KEY_DATE);
+            let count = parseInt(localStorage.getItem(KEY_COUNT) || '0', 10);
+            
+            // Sang ngày mới -> Reset về 0
+            if (lastDate !== today) { 
+                count = 0; 
+                localStorage.setItem(KEY_DATE, today); 
+            }
+            
+            count++;
+            localStorage.setItem(KEY_COUNT, count);
+            return count;
+        }
+
+        function getFormattedDateTime() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-GB'); 
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute: 'numeric', second: 'numeric' });
+            return `Ngày in: ${dateStr} ${timeStr}`;
+        }
+
+        function updateScreen() {
+            const current = localStorage.getItem(KEY_COUNT) || 0;
+            document.getElementById('screen-number').innerText = current > 0 ? String(current).padStart(2, '0') : '--';
+        }
+
+        function manualReset() {
+            const pass = prompt("⚠️ CẢNH BÁO: Nhập '0000' để xác nhận đặt lại số thứ tự về 0:");
+            if (pass === '0000') {
+                localStorage.setItem(KEY_COUNT, 0);
+                updateScreen();
+                alert("Đã đặt lại số thứ tự về 0 thành công!");
+            } else if (pass !== null) {
+                alert("Mã xác nhận không đúng!");
+            }
+        }
+
+        /* ==========================================================
+           BỘ TỰ ĐỘNG GIẢI MÃ TIẾNG VIỆT TỪ MÁY QUÉT ZEBRA USB
+           Hỗ trợ 100% cả 2 dạng dữ liệu phát ra từ máy quét Zebra:
+           1. Chế độ Alt-Numpad: Dãy số decimal (01950170, 022501870145...)
+           2. Chế độ Windows-1252 / ISO-8859-1 (Mojibake):
+              LÃª Quá»‘c ThÃ¡i -> Lê Quốc Thái
+              Tá»• 1, áº¤p Tá»‹nh Ä□Ã´ng... -> Tổ 1, Ấp Tịnh Đông...
+           Tự động chuyển đổi về Tiếng Việt Unicode UTF-8 chuẩn có dấu.
+           ========================================================== */
+        const CP1252_SPECIAL_MAP = {
+            0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84,
+            0x2026: 0x85, 0x2020: 0x86, 0x2021: 0x87, 0x02C6: 0x88,
+            0x2030: 0x89, 0x0160: 0x8A, 0x2039: 0x8B, 0x0152: 0x8C,
+            0x017D: 0x8E, 0x2018: 0x91, 0x2019: 0x92, 0x201C: 0x93,
+            0x201D: 0x94, 0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97,
+            0x02DC: 0x98, 0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B,
+            0x0153: 0x9C, 0x017E: 0x9E, 0x0178: 0x9F
+        };
+
+        function fixVietnameseText(text) {
+            if (!text || typeof text !== 'string') return text;
+
+            // 1. Phục hồi từ dãy số Alt-Numpad (01950170, 022501870145...)
+            if (/(?:0[12]\d{2})+/.test(text)) {
+                text = text.replace(/(?:0[12]\d{2})+/g, function(match) {
+                    try {
+                        const chunks = match.match(/0[12]\d{2}/g);
+                        if (!chunks) return match;
+                        const bytes = new Uint8Array(chunks.map(c => parseInt(c, 10)));
+                        return new TextDecoder('utf-8').decode(bytes);
+                    } catch (e) {
+                        return match;
+                    }
+                });
+            }
+
+            // 2. Nhận diện và phục hồi lỗi bảng mã Windows-1252 / ISO-8859-1 (Mojibake)
+            // Nhận dạng các cặp byte đặc trưng của tiếng Việt bị lỗi mã hóa:
+            const hasMojibake = /Ã[\u0080-\u00FF]|Ä|áº|á»|Â[\u0080-\u00FF]|[\uFFFD\u25A1\u25A0]/.test(text);
+            if (hasMojibake) {
+                // Xử lý ký tự 'Đ' (0xC4 0x90) và 'đ' (0xC4 0x91):
+                // Do byte 0x90 không nằm trong Win1252 chuẩn, máy quét thường xuất ra:
+                // Ä□, Ä?, Ä kèm ký tự vô hình, hoặc Ä đứng trước nguyên âm (ÄÃ´ng -> Đông)
+                let cleaned = text.replace(/Ä[\uFFFD\u25A1\u25A0\?]|Ä(?=[\s\u00C0-\u00FF])/g, '\xC4\x90');
+                cleaned = cleaned.replace(/Ä\u2018/g, '\xC4\x91'); // đ
+                cleaned = cleaned.replace(/Ä(?=[Ãáâêôù])/g, '\xC4\x90');
+
+                try {
+                    const bytes = [];
+                    for (let i = 0; i < cleaned.length; i++) {
+                        const code = cleaned.charCodeAt(i);
+                        if (CP1252_SPECIAL_MAP[code] !== undefined) {
+                            bytes.push(CP1252_SPECIAL_MAP[code]);
+                        } else if (code <= 0xFF) {
+                            bytes.push(code);
+                        } else if (code === 0xFFFD || code === 0x25A1 || code === 0x25A0) {
+                            bytes.push(0x90);
+                        } else {
+                            const utfBytes = new TextEncoder().encode(cleaned[i]);
+                            for (let b of utfBytes) bytes.push(b);
+                        }
+                    }
+                    const decoded = new TextDecoder('utf-8', { fatal: false }).decode(new Uint8Array(bytes));
+                    if (decoded && decoded.length > 0) {
+                        text = decoded;
+                    }
+                } catch (err) {
+                    console.warn("Lỗi giải mã Mojibake:", err);
+                }
+            }
+
+            return text;
+        }
+
+        /* ==========================================================
+           BỘ PHÂN TÍCH MÃ QR CĂN CƯỚC CÔNG DÂN (CCCD)
+           Định dạng chuẩn BCA:
+           Số CCCD|Số CMND cũ|Họ và tên|Ngày sinh|Giới tính|Địa chỉ thường trú|Ngày cấp
+           ========================================================== */
+        function parseCCCDData(rawText) {
+            if (!rawText || typeof rawText !== 'string') return null;
+            const cleaned = rawText.trim();
+            const parts = cleaned.split('|');
+            
+            // Mã CCCD chuẩn có từ 6 đến 7 trường phân tách bằng '|'
+            if (parts.length >= 6) {
+                const cccd = parts[0].trim();
+                const cmnd = parts[1].trim();
+                const hoTen = fixVietnameseText(parts[2].trim());
+                const rawDob = parts[3].trim();
+                const gioiTinh = fixVietnameseText(parts[4].trim());
+                const diaChi = fixVietnameseText(parts[5].trim());
+                const rawNgayCap = parts[6] ? parts[6].trim() : '';
+
+                // Format ngày sinh ddMMyyyy -> dd/MM/yyyy
+                let dob = rawDob;
+                if (rawDob.length === 8) {
+                    dob = `${rawDob.substr(0,2)}/${rawDob.substr(2,2)}/${rawDob.substr(4,4)}`;
+                }
+
+                return {
+                    cccd: cccd,
+                    cmnd: cmnd,
+                    hoTen: hoTen,
+                    dob: dob,
+                    gioiTinh: gioiTinh,
+                    diaChi: diaChi,
+                    isCCCD: true
+                };
+            }
+            return null;
+        }
+
+        /* ==========================================================
+           LƯU TRỮ VÀ ĐỒNG BỘ DỮ LIỆU VỚI MÀN HÌNH TIẾP NHẬN
+           Hỗ trợ đồng bộ tức thì qua BroadcastChannel và localStorage
+           ========================================================== */
+        const KEY_QUEUE = 'hospital_queue_list';
+        const queueChannel = ('BroadcastChannel' in window) ? new BroadcastChannel('hospital_queue_channel') : null;
+
+        function saveTicketToQueue(ticketData) {
+            const today = getToday();
+            let queue = [];
+            try {
+                const raw = localStorage.getItem(KEY_QUEUE);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed.date === today && Array.isArray(parsed.list)) {
+                        queue = parsed.list;
+                    }
+                }
+            } catch (e) {
+                console.warn("Lỗi đọc danh sách tiếp nhận:", e);
+            }
+
+            queue.push(ticketData);
+
+            try {
+                localStorage.setItem(KEY_QUEUE, JSON.stringify({
+                    date: today,
+                    list: queue,
+                    lastUpdated: Date.now()
+                }));
+            } catch (e) {
+                console.warn("Lỗi lưu danh sách tiếp nhận:", e);
+            }
+
+            // Gửi tín hiệu sang màn hình Tiếp Nhận (nếu đang mở cùng máy hoặc mạng)
+            try {
+                if (queueChannel) {
+                    queueChannel.postMessage({
+                        type: 'NEW_TICKET',
+                        ticket: ticketData,
+                        queue: queue
+                    });
+                }
+            } catch (e) {}
+        }
+
+        /* ==========================================================
+           XỬ LÝ IN PHIẾU (CÓ CCCD & KHÔNG CÓ CCCD)
+           ========================================================== */
+        // Trường hợp 1: In khi có thông tin CCCD
+        function handleCCCDDetected(patient) {
+            if (isProcessing) return;
+            isProcessing = true;
+            if (barcodeInput) barcodeInput.blur(); // Tắt tiêu điểm để ẩn bàn phím ảo
+
+            // Âm thanh báo nhận diện thành công
+            playBeep(1400, 100);
+            setTimeout(() => playBeep(1900, 180), 90);
+
+            const newNum = getNextNumber();
+            const formattedNum = String(newNum).padStart(2, '0');
+            const timeStr = getFormattedDateTime();
+
+            // Lưu dữ liệu vào hàng đợi tiếp nhận
+            saveTicketToQueue({
+                stt: formattedNum,
+                time: timeStr,
+                timestamp: Date.now(),
+                type: 'CCCD',
+                hoTen: patient.hoTen,
+                cccd: patient.cccd,
+                dob: patient.dob,
+                gioiTinh: patient.gioiTinh,
+                diaChi: patient.diaChi,
+                status: 'waiting' // waiting | calling | completed | skipped
+            });
+
+            // 1. Cập nhật Modal Preview trên màn hình Kiosk
+            document.getElementById('preview-name').innerText = patient.hoTen;
+            document.getElementById('preview-cccd').innerText = patient.cccd;
+            document.getElementById('preview-dob').innerText = patient.dob;
+            document.getElementById('preview-gender').innerText = patient.gioiTinh;
+            document.getElementById('preview-address').innerText = patient.diaChi;
+            document.getElementById('preview-ticket-num').innerText = formattedNum;
+            document.getElementById('success-overlay').style.display = 'flex';
+
+            // 2. Cập nhật dữ liệu vào Mẫu in nhiệt
+            document.getElementById('ticket-num').innerText = formattedNum;
+            document.getElementById('ticket-time').innerText = timeStr;
+            const sNameElem = document.getElementById('service-name-print');
+            if (sNameElem) sNameElem.innerText = "Khám bệnh";
+            
+            // Điền thông tin CCCD vào phiếu in
+            document.getElementById('print-p-name').innerText = patient.hoTen;
+            document.getElementById('print-p-cccd').innerText = patient.cccd;
+            document.getElementById('print-p-dob').innerText = patient.dob;
+            document.getElementById('print-p-gender').innerText = patient.gioiTinh;
+            document.getElementById('print-p-address').innerText = patient.diaChi;
+            
+            document.getElementById('print-patient-info').style.display = 'block';
+
+            updateScreen();
+
+            // 3. Tiến hành in sau 500ms để người dùng kịp nhìn thấy thông tin
+            setTimeout(() => {
+                window.print();
+                
+                // Sau khi in xong, tự động đóng modal sau 2.5 giây trở lại màn hình chờ
+                setTimeout(() => {
+                    document.getElementById('success-overlay').style.display = 'none';
+                    isProcessing = false;
+                    resetScannerInput();
+                }, 2500);
+            }, 600);
+        }
+
+        // Trường hợp 2: Bấm in thường (Không có CCCD)
+        function processPrintRegular() {
+            if (isProcessing) return;
+            isProcessing = true;
+            if (barcodeInput) barcodeInput.blur(); // Tắt tiêu điểm ngay lập tức ngăn mở bàn phím ảo
+
+            playBeep(1000, 150);
+
+            const newNum = getNextNumber();
+            const formattedNum = String(newNum).padStart(2, '0');
+            const timeStr = getFormattedDateTime();
+
+            // Lưu dữ liệu vào hàng đợi tiếp nhận
+            saveTicketToQueue({
+                stt: formattedNum,
+                time: timeStr,
+                timestamp: Date.now(),
+                type: 'REGULAR',
+                hoTen: 'Khách khám thường',
+                cccd: '',
+                dob: '',
+                gioiTinh: '',
+                diaChi: '',
+                status: 'waiting'
+            });
+
+            // Cập nhật Mẫu in nhiệt (Giống 100% bản gốc)
+            document.getElementById('ticket-num').innerText = formattedNum;
+            document.getElementById('ticket-time').innerText = timeStr;
+            const sNameElem = document.getElementById('service-name-print');
+            if (sNameElem) sNameElem.innerText = "Khám bệnh";
+            document.getElementById('print-patient-info').style.display = 'none';
+
+            updateScreen();
+
+            setTimeout(() => {
+                window.print();
+                isProcessing = false;
+                resetScannerInput();
+            }, 250);
+        }
+
+        /* ==========================================================
+           TỐI ƯU HÓA MÁY QUÉT ZEBRA USB (CHẶN HOÀN TOÀN NHẢY TAB & BÀN PHÍM ẢO)
+           1. Luôn giữ con trỏ chuột trong ô #barcode-input để Edge KHÔNG
+              bao giờ coi dữ liệu quét là phím tắt trình duyệt.
+           2. Chặn triệt để các phím Tab, Alt, Ctrl+T, Ctrl+N...
+           3. Dùng inputmode="none" để màn hình cảm ứng KHÔNG bao giờ bật Touch Keyboard.
+           ========================================================== */
+        const barcodeInput = document.getElementById('barcode-input');
+        let globalBuffer = '';
+        let lastKeyTime = Date.now();
+        let zebraTimer = null;
+        let inputTimer = null;
+
+        function resetScannerInput() {
+            if (barcodeInput) {
+                barcodeInput.value = '';
+                if (!isProcessing) {
+                    barcodeInput.focus({ preventScroll: true });
+                }
+            }
+            globalBuffer = '';
+        }
+
+        function ensureInputFocus() {
+            if (isProcessing) return;
+            const active = document.activeElement;
+            if (active && (
+                active.id === 'test-cccd-input' || 
+                active.tagName === 'BUTTON' || 
+                active.closest('button') || 
+                active.closest('.btn-print-regular') ||
+                active.closest('#test-modal')
+            )) {
+                return;
+            }
+            if (barcodeInput && active !== barcodeInput) {
+                barcodeInput.focus({ preventScroll: true });
+            }
+        }
+
+        // Tự động duy trì con trỏ chuột trong ô nhập liệu nhẹ nhàng khi rảnh
+        setInterval(() => {
+            if (!isProcessing && !document.hidden) {
+                ensureInputFocus();
+            }
+        }, 1500);
+
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('button') || e.target.closest('.btn-print-regular') || e.target.closest('#test-modal') || isProcessing) {
+                return;
+            }
+            setTimeout(ensureInputFocus, 100);
+        });
+
+        function processScannedBarcode(rawString) {
+            if (!rawString || rawString.length < 15) return;
+            const patient = parseCCCDData(rawString);
+            if (patient) {
+                handleCCCDDetected(patient);
+            } else {
+                playBeep(400, 300);
+                console.warn("Mã quét không đúng cấu trúc CCCD chuẩn:", rawString);
+            }
+        }
+
+        // 1. Xử lý trực tiếp trên ô #barcode-input
+        if (barcodeInput) {
+            barcodeInput.addEventListener('keydown', function(e) {
+                // Chặn đứng phím Tab (ngăn focus nhảy sang nút khác hoặc thanh duyệt web)
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+
+                // Chặn phím Alt (ngăn kích hoạt thanh menu / focus của trình duyệt)
+                if (e.key === 'Alt') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+
+                // Chặn phím Ctrl kết hợp
+                if (e.ctrlKey) {
+                    const k = (e.key || '').toLowerCase();
+                    if (k === 't' || k === 'n' || k === 'w' || k === 'j') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                }
+
+                // Khi máy quét kết thúc bằng Enter
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const val = this.value.trim();
+                    if (val.length >= 15) {
+                        this.value = '';
+                        processScannedBarcode(val);
+                    }
+                }
+            });
+
+            // Lắng nghe sự kiện input (cho máy quét không cấu hình Enter)
+            barcodeInput.addEventListener('input', function() {
+                clearTimeout(inputTimer);
+                inputTimer = setTimeout(() => {
+                    const val = barcodeInput.value.trim();
+                    if (val.length >= 25 && val.includes('|')) {
+                        barcodeInput.value = '';
+                        processScannedBarcode(val);
+                    }
+                }, 130);
+            });
+        }
+
+        // 2. Lắng nghe dự phòng tầng cao nhất (Capture Phase)
+        window.addEventListener('keydown', function(e) {
+            if (e.target && e.target.id === 'test-cccd-input') return;
+
+            // Chặn Tab, Alt và Ctrl+T ở cấp độ toàn cục
+            if (e.key === 'Tab' || e.key === 'Alt') {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            if (e.ctrlKey) {
+                const k = (e.key || '').toLowerCase();
+                if (k === 't' || k === 'n' || k === 'w' || k === 'j' || k === 'p' || k === 's' || k === 'u') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }
+
+            if (isProcessing) {
+                e.preventDefault();
+                return;
+            }
+
+            // Nếu con trỏ chuột không ở trong ô barcodeInput thì gom bằng buffer
+            if (document.activeElement !== barcodeInput) {
+                const now = Date.now();
+                if (now - lastKeyTime > 150) {
+                    globalBuffer = '';
+                }
+                lastKeyTime = now;
+
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (globalBuffer.length >= 15) {
+                        processScannedBarcode(globalBuffer);
+                        globalBuffer = '';
+                    }
+                } else if (e.key && e.key.length === 1) {
+                    globalBuffer += e.key;
+                    clearTimeout(zebraTimer);
+                    zebraTimer = setTimeout(() => {
+                        if (globalBuffer.length >= 25 && globalBuffer.includes('|')) {
+                            processScannedBarcode(globalBuffer);
+                            globalBuffer = '';
+                        }
+                    }, 140);
+                }
+            }
+        }, true);
+
+        /* ==========================================================
+           MODAL GIẢ LẬP / KIỂM THỬ CCCD
+           ========================================================== */
+        const sampleCCCDs = {
+            1: "087098001234|334657890|NGUYỄN VĂN AN|15081995|Nam|Số 123 Nguyễn Huệ, Phường 1, TP Cao Lãnh, Tỉnh Đồng Tháp|25052021",
+            2: "087199005678||TRẦN THỊ MAI|02032000|Nữ|Ấp Bình Hòa, Xã Mỹ Hội, Huyện Cao Lãnh, Tỉnh Đồng Tháp|12102022",
+            3: "087097013089|341884923|LÃª Quá»‘c ThÃ¡i|08071997|Nam|Tá»• 1, áº¤p Tá»‹nh Ä\uFFFDÃ´ng, Tá»‹nh Thá»›i, Cao LÃ£nh, Ä\uFFFDá»“ng ThÃ¡p|28122021"
+        };
+
+        function openTestModal() {
+            document.getElementById('test-modal').style.display = 'flex';
+            setSampleCCCD(1);
+        }
+
+        function closeTestModal() {
+            document.getElementById('test-modal').style.display = 'none';
+        }
+
+        function setSampleCCCD(id) {
+            document.getElementById('test-cccd-input').value = sampleCCCDs[id] || '';
+        }
+
+        function runTestScan() {
+            const raw = document.getElementById('test-cccd-input').value;
+            const patient = parseCCCDData(raw);
+            if (patient) {
+                closeTestModal();
+                handleCCCDDetected(patient);
+            } else {
+                alert("Định dạng chuỗi không hợp lệ! Vui lòng kiểm tra lại cấu trúc mã QR CCCD.");
+            }
+        }
+
+        // Khởi tạo trạng thái ban đầu
+        updateScreen();
+        resetScannerInput();
+    </script>
+</body>
+</html>
