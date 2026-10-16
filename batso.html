@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kiosk Lấy Số Bệnh Viện - Máy Quét Zebra CCCD</title>
+    <!-- Thư viện Firebase Realtime Database (Đồng bộ Kiosk và Máy Tiếp Nhận qua mạng) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="firebase-config.js"></script>
     <style>
         /* --- CẤU HÌNH GIAO DIỆN CHUNG --- */
         :root {
@@ -1003,6 +1007,16 @@
                     });
                 }
             } catch (e) {}
+
+            // Đồng bộ trực tiếp qua Firebase Realtime Database (cho 2 máy tính khác nhau)
+            try {
+                if (typeof firebaseDB !== 'undefined' && firebaseDB) {
+                    const todayKey = today.replace(/\//g, '-');
+                    firebaseDB.ref('hospital_queue/' + todayKey + '/' + ticketData.stt).set(ticketData);
+                }
+            } catch (e) {
+                console.warn("Lỗi gửi Firebase:", e);
+            }
         }
 
         /* ==========================================================

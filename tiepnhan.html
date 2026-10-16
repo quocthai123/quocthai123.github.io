@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Màn Hình Tiếp Nhận & Gọi Bệnh - BV PHCN Đồng Tháp</title>
+    <!-- Thư viện Firebase Realtime Database (Đồng bộ nhiều máy qua mạng) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="firebase-config.js"></script>
     <style>
         :root {
             --primary: #0066cc;
@@ -715,6 +719,16 @@
         setInterval(updateClock, 1000);
         updateClock();
 
+        function updateTicketFirebase(ticket) {
+            if (typeof firebaseDB !== 'undefined' && firebaseDB && ticket) {
+                const todayKey = getToday().replace(/\//g, '-');
+                firebaseDB.ref('hospital_queue/' + todayKey + '/' + ticket.stt).update({
+                    status: ticket.status,
+                    counter: document.getElementById('counter-select').value
+                });
+            }
+        }
+
         // Đọc danh sách từ LocalStorage
         function loadQueue() {
             const today = getToday();
@@ -725,9 +739,8 @@
                     if (parsed.date === today && Array.isArray(parsed.list)) {
                         queueList = parsed.list;
                     } else if (parsed.date !== today) {
-                        // Sang ngày mới -> reset
                         queueList = [];
-                        saveQueue();
+                        saveQueueLocal();
                     }
                 }
             } catch (e) {
@@ -737,7 +750,7 @@
             renderTable();
         }
 
-        function saveQueue() {
+        function saveQueueLocal() {
             const today = getToday();
             localStorage.setItem(KEY_QUEUE, JSON.stringify({
                 date: today,
@@ -747,7 +760,39 @@
             updateStats();
         }
 
-        // Lắng nghe tín hiệu đồng bộ từ Kiosk
+        function saveQueue() {
+            saveQueueLocal();
+        }
+
+        // 1. Lắng nghe qua mạng Cloud Firebase (Cho 2 máy tính khác nhau qua WiFi/LAN)
+        if (typeof firebaseDB !== 'undefined' && firebaseDB) {
+            const todayKey = getToday().replace(/\//g, '-');
+            const statusEl = document.querySelector('.live-status span:last-child');
+            if (statusEl) statusEl.innerText = "Đã kết nối Cloud Firebase";
+
+            firebaseDB.ref('hospital_queue/' + todayKey).on('value', (snapshot) => {
+                const val = snapshot.val();
+                if (val) {
+                    const oldLength = queueList.length;
+                    queueList = Object.values(val);
+                    queueList.sort((a, b) => parseInt(a.stt, 10) - parseInt(b.stt, 10));
+                    
+                    if (queueList.length > oldLength && oldLength > 0) {
+                        playDingDong();
+                    }
+                    saveQueueLocal();
+                    updateStats();
+                    renderTable();
+                } else {
+                    queueList = [];
+                    saveQueueLocal();
+                    updateStats();
+                    renderTable();
+                }
+            });
+        }
+
+        // 2. Lắng nghe tín hiệu đồng bộ nội bộ từ Kiosk (nếu mở cùng máy tính)
         if (queueChannel) {
             queueChannel.onmessage = function(e) {
                 if (e.data && e.data.type === 'NEW_TICKET') {
@@ -941,6 +986,7 @@
             // Đánh dấu số cũ đã xong nếu có
             if (currentTicket && currentTicket.status === 'calling') {
                 currentTicket.status = 'completed';
+                updateTicketFirebase(currentTicket);
             }
 
             // Tìm số đang chờ nhỏ nhất
@@ -955,6 +1001,7 @@
 
             next.status = 'calling';
             updateCurrentTicketDisplay(next);
+            updateTicketFirebase(next);
             saveQueue();
             renderTable();
             speakTicket(next);
@@ -973,6 +1020,7 @@
         function markCurrentCompleted() {
             if (!currentTicket) return;
             currentTicket.status = 'completed';
+            updateTicketFirebase(currentTicket);
             saveQueue();
             renderTable();
             updateCurrentTicketDisplay(null);
@@ -982,6 +1030,7 @@
         function skipCurrentTicket() {
             if (!currentTicket) return;
             currentTicket.status = 'skipped';
+            updateTicketFirebase(currentTicket);
             saveQueue();
             renderTable();
             updateCurrentTicketDisplay(null);
@@ -994,10 +1043,12 @@
 
             if (currentTicket && currentTicket !== ticket && currentTicket.status === 'calling') {
                 currentTicket.status = 'completed';
+                updateTicketFirebase(currentTicket);
             }
 
             ticket.status = 'calling';
             updateCurrentTicketDisplay(ticket);
+            updateTicketFirebase(ticket);
             saveQueue();
             renderTable();
             speakTicket(ticket);
