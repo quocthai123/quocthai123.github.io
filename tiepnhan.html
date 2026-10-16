@@ -82,23 +82,34 @@
             background: #eff6ff;
             border: 1.5px solid #bfdbfe;
             color: var(--primary-dark);
-            padding: 6px 14px;
+            padding: 7px 16px;
             border-radius: 10px;
-            font-weight: 700;
-            font-size: 14px;
+            font-weight: 800;
+            font-size: 14.5px;
             display: flex;
             align-items: center;
             gap: 8px;
+            letter-spacing: 0.3px;
         }
 
-        .counter-select {
-            border: none;
-            background: transparent;
-            font-weight: 800;
-            color: var(--primary-dark);
-            font-size: 15px;
-            outline: none;
+        .btn-test-voice {
+            background: #eff6ff;
+            border: 1.5px solid #bfdbfe;
+            color: #1d4ed8;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            font-weight: 700;
             cursor: pointer;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-test-voice:hover {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
         }
 
         .clock-badge {
@@ -549,14 +560,7 @@
 
         <div class="header-controls">
             <div class="counter-badge">
-                <span>📍 Vị trí:</span>
-                <select class="counter-select" id="counter-select">
-                    <option value="Quầy tiếp nhận số 1">Quầy Tiếp Nhận Số 1</option>
-                    <option value="Quầy tiếp nhận số 2">Quầy Tiếp Nhận Số 2</option>
-                    <option value="Quầy tiếp nhận số 3">Quầy Tiếp Nhận Số 3</option>
-                    <option value="Bàn khám 1">Bàn Khám Số 1</option>
-                    <option value="Bàn khám 2">Bàn Khám Số 2</option>
-                </select>
+                <span>📍 Bàn Tiếp Nhận</span>
             </div>
 
             <div class="live-status">
@@ -643,13 +647,27 @@
                 </div>
             </div>
 
-            <!-- Cài đặt âm thanh giọng đọc -->
+            <!-- Cài đặt âm thanh giọng đọc tiếng Việt -->
             <div class="voice-settings">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                    <input type="checkbox" id="chk-sound" checked />
-                    <span>🔊 Phát giọng nói tiếng Việt tự động</span>
-                </label>
-                <button style="background: none; border: none; color: var(--primary); font-size: 12px; cursor: pointer;" onclick="testVoiceCall()">Thử loa</button>
+                <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 700; color: #1e293b;">
+                            <input type="checkbox" id="chk-sound" checked />
+                            <span>🔊 Phát âm thanh gọi loa</span>
+                        </label>
+                        <button class="btn-test-voice" onclick="testVoiceCall()">🔊 Thử loa</button>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 12px; color: #64748b; white-space: nowrap; font-weight: 600;">Giọng đọc:</span>
+                        <select id="voice-select" style="flex: 1; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--border); font-size: 12.5px; background: white; color: #334155; outline: none; cursor: pointer;" onchange="onVoiceChange()">
+                            <option value="auto">⭐ Tự động (Ưu tiên giọng Tiếng Việt tốt nhất)</option>
+                            <option value="google_online">🌐 Giọng Chị Google (Trực tuyến chuẩn tiếng Việt)</option>
+                        </select>
+                    </div>
+                    <div id="voice-status-tip" style="font-size: 11.5px; color: #0284c7; background: #e0f2fe; padding: 5px 10px; border-radius: 6px; line-height: 1.4;">
+                        Đang kết nối hệ thống giọng đọc tiếng Việt...
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -724,7 +742,7 @@
                 const todayKey = getToday().replace(/\//g, '-');
                 firebaseDB.ref('hospital_queue/' + todayKey + '/' + ticket.stt).update({
                     status: ticket.status,
-                    counter: document.getElementById('counter-select').value
+                    counter: 'Bàn tiếp nhận'
                 });
             }
         }
@@ -929,33 +947,198 @@
             } catch (err) {}
         }
 
-        // Giọng đọc tiếng Việt (Speech Synthesis)
+        // --- HỆ THỐNG GỌI BỆNH & ÂM THANH TIẾNG VIỆT ---
+        let availableVoices = [];
+        let vietnameseVoices = [];
+        let preferredVoice = null;
+
+        function loadVoices() {
+            if (!('speechSynthesis' in window)) return;
+            
+            availableVoices = window.speechSynthesis.getVoices() || [];
+            if (!availableVoices || availableVoices.length === 0) return;
+
+            // Lọc các giọng tiếng Việt (hỗ trợ Edge Natural, Chrome Google tiếng Việt, Windows Vietnamese)
+            vietnameseVoices = availableVoices.filter(v => {
+                const lang = (v.lang || '').toLowerCase();
+                const name = (v.name || '').toLowerCase();
+                return lang.startsWith('vi') || 
+                       lang.includes('vn') || 
+                       name.includes('vietnam') || 
+                       name.includes('vietnamese') || 
+                       name.includes('hoaimy') || 
+                       name.includes('namminh') ||
+                       name.includes('tiếng việt');
+            });
+
+            // Sắp xếp ưu tiên:
+            // 1. Giọng Edge Online Natural (Hoài My, Nam Minh)
+            // 2. Google Tiếng Việt
+            // 3. Các giọng tiếng Việt khác
+            vietnameseVoices.sort((a, b) => {
+                const aName = a.name.toLowerCase();
+                const bName = b.name.toLowerCase();
+                const aScore = (aName.includes('natural') || aName.includes('hoaimy')) ? 3 : (aName.includes('google') ? 2 : 1);
+                const bScore = (bName.includes('natural') || bName.includes('hoaimy')) ? 3 : (bName.includes('google') ? 2 : 1);
+                return bScore - aScore;
+            });
+
+            if (vietnameseVoices.length > 0) {
+                preferredVoice = vietnameseVoices[0];
+            }
+
+            updateVoiceDropdown();
+        }
+
+        function updateVoiceDropdown() {
+            const select = document.getElementById('voice-select');
+            if (!select) return;
+
+            const currentVal = select.value;
+            // Xóa các option cũ đã thêm động (giữ lại 2 option đầu tiên)
+            while (select.options.length > 2) {
+                select.remove(2);
+            }
+
+            const tip = document.getElementById('voice-status-tip');
+
+            if (vietnameseVoices.length > 0) {
+                vietnameseVoices.forEach((voice, idx) => {
+                    const opt = document.createElement('option');
+                    opt.value = 'voice_' + idx;
+                    let displayName = voice.name;
+                    if (displayName.includes('HoaiMy')) displayName = 'Hoài My (Nữ - Tự nhiên)';
+                    else if (displayName.includes('NamMinh')) displayName = 'Nam Minh (Nam - Tự nhiên)';
+                    else if (displayName.includes('Google')) displayName = 'Google Tiếng Việt';
+                    else displayName = displayName.replace(/Microsoft |Online \(Natural\) - |Vietnamese \(Vietnam\)/g, '').trim();
+                    
+                    opt.textContent = `🇻🇳 ${displayName} (${voice.lang})`;
+                    select.appendChild(opt);
+                });
+
+                if (tip) {
+                    const bestName = vietnameseVoices[0].name.replace('Microsoft ', '').replace(' Online (Natural)', '').replace(' - Vietnamese (Vietnam)', '');
+                    tip.innerHTML = `✅ Đã nhận diện <strong>${vietnameseVoices.length}</strong> giọng tiếng Việt. Đang dùng: <strong>${bestName}</strong>`;
+                    tip.style.background = '#ecfdf5';
+                    tip.style.color = '#047857';
+                }
+            } else {
+                if (tip) {
+                    tip.innerHTML = `🌐 Chưa có giọng tiếng Việt cài trong máy. Đang kích hoạt <strong>Giọng Chị Google trực tuyến</strong> (chuẩn tiếng Việt).`;
+                    tip.style.background = '#eff6ff';
+                    tip.style.color = '#1d4ed8';
+                }
+            }
+
+            // Giữ lại lựa chọn hiện tại nếu còn hợp lệ
+            if (currentVal && [...select.options].some(o => o.value === currentVal)) {
+                select.value = currentVal;
+            }
+        }
+
+        function onVoiceChange() {
+            const select = document.getElementById('voice-select');
+            const val = select.value;
+            if (val.startsWith('voice_')) {
+                const idx = parseInt(val.replace('voice_', ''), 10);
+                preferredVoice = vietnameseVoices[idx] || null;
+            } else if (val === 'auto') {
+                preferredVoice = vietnameseVoices.length > 0 ? vietnameseVoices[0] : null;
+            }
+        }
+
+        // Lắng nghe sự kiện voiceschanged của trình duyệt
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+            loadVoices();
+            setTimeout(loadVoices, 300);
+            setTimeout(loadVoices, 1000);
+            setTimeout(loadVoices, 2500);
+        }
+
         function speakTicket(ticket) {
             if (!document.getElementById('chk-sound').checked) return;
-            if (!('speechSynthesis' in window)) return;
 
             playDingDong();
 
             setTimeout(() => {
-                const counter = document.getElementById('counter-select').value;
                 const sttSpoken = parseInt(ticket.stt, 10);
                 let text = `Xin mời số thứ tự ${sttSpoken}`;
                 if (ticket.hoTen && ticket.hoTen !== 'Khách khám thường') {
                     text += `, bệnh nhân ${ticket.hoTen}`;
                 }
-                text += `, đến ${counter}.`;
+                text += `, đến bàn tiếp nhận.`;
 
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'vi-VN';
-                utterance.rate = 0.95; // Tốc độ vừa phải, rõ ràng
-
-                // Chọn giọng Việt nếu có
-                const voices = window.speechSynthesis.getVoices();
-                const viVoice = voices.find(v => v.lang.includes('vi') || v.lang.includes('VN'));
-                if (viVoice) utterance.voice = viVoice;
-
-                window.speechSynthesis.speak(utterance);
+                speakVietnameseSpeech(text);
             }, 650);
+        }
+
+        function speakVietnameseSpeech(text) {
+            const selectMode = document.getElementById('voice-select') ? document.getElementById('voice-select').value : 'auto';
+
+            // 1. Nếu người dùng chọn Google trực tuyến HOẶC máy tính hoàn toàn không có giọng Việt nào
+            if (selectMode === 'google_online' || (!preferredVoice && vietnameseVoices.length === 0)) {
+                playGoogleTTS(text, () => {
+                    // Dự phòng nếu mất mạng
+                    speakNativeUtterance(text);
+                });
+                return;
+            }
+
+            // 2. Dùng giọng tiếng Việt tích hợp sẵn của trình duyệt (Edge / Chrome / Windows)
+            speakNativeUtterance(text);
+        }
+
+        function speakNativeUtterance(text) {
+            if (!('speechSynthesis' in window)) {
+                playGoogleTTS(text);
+                return;
+            }
+
+            window.speechSynthesis.cancel(); // Xóa lệnh phát cũ nếu đang kẹt
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'vi-VN';
+            utterance.rate = 0.92;
+            utterance.pitch = 1.0;
+
+            if (preferredVoice) {
+                utterance.voice = preferredVoice;
+            } else if (vietnameseVoices.length > 0) {
+                utterance.voice = vietnameseVoices[0];
+            } else {
+                const all = window.speechSynthesis.getVoices();
+                const vi = all.find(v => {
+                    const l = (v.lang||'').toLowerCase();
+                    const n = (v.name||'').toLowerCase();
+                    return l.startsWith('vi') || l.includes('vn') || n.includes('vietnam');
+                });
+                if (vi) utterance.voice = vi;
+            }
+
+            // Tránh lỗi Garbage Collector của Chrome ngắt tiếng giữa chừng
+            window._hospitalUtterance = utterance;
+            utterance.onend = () => { window._hospitalUtterance = null; };
+            utterance.onerror = (e) => {
+                console.warn("SpeechSynthesis error, fallback to Google TTS:", e);
+                window._hospitalUtterance = null;
+                playGoogleTTS(text);
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function playGoogleTTS(text, onErrorFallback) {
+            try {
+                const url = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=' + encodeURIComponent(text);
+                const audio = new Audio(url);
+                audio.play().catch(e => {
+                    console.warn("Google TTS audio play failed, falling back:", e);
+                    if (onErrorFallback) onErrorFallback();
+                });
+            } catch (err) {
+                if (onErrorFallback) onErrorFallback();
+            }
         }
 
         function updateCurrentTicketDisplay(ticket) {
