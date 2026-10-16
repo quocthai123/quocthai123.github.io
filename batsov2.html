@@ -617,6 +617,7 @@
             <div class="admin-tools">
                 <button class="btn-tool" onclick="openTestModal()">🧪 Thử nghiệm CCCD</button>
                 <button class="btn-tool" onclick="testBeepSound()">🔊 Thử loa</button>
+                <button class="btn-tool" onclick="adjustCount()">✏️ Chỉnh STT</button>
                 <button class="btn-tool danger" onclick="manualReset()">⚙️ Reset STT về 0</button>
             </div>
         </div>
@@ -727,7 +728,54 @@
         }
 
         /* ==========================================================
-           QUẢN LÝ SỐ THỨ TỰ (LOCAL STORAGE)
+           BỘ LƯU TRỮ VĨNH VIỄN (LOCALSTORAGE + INDEXEDDB DỰ PHÒNG)
+           Đảm bảo tắt máy, khởi động lại, mất điện đều KHÔNG BỊ RESET SỐ
+           ========================================================== */
+        const DB_NAME = 'HospitalKioskDB';
+        const DB_STORE = 'settings';
+
+        function openKioskDB() {
+            return new Promise((resolve) => {
+                if (!window.indexedDB) return resolve(null);
+                const req = indexedDB.open(DB_NAME, 1);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains(DB_STORE)) {
+                        db.createObjectStore(DB_STORE, { keyPath: 'key' });
+                    }
+                };
+                req.onsuccess = (e) => resolve(e.target.result);
+                req.onerror = () => resolve(null);
+            });
+        }
+
+        async function saveCountToIndexedDB(val) {
+            try {
+                const db = await openKioskDB();
+                if (!db) return;
+                const tx = db.transaction(DB_STORE, 'readwrite');
+                tx.objectStore(DB_STORE).put({ key: 'last_count', value: val, time: Date.now() });
+            } catch (e) {}
+        }
+
+        async function getCountFromIndexedDB() {
+            return new Promise(async (resolve) => {
+                try {
+                    const db = await openKioskDB();
+                    if (!db) return resolve(0);
+                    const tx = db.transaction(DB_STORE, 'readonly');
+                    const req = tx.objectStore(DB_STORE).get('last_count');
+                    req.onsuccess = () => resolve(req.result ? parseInt(req.result.value || 0, 10) : 0);
+                    req.onerror = () => resolve(0);
+                } catch (e) {
+                    resolve(0);
+                }
+            });
+        }
+
+        /* ==========================================================
+           QUẢN LÝ SỐ THỨ TỰ (KHÔNG RESET KHI TẮT/MỞ MÁY)
+           Số luôn tiếp tục từ số cũ, chỉ reset khi quản trị viên xác nhận
            ========================================================== */
         function getToday() { 
             return new Date().toLocaleDateString('vi-VN'); 
@@ -735,17 +783,12 @@
 
         function getNextNumber() {
             const today = getToday();
-            const lastDate = localStorage.getItem(KEY_DATE);
+            localStorage.setItem(KEY_DATE, today); // Cập nhật ngày lấy số
+            
             let count = parseInt(localStorage.getItem(KEY_COUNT) || '0', 10);
-            
-            // Sang ngày mới -> Reset về 0
-            if (lastDate !== today) { 
-                count = 0; 
-                localStorage.setItem(KEY_DATE, today); 
-            }
-            
             count++;
             localStorage.setItem(KEY_COUNT, count);
+            saveCountToIndexedDB(count); // Lưu đồng thời vào IndexedDB
             return count;
         }
 
@@ -761,14 +804,45 @@
             document.getElementById('screen-number').innerText = current > 0 ? String(current).padStart(2, '0') : '--';
         }
 
-        function manualReset() {
+        // Tự động khôi phục số cũ khi mở lại trình duyệt hoặc khởi động lại máy tính
+        async function restoreLastCount() {
+            let count = parseInt(localStorage.getItem(KEY_COUNT) || '0', 10);
+            const dbCount = await getCountFromIndexedDB();
+            if (dbCount > count) {
+                count = dbCount;
+                localStorage.setItem(KEY_COUNT, count);
+            }
+            updateScreen();
+        }
+
+        // Đặt lại số thứ tự về 0 (yêu cầu mật khẩu)
+        async function manualReset() {
             const pass = prompt("⚠️ CẢNH BÁO: Nhập '0000' để xác nhận đặt lại số thứ tự về 0:");
             if (pass === '0000') {
                 localStorage.setItem(KEY_COUNT, 0);
+                await saveCountToIndexedDB(0);
                 updateScreen();
                 alert("Đã đặt lại số thứ tự về 0 thành công!");
             } else if (pass !== null) {
                 alert("Mã xác nhận không đúng!");
+            }
+        }
+
+        // Chỉnh trực tiếp số thứ tự bắt đầu (yêu cầu mật khẩu)
+        async function adjustCount() {
+            const pass = prompt("Nhập mật khẩu quản trị ('0000'):");
+            if (pass === '0000') {
+                const current = localStorage.getItem(KEY_COUNT) || '0';
+                const newNum = prompt("Nhập số thứ tự muốn đặt (hiện tại: " + current + "):", current);
+                if (newNum !== null && !isNaN(parseInt(newNum, 10))) {
+                    const parsed = Math.max(0, parseInt(newNum, 10));
+                    localStorage.setItem(KEY_COUNT, parsed);
+                    await saveCountToIndexedDB(parsed);
+                    updateScreen();
+                    alert("Đã cập nhật số thứ tự thành công: " + parsed);
+                }
+            } else if (pass !== null) {
+                alert("Mật khẩu không đúng!");
             }
         }
 
@@ -1240,8 +1314,8 @@
             }
         }
 
-        // Khởi tạo trạng thái ban đầu
-        updateScreen();
+        // Khởi tạo trạng thái ban đầu: Tự động khôi phục số cũ từ LocalStorage & IndexedDB
+        restoreLastCount();
         resetScannerInput();
     </script>
 </body>
