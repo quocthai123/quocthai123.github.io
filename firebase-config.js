@@ -9,13 +9,14 @@
 // BƯỚC 4: Vào "Project Settings" (biểu tượng bánh răng) -> Kéo xuống dưới phần "Web apps" copy các thông số dán vào bên dưới:
 
 const firebaseConfig = {
-    apiKey: "",             // Dán apiKey của bạn vào đây
-    authDomain: "",         // Dán authDomain vào đây (ví dụ: bv-phcn.firebaseapp.com)
-    databaseURL: "",        // Dán databaseURL vào đây (ví dụ: https://bv-phcn-default-rtdb.firebaseio.com)
-    projectId: "",          // Dán projectId vào đây
-    storageBucket: "",
-    messagingSenderId: "",
-    appId: ""
+    apiKey: "AIzaSyBDseUl47pZ0p8BV2FvNcFTTtQx2Wuy01A",
+  authDomain: "bv-phcn-dong-thap.firebaseapp.com",
+  databaseURL: "https://bv-phcn-dong-thap-default-rtdb.firebaseio.com",
+  projectId: "bv-phcn-dong-thap",
+  storageBucket: "bv-phcn-dong-thap.firebasestorage.app",
+  messagingSenderId: "539785274623",
+  appId: "1:539785274623:web:3295d589b99639ca9218ca",
+  measurementId: "G-6REZLTEHFT"
 };
 
 // Tự động khởi tạo kết nối Firebase nếu đã điền databaseURL
