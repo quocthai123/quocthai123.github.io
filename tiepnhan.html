@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
     <title>Màn Hình Tiếp Nhận & Gọi Bệnh - BV PHCN Đồng Tháp</title>
     <!-- Thư viện Firebase Realtime Database (Đồng bộ nhiều máy qua mạng) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -985,6 +986,8 @@
 
             if (vietnameseVoices.length > 0) {
                 preferredVoice = vietnameseVoices[0];
+            } else {
+                preferredVoice = null;
             }
 
             updateVoiceDropdown();
@@ -1007,8 +1010,8 @@
                     const opt = document.createElement('option');
                     opt.value = 'voice_' + idx;
                     let displayName = voice.name;
-                    if (displayName.includes('HoaiMy')) displayName = 'Hoài My (Nữ - Tự nhiên)';
-                    else if (displayName.includes('NamMinh')) displayName = 'Nam Minh (Nam - Tự nhiên)';
+                    if (displayName.includes('HoaiMy')) displayName = 'Hoài My (Nữ - Tự nhiên Edge)';
+                    else if (displayName.includes('NamMinh')) displayName = 'Nam Minh (Nam - Tự nhiên Edge)';
                     else if (displayName.includes('Google')) displayName = 'Google Tiếng Việt';
                     else displayName = displayName.replace(/Microsoft |Online \(Natural\) - |Vietnamese \(Vietnam\)/g, '').trim();
                     
@@ -1018,13 +1021,13 @@
 
                 if (tip) {
                     const bestName = vietnameseVoices[0].name.replace('Microsoft ', '').replace(' Online (Natural)', '').replace(' - Vietnamese (Vietnam)', '');
-                    tip.innerHTML = `✅ Đã nhận diện <strong>${vietnameseVoices.length}</strong> giọng tiếng Việt. Đang dùng: <strong>${bestName}</strong>`;
+                    tip.innerHTML = `✅ Đang dùng giọng máy: <strong>${bestName}</strong>`;
                     tip.style.background = '#ecfdf5';
                     tip.style.color = '#047857';
                 }
             } else {
                 if (tip) {
-                    tip.innerHTML = `🌐 Chưa có giọng tiếng Việt cài trong máy. Đang kích hoạt <strong>Giọng Chị Google trực tuyến</strong> (chuẩn tiếng Việt).`;
+                    tip.innerHTML = `🌐 Chrome máy này chưa có giọng tiếng Việt. Đang dùng <strong>Giọng Chị Google trực tuyến</strong>.<br>💡 <em>Mẹo: Mở bằng <strong>Microsoft Edge</strong> (biểu tượng cạnh Chrome) để có giọng đọc Hoài My cực chuẩn!</em>`;
                     tip.style.background = '#eff6ff';
                     tip.style.color = '#1d4ed8';
                 }
@@ -1074,13 +1077,16 @@
         }
 
         function speakVietnameseSpeech(text) {
-            const selectMode = document.getElementById('voice-select') ? document.getElementById('voice-select').value : 'auto';
+            const select = document.getElementById('voice-select');
+            const selectMode = select ? select.value : 'auto';
 
-            // 1. Nếu người dùng chọn Google trực tuyến HOẶC máy tính hoàn toàn không có giọng Việt nào
-            if (selectMode === 'google_online' || (!preferredVoice && vietnameseVoices.length === 0)) {
+            const hasLocalVietnamese = (preferredVoice !== null) || (vietnameseVoices.length > 0);
+
+            // 1. Nếu người dùng chọn Google trực tuyến HOẶC máy tính không có giọng Việt nội bộ
+            if (selectMode === 'google_online' || !hasLocalVietnamese) {
                 playGoogleTTS(text, () => {
-                    // Dự phòng nếu mất mạng
-                    speakNativeUtterance(text);
+                    // Nếu lỗi Google online, hiển thị hướng dẫn Edge
+                    showEdgeRecommendation();
                 });
                 return;
             }
@@ -1095,26 +1101,37 @@
                 return;
             }
 
+            // Xác định giọng tiếng Việt
+            let voiceToUse = preferredVoice;
+            if (!voiceToUse && vietnameseVoices.length > 0) {
+                voiceToUse = vietnameseVoices[0];
+            }
+            if (!voiceToUse) {
+                const all = window.speechSynthesis.getVoices();
+                voiceToUse = all.find(v => {
+                    const l = (v.lang||'').toLowerCase();
+                    const n = (v.name||'').toLowerCase();
+                    return l.startsWith('vi') || l.includes('vn') || n.includes('vietnam') || n.includes('hoaimy') || n.includes('namminh');
+                });
+            }
+
+            // NẾU HOÀN TOÀN KHÔNG CÓ GIỌNG TIẾNG VIỆT TRÊN MÁY:
+            // TUYỆT ĐỐI KHÔNG ĐỂ NÓ ĐỌC BẰNG GIỌNG TIẾNG ANH! CHUYỂN NGAY SANG GOOGLE TTS!
+            if (!voiceToUse) {
+                console.log("Không có giọng tiếng Việt nội bộ, dùng Google TTS trực tuyến");
+                playGoogleTTS(text, () => {
+                    showEdgeRecommendation();
+                });
+                return;
+            }
+
             window.speechSynthesis.cancel(); // Xóa lệnh phát cũ nếu đang kẹt
 
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'vi-VN';
+            utterance.voice = voiceToUse;
+            utterance.lang = voiceToUse.lang || 'vi-VN';
             utterance.rate = 0.92;
             utterance.pitch = 1.0;
-
-            if (preferredVoice) {
-                utterance.voice = preferredVoice;
-            } else if (vietnameseVoices.length > 0) {
-                utterance.voice = vietnameseVoices[0];
-            } else {
-                const all = window.speechSynthesis.getVoices();
-                const vi = all.find(v => {
-                    const l = (v.lang||'').toLowerCase();
-                    const n = (v.name||'').toLowerCase();
-                    return l.startsWith('vi') || l.includes('vn') || n.includes('vietnam');
-                });
-                if (vi) utterance.voice = vi;
-            }
 
             // Tránh lỗi Garbage Collector của Chrome ngắt tiếng giữa chừng
             window._hospitalUtterance = utterance;
@@ -1130,14 +1147,40 @@
 
         function playGoogleTTS(text, onErrorFallback) {
             try {
-                const url = 'https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=' + encodeURIComponent(text);
-                const audio = new Audio(url);
-                audio.play().catch(e => {
-                    console.warn("Google TTS audio play failed, falling back:", e);
-                    if (onErrorFallback) onErrorFallback();
-                });
+                const cleanText = encodeURIComponent(text);
+                const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=${cleanText}`;
+                
+                let audio = document.getElementById('google-tts-audio');
+                if (!audio) {
+                    audio = document.createElement('audio');
+                    audio.id = 'google-tts-audio';
+                    audio.setAttribute('referrerpolicy', 'no-referrer');
+                    document.body.appendChild(audio);
+                }
+
+                audio.pause();
+                audio.currentTime = 0;
+                audio.src = url;
+
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(err => {
+                        console.warn("Google TTS audio play failed:", err);
+                        if (onErrorFallback) onErrorFallback();
+                    });
+                }
             } catch (err) {
+                console.warn("playGoogleTTS exception:", err);
                 if (onErrorFallback) onErrorFallback();
+            }
+        }
+
+        function showEdgeRecommendation() {
+            const tip = document.getElementById('voice-status-tip');
+            if (tip) {
+                tip.innerHTML = `⚠️ Máy chưa có giọng tiếng Việt offline.<br>👉 <strong>Hãy mở trang này bằng Microsoft Edge (có sẵn trên máy)</strong> để kích hoạt giọng đọc Hoài My chuẩn 100%!`;
+                tip.style.background = '#fef2f2';
+                tip.style.color = '#b91c1c';
             }
         }
 
