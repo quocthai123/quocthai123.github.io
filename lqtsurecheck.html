@@ -3,69 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Log Phần Mềm</title>
-    <!-- Tải thư viện vẽ biểu đồ Chart.js -->
+    <title>CheckXml Analytics Dashboard</title>
+    <!-- Thư viện CSS Bootstrap 5 cho giao diện -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Thư viện Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f8f9fa; }
-        .chart-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .kpi-title { font-size: 0.9rem; color: #6c757d; text-transform: uppercase; font-weight: bold; }
+        .kpi-value { font-size: 2rem; font-weight: bold; color: #2c3e50; }
+        .table-responsive { max-height: 300px; overflow-y: auto; }
     </style>
 </head>
 <body>
 
-    <div class="chart-container">
-        <h2 style="text-align: center; color: #333;">Thống kê chức năng sử dụng</h2>
-        <canvas id="logChart"></canvas>
+<div class="container-fluid py-4 px-4">
+    <h3 class="mb-4 text-primary fw-bold">📊 CheckXml Analytics Dashboard</h3>
+
+    <!-- HÀNG 1: THỐNG KÊ TỔNG QUAN (KPIs) -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card p-3 text-center border-start border-primary border-4">
+                <div class="kpi-title">Tổng Lượt Thao Tác</div>
+                <div class="kpi-value" id="kpiTotal">0</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3 text-center border-start border-success border-4">
+                <div class="kpi-title">Cơ Sở KCB (Mã KCB)</div>
+                <div class="kpi-value text-success" id="kpiKCB">0</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3 text-center border-start border-warning border-4">
+                <div class="kpi-title">Thiết Bị Sử Dụng (CPU)</div>
+                <div class="kpi-value text-warning" id="kpiCPU">0</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card p-3 text-center border-start border-info border-4">
+                <div class="kpi-title">Cập Nhật Lần Cuối</div>
+                <div class="kpi-value text-info fs-5 mt-2" id="kpiLastUpdate">--:--</div>
+            </div>
+        </div>
     </div>
 
-    <script>
-        // Link API Firebase của bạn
-        const firebaseUrl = "https://checkxml-logs-default-rtdb.asia-southeast1.firebasedatabase.app/AppLogs.json";
+    <!-- HÀNG 2: BIỂU ĐỒ TRỰC QUAN -->
+    <div class="row">
+        <!-- Biểu đồ Đường: Tần suất theo thời gian -->
+        <div class="col-md-8">
+            <div class="card p-3">
+                <h6 class="fw-bold text-secondary">Tần suất thao tác theo ngày</h6>
+                <canvas id="timeChart" height="100"></canvas>
+            </div>
+        </div>
+        <!-- Biểu đồ Tròn: Phân bổ theo Cơ sở KCB -->
+        <div class="col-md-4">
+            <div class="card p-3">
+                <h6 class="fw-bold text-secondary">Tỷ lệ theo Cơ sở KCB</h6>
+                <canvas id="kcbChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
 
-        async function initDashboard() {
-            try {
-                // Kéo dữ liệu từ Firebase
-                const response = await fetch(firebaseUrl);
-                const data = await response.json();
+    <div class="row">
+        <!-- Biểu đồ Cột: Thống kê chức năng -->
+        <div class="col-md-6">
+            <div class="card p-3">
+                <h6 class="fw-bold text-secondary">Thống kê theo Chức năng</h6>
+                <canvas id="funcChart" height="150"></canvas>
+            </div>
+        </div>
+        <!-- Bảng Dữ Liệu: Log gần đây -->
+        <div class="col-md-6">
+            <div class="card p-3">
+                <h6 class="fw-bold text-secondary">15 Thao tác gần nhất</h6>
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm" style="font-size: 0.9rem;">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Thời Gian</th>
+                                <th>Chức Năng</th>
+                                <th>Mã KCB</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logTableBody">
+                            <!-- Dữ liệu render bằng JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-                if (!data) return alert("Chưa có dữ liệu log.");
+<script>
+    const firebaseUrl = "https://checkxml-logs-default-rtdb.asia-southeast1.firebasedatabase.app/AppLogs.json";
+    
+    // Khai báo biến lưu trữ các biểu đồ để có thể update sau này
+    let timeChart, kcbChart, funcChart;
 
-                // Gom nhóm và đếm số lượng theo cột "ChucNang"
-                const stats = {};
-                for (let key in data) {
-                    let funcName = data[key].ChucNang || "Khác";
-                    stats[funcName] = (stats[funcName] || 0) + 1;
-                }
+    async function loadData() {
+        try {
+            const response = await fetch(firebaseUrl);
+            const rawData = await response.json();
+            
+            if (!rawData) return;
 
-                // Bóc tách nhãn (Tên chức năng) và dữ liệu (Số lần) để vẽ biểu đồ
-                const labels = Object.keys(stats);
-                const counts = Object.values(stats);
+            // Chuyển Object của Firebase thành Array và lọc các dữ liệu lỗi
+            const data = Object.values(rawData).filter(item => item && item.ThoiGian);
+            
+            // Sắp xếp dữ liệu mới nhất lên đầu
+            data.sort((a, b) => new Date(b.ThoiGian) - new Date(a.ThoiGian));
 
-                // Cấu hình Chart.js
-                const ctx = document.getElementById('logChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'bar', // Biểu đồ dạng cột
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Số lượt thao tác',
-                            data: counts,
-                            backgroundColor: '#007bff',
-                            borderRadius: 4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-                    }
-                });
-            } catch (error) {
-                console.error("Lỗi tải dữ liệu: ", error);
-            }
+            updateKPIs(data);
+            renderTable(data);
+            drawCharts(data);
+            
+        } catch (error) {
+            console.error("Lỗi lấy dữ liệu:", error);
         }
+    }
 
-        // Chạy hàm khi trang load xong
-        initDashboard();
-    </script>
+    function updateKPIs(data) {
+        document.getElementById('kpiTotal').innerText = data.length;
+        
+        // Đếm số lượng mã KCB duy nhất
+        const uniqueKCB = new Set(data.map(item => item.MA_CSKCB || "Khác")).size;
+        document.getElementById('kpiKCB').innerText = uniqueKCB;
+        
+        // Đếm số lượng CPU (thiết bị) duy nhất
+        const uniqueCPU = new Set(data.map(item => item.CPU_ID || "N/A")).size;
+        document.getElementById('kpiCPU').innerText = uniqueCPU;
+
+        // Thời gian cập nhật cuối
+        if(data.length > 0) {
+            document.getElementById('kpiLastUpdate').innerText = data[0].ThoiGian.split(' ')[1]; // Lấy phần giờ phút
+        }
+    }
+
+    function renderTable(data) {
+        const tbody = document.getElementById('logTableBody');
+        tbody.innerHTML = "";
+        // Chỉ lấy 15 dòng mới nhất
+        const top15 = data.slice(0, 15);
+        
+        top15.forEach(item => {
+            const row = `<tr>
+                <td>${item.ThoiGian}</td>
+                <td><span class="badge bg-primary">${item.ChucNang || 'Khác'}</span></td>
+                <td>${item.MA_CSKCB || '-'}</td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+    }
+
+    function drawCharts(data) {
+        // --- CHUẨN BỊ DỮ LIỆU ---
+        const statsFunc = {};
+        const statsKCB = {};
+        const statsDate = {};
+
+        data.forEach(item => {
+            // Nhóm theo chức năng
+            let func = item.ChucNang || 'Khác';
+            statsFunc[func] = (statsFunc[func] || 0) + 1;
+
+            // Nhóm theo Cơ sở KCB
+            let kcb = item.MA_CSKCB || 'Chưa rõ';
+            statsKCB[kcb] = (statsKCB[kcb] || 0) + 1;
+
+            // Nhóm theo Ngày (Cắt lấy YYYY-MM-DD từ chuỗi thời gian)
+            let date = item.ThoiGian.substring(0, 10);
+            statsDate[date] = (statsDate[date] || 0) + 1;
+        });
+
+        // Đảo ngược ngày để vẽ biểu đồ từ cũ tới mới
+        const dates = Object.keys(statsDate).sort();
+        const dateValues = dates.map(d => statsDate[d]);
+
+        // --- 1. BIỂU ĐỒ ĐƯỜNG (TIME CHART) ---
+        if(timeChart) timeChart.destroy();
+        timeChart = new Chart(document.getElementById('timeChart'), {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Số lượt sử dụng',
+                    data: dateValues,
+                    borderColor: '#17a2b8',
+                    backgroundColor: 'rgba(23, 162, 184, 0.2)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            }
+        });
+
+        // --- 2. BIỂU ĐỒ TRÒN (KCB CHART) ---
+        if(kcbChart) kcbChart.destroy();
+        kcbChart = new Chart(document.getElementById('kcbChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(statsKCB),
+                datasets: [{
+                    data: Object.values(statsKCB),
+                    backgroundColor: ['#28a745', '#ffc107', '#dc3545', '#007bff', '#6f42c1', '#fd7e14']
+                }]
+            },
+            options: { cutout: '60%' }
+        });
+
+        // --- 3. BIỂU ĐỒ CỘT (FUNCTION CHART) ---
+        if(funcChart) funcChart.destroy();
+        funcChart = new Chart(document.getElementById('funcChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(statsFunc),
+                datasets: [{
+                    label: 'Lượt thao tác',
+                    data: Object.values(statsFunc),
+                    backgroundColor: '#0d6efd',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y', // Đổi thành biểu đồ cột ngang cho dễ đọc tên chức năng
+            }
+        });
+    }
+
+    // Chạy khi load trang
+    loadData();
+
+    // Tự động làm mới dữ liệu mỗi 30 giây (Realtime fake)
+    setInterval(loadData, 30000);
+</script>
+
 </body>
 </html>
