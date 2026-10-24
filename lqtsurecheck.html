@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Log Phần Mềm</title>
+    <!-- Tải thư viện vẽ biểu đồ Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f8f9fa; }
+        .chart-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
+    </style>
+</head>
+<body>
+
+    <div class="chart-container">
+        <h2 style="text-align: center; color: #333;">Thống kê chức năng sử dụng</h2>
+        <canvas id="logChart"></canvas>
+    </div>
+
+    <script>
+        // Link API Firebase của bạn
+        const firebaseUrl = "https://checkxml-logs-default-rtdb.asia-southeast1.firebasedatabase.app/AppLogs.json";
+
+        async function initDashboard() {
+            try {
+                // Kéo dữ liệu từ Firebase
+                const response = await fetch(firebaseUrl);
+                const data = await response.json();
+
+                if (!data) return alert("Chưa có dữ liệu log.");
+
+                // Gom nhóm và đếm số lượng theo cột "ChucNang"
+                const stats = {};
+                for (let key in data) {
+                    let funcName = data[key].ChucNang || "Khác";
+                    stats[funcName] = (stats[funcName] || 0) + 1;
+                }
+
+                // Bóc tách nhãn (Tên chức năng) và dữ liệu (Số lần) để vẽ biểu đồ
+                const labels = Object.keys(stats);
+                const counts = Object.values(stats);
+
+                // Cấu hình Chart.js
+                const ctx = document.getElementById('logChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar', // Biểu đồ dạng cột
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Số lượt thao tác',
+                            data: counts,
+                            backgroundColor: '#007bff',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                    }
+                });
+            } catch (error) {
+                console.error("Lỗi tải dữ liệu: ", error);
+            }
+        }
+
+        // Chạy hàm khi trang load xong
+        initDashboard();
+    </script>
+</body>
+</html>
