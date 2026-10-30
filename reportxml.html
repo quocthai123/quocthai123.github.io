@@ -1,0 +1,2631 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Công Cụ Đọc XML 4210</title>
+    <!-- Tabulator CSS -->
+    <link href="https://unpkg.com/tabulator-tables/dist/css/tabulator_bootstrap5.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS for layout -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6;
+            color: #2c3e50;
+        }
+
+        .upload-area {
+            border: 2px dashed #a0aec0;
+            border-radius: 12px;
+            padding: 4rem 2rem;
+            text-align: center;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+        .upload-area:hover {
+            border-color: #2a5298;
+            background: #f8fafc;
+        }
+        .upload-area.dragover {
+            border-color: #38c172;
+            background: #e6fffa;
+        }
+        #fileInput {
+            display: none;
+        }
+        .menu-nav {
+            background: white;
+            border-radius: 8px;
+            padding: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .menu-nav .nav-link {
+            color: #4a5568;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            width: 100%;
+        }
+        .menu-nav .nav-link:hover {
+            background: #f8fafc;
+            color: #2a5298;
+        }
+        .menu-nav .nav-link.active {
+            background: #2a5298;
+            color: white;
+        }
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 1rem;
+            min-height: 400px;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 4rem;
+        }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .tabulator {
+            font-size: 14px;
+        }
+        .tabulator-col-title {
+            font-weight: 600 !important;
+        }
+        
+        /* Ribbon Styles */
+        .ribbon {
+            background-color: #f5f6f7;
+            border-bottom: 1px solid #d4d4d4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+        .ribbon-tabs {
+            background-color: #ffffff;
+            border-bottom: 1px solid #dfdfdf;
+            padding-top: 2px;
+            padding-left: 2px;
+            display: flex;
+            list-style: none;
+            margin: 0;
+        }
+        .ribbon-tabs .nav-link {
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 2px 2px 0 0;
+            color: #444;
+            padding: 4px 16px;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-right: 2px;
+            background: transparent;
+        }
+        .ribbon-tabs .nav-link.active {
+            background-color: #f5f6f7;
+            border: 1px solid #d4d4d4;
+            border-bottom: 1px solid #f5f6f7;
+            color: #0058a9;
+            position: relative;
+            margin-bottom: -1px;
+        }
+        .ribbon-tabs .nav-link:hover:not(.active) {
+            background-color: #e5f3ff;
+            border-color: #d2e8f8;
+            border-bottom-color: transparent;
+        }
+        .ribbon-content-container {
+            display: flex;
+            height: 86px;
+            padding: 2px 0;
+        }
+        .ribbon-group {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            border-right: 1px solid #d4d4d4;
+            padding: 0 5px;
+            position: relative;
+            padding-bottom: 14px;
+        }
+        .ribbon-group-title {
+            position: absolute;
+            bottom: 0;
+            font-size: 10px;
+            color: #777;
+            text-align: center;
+            width: 100%;
+            height: 14px;
+            line-height: 14px;
+        }
+        .ribbon-group-content {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            gap: 2px;
+        }
+        .ribbon-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 3px;
+            padding: 4px;
+            color: #333;
+            font-size: 11px;
+            cursor: pointer;
+            min-width: 52px;
+            height: 100%;
+            transition: background-color 0.1s;
+            text-decoration: none;
+        }
+        .ribbon-btn:hover {
+            background-color: #e5f3ff;
+            border-color: #d2e8f8;
+        }
+        .ribbon-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .ribbon-btn img, .ribbon-btn svg {
+            margin-bottom: 4px;
+            width: 32px;
+            height: 32px;
+        }
+        .status-bar {
+            font-size: 11px;
+            border-bottom: 1px solid #ccc;
+            padding: 2px 10px;
+            background: #fafafa;
+            display: flex;
+            gap: 20px;
+            color: #555;
+        }
+        .main-wrapper {
+            height: calc(100vh - 130px);
+            overflow: auto;
+            background-color: #f4f7f6;
+            position: relative;
+        }
+        .poster-bg {
+            background: linear-gradient(135deg, #e8f5e9 0%, #ffffff 50%, #f1f8e9 100%);
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 0;
+        }
+        .poster-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            text-align: center;
+            width: 100%;
+        }
+        .upload-area {
+            background: rgba(255, 255, 255, 0.9) !important;
+            border-color: rgba(255, 255, 255, 0.5) !important;
+            backdrop-filter: blur(5px);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ribbon Menu -->
+    <div class="ribbon">
+        <ul class="nav ribbon-tabs" id="ribbonTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tab-kiemtra" data-bs-toggle="tab" data-bs-target="#pane-kiemtra" type="button" role="tab">KIỂM TRA</button>
+            </li>
+
+        </ul>
+        <div class="tab-content" id="ribbonTabContent">
+            <!-- Tab KIỂM TRA -->
+            <div class="tab-pane fade show active" id="pane-kiemtra" role="tabpanel">
+                <div class="ribbon-content-container">
+                    <div class="ribbon-group">
+                        <div class="ribbon-group-content">
+                            <button class="ribbon-btn" onclick="document.getElementById('fileInput').click()">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2a5298" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                                <span>Lấy File</span>
+                            </button>
+                            <button class="ribbon-btn" onclick="document.getElementById('appendFileInput').click()" title="Thêm file vào bảng dữ liệu hiện tại">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>
+                                <span>Thêm File</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="ribbon-group">
+                        <div class="ribbon-group-content">
+                            <a class="ribbon-btn" id="btnExportChiPhi" href="javascript:void(0)" onclick="exportChiPhi(event)">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#17a2b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"/></svg>
+                                <span id="lblExportChiPhi">C79a-HD</span>
+                            </a>
+                            <a class="ribbon-btn" id="btnExportReports" href="javascript:void(0)" onclick="exportReports(event)">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 3v5h5M12 18v-6M9 15h6"/></svg>
+                                <span id="lblExportReports">19,20,21</span>
+                            </a>
+                            <a class="ribbon-btn" id="btnExportReportsLoaiKcb" href="javascript:void(0)" onclick="exportReportsLoaiKcb(event)" title="Xuất báo cáo 19, 20, 21 theo Loại KCB">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0d6efd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 3v5h5M12 18v-6M9 15h6"/><path d="M8 9h4"/><path d="M8 12h2"/></svg>
+                                <span id="lblExportReportsLoaiKcb">19,20,21 (Loại KCB)</span>
+                            </a>
+                            <a class="ribbon-btn" id="btnExportBenhChinh" href="javascript:void(0)" onclick="exportBenhChinh(event)">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6f42c1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/><path d="M14 3v5h5M16 13H8M16 17H8M10 9H8"/></svg>
+                                <span id="lblExportBenhChinh">Mã Bệnh</span>
+                            </a>
+                        </div>
+                        <div class="ribbon-group-title">Báo Cáo</div>
+                    </div>
+
+                    <div class="ribbon-group">
+                        <div class="ribbon-group-content">
+                            <input type="file" id="dmNhanVienInput" accept=".xlsx, .xls, .csv" style="display: none;" onchange="handleDmNhanVien(event)">
+                            <button class="ribbon-btn" id="btnImportNhanVien" onclick="document.getElementById('dmNhanVienInput').click()" title="Tải file Excel/CSV danh mục nhân viên (để lấy Họ tên, Chức vụ theo cột MACCHN)">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#6f42c1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                                <span id="lblImportNhanVien">Tải DM Nhân Viên</span>
+                            </button>
+                            <a class="ribbon-btn" id="btnExportChamCongHC" href="javascript:void(0)" onclick="exportChamCongHC(event)" title="Xuất Bảng Chấm Công Hành Chính từ XML (tương tự CHAMCONG_HANHCHINH)">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#007bff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                    <path d="M9 16l2 2 4-4"></path>
+                                </svg>
+                                <span id="lblExportChamCongHC">CC Hành Chính</span>
+                            </a>
+                            <a class="ribbon-btn" id="btnExportChamCongNG" href="javascript:void(0)" onclick="exportChamCongNG(event)" title="Xuất Bảng Chấm Công Ngoài Giờ từ XML (tương tự Chấm công ngoài giờ)">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#e83e8c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                <span id="lblExportChamCongNG">CC Ngoài Giờ</span>
+                            </a>
+                        </div>
+                        <div class="ribbon-group-title">Chấm Công</div>
+                    </div>
+
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="main-wrapper">
+        <div id="uploadSection">
+            <div class="poster-bg"></div>
+            <div class="poster-content">
+                <div class="container-fluid px-4 pt-5 pb-5 position-relative z-3">
+                    <div class="row">
+                        <div class="col-md-6 mx-auto">
+                            <div class="upload-area shadow-lg" id="dropZone">
+                                <svg xmlns="http://www.w3.org/2001/svg" width="64" height="64" fill="#a0aec0" class="bi bi-cloud-arrow-up mb-3" viewBox="0 0 16 16">
+                                  <path fill-rule="evenodd" d="M7.646 5.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 6.707V10.5a.5.5 0 0 1-1 0V6.707L5.354 8.854a.5.5 0 1 1-.708-.708l3-3z"/>
+                                  <path d="M4.406 3.342A5.53 5.53 0 0 1 8 2c2.69 0 4.923 2 5.166 4.579C14.758 6.804 16 8.137 16 9.773 16 11.569 14.502 13 12.687 13H3.781C1.708 13 0 11.366 0 9.318c0-1.763 1.266-3.223 2.942-3.593.143-.863.698-1.723 1.464-2.383zm.653.757c-.757.653-1.153 1.44-1.153 2.056v.448l-.445.049C2.064 6.805 1 7.952 1 9.318 1 10.785 2.23 12 3.781 12h8.906C13.98 12 15 10.988 15 9.773c0-1.216-1.02-2.228-2.313-2.228h-.5v-.5C12.188 4.825 10.328 3 8 3a4.53 4.53 0 0 0-2.941 1.1z"/>
+                                </svg>
+                                <h3 class="fw-bold text-secondary">Chọn hoặc kéo thả các file XML 4210</h3>
+                                <p class="text-muted mt-2">Hỗ trợ tải lên nhiều file cùng lúc</p>
+                                <div class="d-flex justify-content-center gap-3 mt-3">
+                                    <button class="btn btn-outline-primary" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">Chọn File</button>
+                                </div>
+                                <input type="file" id="fileInput" accept=".xml" multiple style="display: none;">
+                                <input type="file" id="appendFileInput" accept=".xml" multiple style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="loading container mt-5" id="loadingSection">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Đang xử lý...</span>
+            </div>
+            <h4 class="mt-4 text-secondary" id="loadingTitle">Đang đọc và phân tích file XML...</h4>
+            <p class="text-muted" id="loadingDesc">Quá trình này có thể mất vài phút với số lượng file lớn</p>
+            <div class="progress mt-3 mx-auto" style="height: 25px; max-width: 400px; display: none;" id="progressContainer">
+                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+            </div>
+            <p class="mt-2 fw-bold text-primary" id="progressCount" style="display: none; font-size: 1.1rem;">0 / 0</p>
+        </div>
+
+        <div id="dataSection" class="container-fluid px-3 pt-3 pb-5" style="display: none;">
+            <div class="action-bar mb-2">
+                <h5 class="mb-0 text-primary fw-bold" id="fileNameDisplay">Dữ liệu hồ sơ</h5>
+            </div>
+            
+            <div id="summaryPanel" class="d-flex flex-wrap gap-2 mb-3" style="display: none;"></div>
+            
+            <ul class="nav nav-tabs mb-2" id="myTab" role="tablist">
+                <!-- Tabs will be generated here -->
+            </ul>
+            <div class="tab-content bg-white p-2 border border-top-0 rounded-bottom shadow-sm" id="myTabContent" style="min-height: 400px;">
+                <!-- Grids will be generated here -->
+            </div>
+        </div>
+    </div> <!-- End main-wrapper -->
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Tabulator JS -->
+    <script src="https://unpkg.com/tabulator-tables/dist/js/tabulator.min.js"></script>
+    <!-- SheetJS JS -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const appendFileInput = document.getElementById('appendFileInput');
+        
+        window.debugScanLog = [];
+        // Bộ lọc thông minh: Bắt đuôi file, MIME type, hoặc đọc thử nội dung bên trong
+        const isXmlFile = async (file) => {
+            if (!file) return false;
+            const name = file.name.toLowerCase();
+            const type = file.type ? file.type.toLowerCase() : "";
+            
+            if (name.endsWith('.xml') || type.includes('xml')) {
+                return true;
+            }
+            
+            // Nếu không có đuôi file và hệ điều hành không nhận diện được, đọc 100 byte đầu tiên
+            try {
+                const chunk = file.slice(0, 100);
+                const text = await new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onload = e => resolve(e.target.result);
+                    reader.onerror = () => resolve("");
+                    reader.readAsText(chunk);
+                });
+                
+                const content = text.trim();
+                if (content.startsWith('<?xml') || content.startsWith('<')) {
+                    return true;
+                }
+            } catch (e) {}
+            
+            return false;
+        };
+        const loadingSection = document.getElementById('loadingSection');
+        const dataSection = document.getElementById('dataSection');
+        const uploadSection = document.getElementById('uploadSection');
+        const tabList = document.getElementById('myTab');
+        const tabContent = document.getElementById('myTabContent');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+        // Map tên hiển thị các loại hồ sơ
+        const mapLoai = {
+            'XML1': 'Tổng Hợp (XML1)',
+            'XML2': 'Chi Tiết Thuốc (XML2)',
+            'XML3': 'Dịch Vụ KT (XML3)',
+            'XML4': 'Cận Lâm Sàng (XML4)',
+            'XML5': 'Diễn Biến Bệnh (XML5)'
+        };
+
+        function resetApp() {
+            fileInput.value = '';
+            uploadSection.style.display = 'block';
+            dataSection.style.display = 'none';
+            loadingSection.style.display = 'none';
+            tabList.innerHTML = '';
+            tabContent.innerHTML = '';
+        }
+
+        // Click to upload
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop events
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            
+            if (e.dataTransfer.items) {
+                window.debugScanLog = [];
+                // Hỗ trợ kéo thả cả thư mục
+                uploadSection.style.display = 'none';
+                loadingSection.style.display = 'block';
+                document.getElementById('loadingTitle').innerText = "Đang quét các thư mục...";
+                document.getElementById('progressContainer').style.display = 'none';
+                document.getElementById('progressCount').style.display = 'block';
+                document.getElementById('progressCount').innerText = "Đang tìm file XML... 0";
+                
+                let foundCount = 0;
+                const onFileFound = () => {
+                    foundCount++;
+                    if (foundCount % 5 === 0) {
+                        document.getElementById('progressCount').innerText = `Đã tìm thấy ${foundCount} file XML...`;
+                    }
+                };
+                
+                const files = await getFilesFromDataTransfer(e.dataTransfer, onFileFound);
+                
+                if (files.length) {
+                    document.getElementById('progressCount').innerText = `Đã tìm thấy tổng cộng ${files.length} file XML. Đang chuẩn bị đọc...`;
+                    processFiles(files, false);
+                } else {
+                    let isFolderBlocked = window.debugScanLog.some(log => log.includes("DirReader Error"));
+                    let msg = "Không tìm thấy file hợp lệ nào.\n\n";
+                    if (isFolderBlocked) {
+                        msg += "❌ LỖI BẢO MẬT TỪ PHẦN MỀM: Hệ thống của bạn (WebView2/C#) đang chặn không cho web tự động đọc bên trong thư mục!\n\n";
+                        msg += "👉 CÁCH KHẮC PHỤC DÀNH CHO BẠN:\n";
+                        msg += "1. KHÔNG KÉO THẢ THƯ MỤC NỮA.\n";
+                        msg += "2. Mở thư mục đó ra, bấm Ctrl + A để bôi đen tất cả các file bên trong.\n";
+                        msg += "3. Kéo thả CÁC FILE đó vào web, HOẶC nhấn nút 'Thêm File' rồi chọn tất cả file.\n";
+                    } else {
+                        msg += "Chi tiết kỹ thuật:\n" + window.debugScanLog.join('\n');
+                    }
+                    alert(msg);
+                    uploadSection.style.display = 'block';
+                    loadingSection.style.display = 'none';
+                }
+            } else if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                processFiles(fileInput.files, false);
+            }
+        });
+
+        // Hàm đệ quy đọc folder từ Drag & Drop
+        async function getFilesFromDataTransfer(dataTransfer, onFileFound) {
+            let files = [];
+            for (let i = 0; i < dataTransfer.items.length; i++) {
+                let item = dataTransfer.items[i];
+                if (item.kind === 'file') {
+                    let entry = item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
+                    if (entry) {
+                        if (window.debugScanLog.length < 5) window.debugScanLog.push("DataTransfer Entry: " + entry.name + (entry.isDirectory ? " (DIR)" : " (FILE)"));
+                        await traverseFileTree(entry, files, onFileFound);
+                    } else {
+                        if (window.debugScanLog.length < 5) window.debugScanLog.push("DataTransfer Item: No webkitGetAsEntry");
+                        let file = item.getAsFile();
+                        if (await isXmlFile(file)) {
+                            if (onFileFound) onFileFound();
+                            files.push(file);
+                        }
+                    }
+                }
+            }
+            return files;
+        }
+
+        async function traverseFileTree(item, files, onFileFound) {
+            if (item.isFile) {
+                return new Promise(resolve => {
+                    item.file(async file => {
+                        if (await isXmlFile(file)) {
+                            if (onFileFound) onFileFound();
+                            files.push(file);
+                        }
+                        resolve();
+                    }, err => {
+                        console.error("Lỗi đọc file:", err);
+                        resolve();
+                    });
+                });
+            } else if (item.isDirectory) {
+                let dirReader = item.createReader();
+                let entries = [];
+                
+                const readAllEntries = () => {
+                    return new Promise(resolve => {
+                        const readNext = () => {
+                            dirReader.readEntries(results => {
+                                if (window.debugScanLog.length < 8) window.debugScanLog.push("DirReader read: " + results.length + " items");
+                                if (results.length) {
+                                    entries = entries.concat(results);
+                                    readNext();
+                                } else {
+                                    resolve();
+                                }
+                            }, err => {
+                                let errDetail = err ? (err.message || err.name || String(err)) : "Unknown Error";
+                                if (window.debugScanLog.length < 8) window.debugScanLog.push("DirReader Error: " + errDetail);
+                                resolve();
+                            });
+                        };
+                        readNext();
+                    });
+                };
+                await readAllEntries();
+                
+                for (let i = 0; i < entries.length; i++) {
+                    await traverseFileTree(entries[i], files, onFileFound);
+                    // Nhường luồng cho UI sau mỗi 50 file/folder để tránh đơ trình duyệt
+                    if (i % 50 === 0) await new Promise(r => setTimeout(r, 0));
+                }
+            }
+        }
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                processFiles(e.target.files);
+            }
+        });
+
+        appendFileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                processFiles(e.target.files, true);
+                e.target.value = ''; 
+            }
+        });
+
+        window.isProcessingFiles = false;
+
+        async function processFiles(files, isAppend = false) {
+            // Nếu người dùng bấm nhầm nút "Chọn File" thay vì "Thêm File" khi đang có dữ liệu
+            if (!isAppend && window.currentDataStore && Object.keys(window.currentDataStore).length > 0) {
+                const choice = confirm("Bảng dữ liệu đang có sẵn file.\n\nBạn muốn CỘNG DỒN thêm file mới vào, hay XÓA CŨ THAY MỚI?\n\n- Nhấn [OK] để GỘP THÊM (Cộng dồn)\n- Nhấn [Cancel] để XÓA DỮ LIỆU CŨ");
+                if (choice) {
+                    isAppend = true;
+                }
+            }
+
+            if (window.isProcessingFiles) {
+                alert("Hệ thống đang xử lý dữ liệu. Vui lòng chờ cho đến khi hoàn tất!");
+                return;
+            }
+            window.isProcessingFiles = true;
+
+            try {
+                // Khóa màn hình ngay lập tức để người dùng không bấm nhiều lần
+            uploadSection.style.display = 'none';
+            dataSection.style.display = 'none';
+            loadingSection.style.display = 'block';
+            document.getElementById('loadingTitle').innerText = "Đang kiểm tra và lọc file hợp lệ...";
+            document.getElementById('progressContainer').style.display = 'flex';
+            document.getElementById('progressCount').style.display = 'block';
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressBar').innerText = '0%';
+            document.getElementById('progressCount').innerText = `Đang lọc: 0 / ${files.length} file`;
+
+            // Dùng setTimeout để nhường luồng cho UI vẽ màn hình Loading
+            await new Promise(r => setTimeout(r, 50));
+
+            if (!isAppend) {
+                if (window.cachedWbReportsUrl) { URL.revokeObjectURL(window.cachedWbReportsUrl); window.cachedWbReportsUrl = null; }
+                if (window.cachedWbReportsLoaiKcbUrl) { URL.revokeObjectURL(window.cachedWbReportsLoaiKcbUrl); window.cachedWbReportsLoaiKcbUrl = null; }
+                if (window.cachedWbChiPhiUrl) { URL.revokeObjectURL(window.cachedWbChiPhiUrl); window.cachedWbChiPhiUrl = null; }
+                if (window.cachedWbBenhChinhUrl) { URL.revokeObjectURL(window.cachedWbBenhChinhUrl); window.cachedWbBenhChinhUrl = null; }
+                if (window.cachedWbChamCongHCUrl) { URL.revokeObjectURL(window.cachedWbChamCongHCUrl); window.cachedWbChamCongHCUrl = null; }
+                if (window.cachedWbChamCongNGUrl) { URL.revokeObjectURL(window.cachedWbChamCongNGUrl); window.cachedWbChamCongNGUrl = null; }
+                ['btnExportReports', 'btnExportReportsLoaiKcb', 'btnExportChiPhi', 'btnExportBenhChinh', 'btnExportChamCongHC', 'btnExportChamCongNG'].forEach(id => {
+                    const b = document.getElementById(id);
+                    if (b) {
+                        b.href = "javascript:void(0)";
+                        b.removeAttribute("download");
+                        b.style.color = '#333';
+                        const lbl = document.getElementById(id.replace('btn', 'lbl'));
+                        if (lbl) {
+                            if (id === 'btnExportReports') lbl.innerText = "19,20,21";
+                            else if (id === 'btnExportReportsLoaiKcb') lbl.innerText = "19,20,21 (Loại KCB)";
+                            else if (id === 'btnExportChiPhi') lbl.innerText = "C79a-HD";
+                            else if (id === 'btnExportBenhChinh') lbl.innerText = "Mã Bệnh";
+                            else if (id === 'btnExportChamCongHC') lbl.innerText = "CC Hành Chính";
+                            else if (id === 'btnExportChamCongNG') lbl.innerText = "CC Ngoài Giờ";
+                        }
+                    }
+                });
+            }
+
+            const validFiles = [];
+            for (let i = 0; i < files.length; i++) {
+                if (await isXmlFile(files[i])) {
+                    validFiles.push(files[i]);
+                }
+                if (i % 50 === 0) {
+                    document.getElementById('progressCount').innerText = `Đang lọc: ${i} / ${files.length} file`;
+                }
+            }
+
+            if (validFiles.length === 0) {
+                alert('Không tìm thấy file XML hợp lệ nào trong danh sách vừa chọn.');
+                if (window.currentDataStore && isAppend) {
+                    dataSection.style.display = 'block';
+                    loadingSection.style.display = 'none';
+                } else {
+                    uploadSection.style.display = 'flex';
+                    loadingSection.style.display = 'none';
+                }
+                return;
+            }
+
+            if (!isAppend) {
+                if (validFiles.length === 1) {
+                    fileNameDisplay.innerText = "Dữ liệu: " + validFiles[0].name;
+                } else {
+                    fileNameDisplay.innerText = "Dữ liệu: " + validFiles.length + " file";
+                }
+            } else {
+                fileNameDisplay.innerText = "Đang gộp dữ liệu...";
+            }
+            
+            document.getElementById('loadingTitle').innerText = "Đang đọc và phân tích file XML...";
+            document.getElementById('progressCount').innerText = `0 / ${validFiles.length}`;
+
+            // Dùng await setTimeout để nhường luồng cho UI vẽ màn hình Loading
+            await new Promise(r => setTimeout(r, 100));
+
+            // Clone rõ ràng để tránh tham chiếu bị ghi đè
+            const dataStore = {};
+                if (isAppend && window.currentDataStore) {
+                    for (const key in window.currentDataStore) {
+                        dataStore[key] = {
+                            id: window.currentDataStore[key].id,
+                            name: window.currentDataStore[key].name,
+                            // Deep clone và dọn dẹp các biến nội bộ của Tabulator (bắt đầu bằng dấu _) 
+                            // Nếu không dọn dẹp, Tabulator sẽ không render lại các dòng cũ vì nó tưởng các dòng này đã gắn với Grid cũ đã bị xóa.
+                            rows: window.currentDataStore[key].rows.map(row => {
+                                const cleanRow = {};
+                                for (let k in row) {
+                                    if (!k.startsWith('_')) {
+                                        cleanRow[k] = row[k];
+                                    }
+                                }
+                                return cleanRow;
+                            }),
+                            cols: new Set(window.currentDataStore[key].cols)
+                        };
+                    }
+                }
+                
+                let hasError = false;
+                const total = validFiles.length;
+                let lastYield = Date.now();
+
+                for (let i = 0; i < total; i++) {
+                    const file = validFiles[i];
+                    try {
+                        const xmlString = await readFileAsText(file);
+                        parseXMLToStore(xmlString, dataStore);
+                    } catch (err) {
+                        console.error("Lỗi khi đọc file " + file.name + ": ", err);
+                        hasError = true;
+                    }
+
+                    // Cập nhật giao diện tránh treo trình duyệt (giới hạn 100ms một lần vẽ)
+                    if (Date.now() - lastYield > 100 || i === total - 1) {
+                        const percent = Math.round(((i + 1) / total) * 100);
+                        document.getElementById('progressBar').style.width = percent + '%';
+                        document.getElementById('progressBar').innerText = percent + '%';
+                        document.getElementById('progressCount').innerText = `${i + 1} / ${total}`;
+                        
+                        // Yield cho UI thread
+                        await new Promise(r => setTimeout(r, 0));
+                        lastYield = Date.now();
+                    }
+                }
+
+                if (hasError) {
+                    alert("Có lỗi xảy ra khi đọc một số file (có thể sai định dạng hoặc lỗi cấu trúc). Hãy kiểm tra console (F12) để biết chi tiết. Dữ liệu từ các file hợp lệ vẫn sẽ được hiển thị.");
+                }
+
+                document.getElementById('loadingTitle').innerText = "Đang vẽ bảng dữ liệu (Grid)...";
+                document.getElementById('progressContainer').style.display = 'none';
+                document.getElementById('progressCount').style.display = 'none';
+                
+                await new Promise(r => setTimeout(r, 50));
+                
+                window.currentDataStore = dataStore;
+
+                if (isAppend) {
+                    let totalXML1 = dataStore['XML1'] ? dataStore['XML1'].rows.length : 0;
+                    fileNameDisplay.innerText = `ĐÃ GỘP THÀNH CÔNG! (Tổng dữ liệu: ${totalXML1} hồ sơ)`;
+                    fileNameDisplay.style.color = "#28a745";
+                    fileNameDisplay.style.fontWeight = "bold";
+                } else {
+                    fileNameDisplay.style.color = "inherit";
+                    fileNameDisplay.style.fontWeight = "normal";
+                }
+
+                renderGrids(dataStore);
+                
+                // Trả lại trạng thái mặc định cho loadingTitle nếu chọn file lần sau
+                document.getElementById('loadingTitle').innerText = "Đang đọc và phân tích file XML...";
+            } finally {
+                window.isProcessingFiles = false;
+            }
+        }
+
+        function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = e => reject(e);
+                reader.readAsText(file);
+            });
+        }
+
+        function decodeBase64(str) {
+            try {
+                const bin = window.atob(str);
+                const bytes = new Uint8Array(bin.length);
+                for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                return new TextDecoder('utf-8').decode(bytes);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function getRecords(node) {
+            let hasElementChild = false;
+            let allChildrenAreLeaves = true;
+            
+            for (let i = 0; i < node.childNodes.length; i++) {
+                const child = node.childNodes[i];
+                if (child.nodeType === 1) { // ELEMENT_NODE
+                    hasElementChild = true;
+                    for (let j = 0; j < child.childNodes.length; j++) {
+                        if (child.childNodes[j].nodeType === 1) {
+                            allChildrenAreLeaves = false;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (hasElementChild && allChildrenAreLeaves) {
+                return [node];
+            } else if (hasElementChild && !allChildrenAreLeaves) {
+                let records = [];
+                for (let i = 0; i < node.childNodes.length; i++) {
+                    if (node.childNodes[i].nodeType === 1) {
+                        records = records.concat(getRecords(node.childNodes[i]));
+                    }
+                }
+                return records;
+            }
+            return [];
+        }
+
+        function parseXMLToStore(xmlString, dataStore) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+            
+            // Check for parsing errors
+            const parseError = xmlDoc.getElementsByTagName("parsererror");
+            if (parseError.length > 0) {
+                throw new Error("Lỗi cấu trúc XML (Parser Error)");
+            }
+
+            const fileHosos = xmlDoc.getElementsByTagName("FILEHOSO");
+            
+            for (let i = 0; i < fileHosos.length; i++) {
+                const loaiHosoNode = fileHosos[i].getElementsByTagName("LOAIHOSO")[0];
+                if (!loaiHosoNode) continue;
+                const loai = loaiHosoNode.textContent.trim(); 
+                
+                const noiDungNode = fileHosos[i].getElementsByTagName("NOIDUNGFILE")[0];
+                if (!noiDungNode) continue;
+                
+                let rootNode = null;
+                let hasElement = false;
+                for (let j = 0; j < noiDungNode.childNodes.length; j++) {
+                    if (noiDungNode.childNodes[j].nodeType === 1) { // ELEMENT_NODE
+                        rootNode = noiDungNode.childNodes[j];
+                        hasElement = true;
+                        break;
+                    }
+                }
+                
+                if (!hasElement) {
+                    const textContent = noiDungNode.textContent.trim();
+                    if (textContent) {
+                        const decodedText = decodeBase64(textContent);
+                        if (decodedText) {
+                            const subDoc = parser.parseFromString(decodedText, "text/xml");
+                            if (subDoc.getElementsByTagName("parsererror").length === 0) {
+                                for (let j = 0; j < subDoc.childNodes.length; j++) {
+                                    if (subDoc.childNodes[j].nodeType === 1) {
+                                        rootNode = subDoc.childNodes[j];
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if (!rootNode) continue;
+                
+                if (!dataStore[loai]) {
+                    dataStore[loai] = { 
+                        id: loai, 
+                        name: mapLoai[loai] || loai, 
+                        rows: [], 
+                        cols: new Set() 
+                    };
+                }
+
+                let records = getRecords(rootNode);
+                
+                records.forEach(recordNode => {
+                    let rowData = {};
+                    for (let j = 0; j < recordNode.childNodes.length; j++) {
+                        const field = recordNode.childNodes[j];
+                        if (field.nodeType === 1) {
+                            const colName = field.nodeName;
+                            const colValue = field.textContent;
+                            rowData[colName] = colValue;
+                            dataStore[loai].cols.add(colName);
+                        }
+                    }
+                    dataStore[loai].rows.push(rowData);
+                });
+            }
+        }
+
+        function updateSummaryPanel(rows) {
+            const summaryPanel = document.getElementById('summaryPanel');
+            if (!summaryPanel) return;
+
+            const tongLuot = rows.length;
+            let tongTien = 0, tongTienBH = 0, tongBHTT = 0, tongBNCCT = 0, tongBNTT = 0;
+
+            const getDecVal = (val) => {
+                if (!val) return 0;
+                const parsed = parseFloat(val);
+                return isNaN(parsed) ? 0 : parsed;
+            };
+
+            rows.forEach(r => {
+                tongTien += getDecVal(r['T_TONGCHI'] || r['TONG_CHI'] || r['T_TONGCHI_BV']);
+                tongTienBH += getDecVal(r['T_TONGCHI_BH'] || r['TONG_CHI_BH']);
+                tongBHTT += getDecVal(r['T_BHTT']);
+                tongBNCCT += getDecVal(r['T_BNCCT']);
+                tongBNTT += getDecVal(r['T_BNTT']);
+            });
+
+            const formatCurrency = (val) => new Intl.NumberFormat('vi-VN').format(val);
+
+            summaryPanel.innerHTML = `
+                <div class="metric-card flex-fill rounded p-2" style="background-color: #e3f2fd; border-left: 4px solid #0d6efd;">
+                    <div class="text-secondary fw-semibold" style="font-size: 0.7rem; text-transform: uppercase;">Tổng số lượt</div>
+                    <div class="fw-bold text-dark" style="font-size: 1.1rem;">${formatCurrency(tongLuot)}</div>
+                </div>
+                <div class="metric-card flex-fill rounded p-2" style="background-color: #e8f5e9; border-left: 4px solid #198754;">
+                    <div class="text-secondary fw-semibold" style="font-size: 0.7rem; text-transform: uppercase;">Tổng tiền</div>
+                    <div class="fw-bold text-dark" style="font-size: 1.1rem;">${formatCurrency(tongTien)}</div>
+                </div>
+                <div class="metric-card flex-fill rounded p-2" style="background-color: #e0f7fa; border-left: 4px solid #0dcaf0;">
+                    <div class="text-secondary fw-semibold" style="font-size: 0.7rem; text-transform: uppercase;">Tổng tiền BH</div>
+                    <div class="fw-bold text-dark" style="font-size: 1.1rem;">${formatCurrency(tongTienBH)}</div>
+                </div>
+                <div class="metric-card flex-fill rounded p-2" style="background-color: #fff3cd; border-left: 4px solid #ffc107;">
+                    <div class="text-secondary fw-semibold" style="font-size: 0.7rem; text-transform: uppercase;">Tổng BHTT</div>
+                    <div class="fw-bold text-dark" style="font-size: 1.1rem;">${formatCurrency(tongBHTT)}</div>
+                </div>
+                <div class="metric-card flex-fill rounded p-2" style="background-color: #fce4e4; border-left: 4px solid #dc3545;">
+                    <div class="text-secondary fw-semibold" style="font-size: 0.7rem; text-transform: uppercase;">Tổng NB CCT</div>
+                    <div class="fw-bold text-dark" style="font-size: 1.1rem;">${formatCurrency(tongBNCCT)}</div>
+                </div>
+                <div class="metric-card flex-fill rounded p-2" style="background-color: #e2e3e5; border-left: 4px solid #6c757d;">
+                    <div class="text-secondary fw-semibold" style="font-size: 0.7rem; text-transform: uppercase;">Tổng BNTT</div>
+                    <div class="fw-bold text-dark" style="font-size: 1.1rem;">${formatCurrency(tongBNTT)}</div>
+                </div>
+            `;
+            summaryPanel.style.display = 'flex';
+        }
+
+        function renderGrids(dataStore) {
+            tabList.innerHTML = '';
+            tabContent.innerHTML = '';
+
+            const summaryPanel = document.getElementById('summaryPanel');
+            if (summaryPanel) {
+                if (dataStore['XML1']) {
+                    updateSummaryPanel(dataStore['XML1'].rows);
+                } else {
+                    summaryPanel.style.display = 'none';
+                    summaryPanel.innerHTML = '';
+                }
+            }
+
+            // Sort keys XML1, XML2, XML3... numerically
+            const keys = Object.keys(dataStore).sort((a, b) => {
+                const numA = parseInt(a.replace(/\D/g, '')) || 0;
+                const numB = parseInt(b.replace(/\D/g, '')) || 0;
+                return numA - numB;
+            });
+            
+            if (keys.length === 0) {
+                alert("Không tìm thấy dữ liệu hồ sơ hợp lệ trong file XML.");
+                uploadSection.style.display = 'flex';
+                loadingSection.style.display = 'none';
+                return;
+            }
+
+            let isFirst = true;
+            
+            keys.forEach(key => {
+                const store = dataStore[key];
+                
+                // Create tab button
+                const li = document.createElement('li');
+                li.className = 'nav-item';
+                li.setAttribute('role', 'presentation');
+                
+                const button = document.createElement('button');
+                button.className = `nav-link ${isFirst ? 'active' : ''}`;
+                button.id = `tab-${key}`;
+                button.setAttribute('data-bs-toggle', 'tab');
+                button.setAttribute('data-bs-target', `#pane-${key}`);
+                button.type = 'button';
+                button.role = 'tab';
+                button.innerText = key;
+                
+                li.appendChild(button);
+                tabList.appendChild(li);
+
+                // Create pane
+                const pane = document.createElement('div');
+                pane.className = `tab-pane fade ${isFirst ? 'show active' : ''}`;
+                pane.id = `pane-${key}`;
+                pane.role = 'tabpanel';
+                
+                const container = document.createElement('div');
+                // Removed extra table-container div for compact layout
+                const gridDiv = document.createElement('div');
+                gridDiv.id = `grid-${key}`;
+                container.appendChild(gridDiv);
+                
+                pane.appendChild(container);
+                tabContent.appendChild(pane);
+
+                // Build Columns for Tabulator
+                const columns = Array.from(store.cols).map(col => ({
+                    title: col,
+                    field: col,
+                    headerFilter: "input", // add simple search per column
+                    minWidth: 150
+                }));
+                
+                // Add Checkbox column
+                columns.unshift({
+                    formatter: "rowSelection", 
+                    titleFormatter: "rowSelection", 
+                    titleFormatterParams: {
+                        rowRange: "active" // Chỉ chọn các dòng đang hiển thị (sau khi filter)
+                    },
+                    hozAlign: "center", 
+                    headerSort: false, 
+                    width: 50
+                });
+
+                // Initialize Tabulator after DOM is ready
+                setTimeout(() => {
+                    const tableConfig = {
+                        data: store.rows,
+                        columns: columns,
+                        layout: "fitData", // fit data to content
+                        pagination: "local",
+                        paginationSize: 15,
+                        paginationSizeSelector: [15, 30, 50, 100],
+                        movableColumns: true,
+                        placeholder: "Không có dữ liệu",
+                        selectableRows: true, // Bắt buộc để Tabulator theo dõi event select rows
+                    };
+
+                    const table = new Tabulator(`#grid-${key}`, tableConfig);
+
+                    // Add row selection event for XML1 to update summary dynamically
+                    if (key === 'XML1') {
+                        table.on("rowSelectionChanged", function(data, rows) {
+                            // Chỉ tính tổng các dòng được check (nếu không check dòng nào thì hiển thị 0)
+                            updateSummaryPanel(data);
+                        });
+                    }
+                }, 50);
+
+                isFirst = false;
+            });
+
+            loadingSection.style.display = 'none';
+            dataSection.style.display = 'block';
+            
+            // Tabulator sometimes needs a redraw when a hidden tab becomes visible
+            const tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
+            tabEls.forEach(tabEl => {
+                tabEl.addEventListener('shown.bs.tab', event => {
+                    const targetId = event.target.getAttribute('data-bs-target');
+                    const key = targetId.replace('#pane-', '');
+                    const table = Tabulator.findTable(`#grid-${key}`)[0];
+                    if(table){
+                        table.redraw();
+                    }
+                });
+            });
+        }
+
+        window.cachedWbReportsUrl = null;
+
+        async function exportReports(e) {
+            const btn = document.getElementById('btnExportReports');
+            
+            if (window.cachedWbReportsUrl) {
+                setTimeout(() => {
+                    URL.revokeObjectURL(window.cachedWbReportsUrl);
+                    window.cachedWbReportsUrl = null;
+                    if (btn) {
+                        btn.href = "javascript:void(0)";
+                        btn.removeAttribute("download");
+                        btn.style.color = '#333';
+                        document.getElementById('lblExportReports').innerText = "19,20,21";
+                    }
+                }, 500);
+                return;
+            }
+            if (e) e.preventDefault();
+
+            if (!window.currentDataStore) {
+                alert("Không có dữ liệu để xuất.");
+                return;
+            }
+
+            if (btn) {
+                btn.classList.add('disabled');
+                document.getElementById('lblExportReports').innerText = "Đang xử lý...";
+            }
+            // Nhường luồng cho UI cập nhật
+            await new Promise(r => setTimeout(r, 50));
+
+            try {
+                const dataStore = window.currentDataStore;
+            
+            // Xây dựng map phân loại Nội trú / Ngoại trú từ XML1
+            const lkMap = {};
+            if (dataStore['XML1']) {
+                dataStore['XML1'].rows.forEach(row => {
+                    const mlStr = row['MA_LOAI_KCB'] ? String(row['MA_LOAI_KCB']).trim() : '';
+                    const m = mlStr.length === 1 ? '0' + mlStr : mlStr; 
+                    let type = 'KAC';
+                    if (['01','02','05','07','08'].includes(m) || ['1','2','5','7','8'].includes(mlStr)) {
+                        type = 'NGOAI_TRU';
+                    } else if (['03','04','06','09'].includes(m) || ['3','4','6','9'].includes(mlStr)) {
+                        type = 'NOI_TRU';
+                    }
+                    lkMap[row['MA_LK']] = type;
+                });
+            }
+
+            // --- BC 20 (Thuốc - XML2) ---
+            const bc20Map = {}; 
+            if (dataStore['XML2']) {
+                dataStore['XML2'].rows.forEach(row => {
+                    const type = lkMap[row['MA_LK']] || 'NGOAI_TRU';
+                    const maThuoc = row['MA_THUOC'] || '';
+                    const donGia = parseFloat(row['DON_GIA'] || 0);
+                    const soLuong = parseFloat(row['SO_LUONG'] || 0);
+                    const thanhTien = parseFloat(row['THANH_TIEN_BH'] || row['T_BHTT'] || row['THANH_TIEN'] || 0);
+                    
+                    const key = maThuoc + '_' + donGia;
+                    if (!bc20Map[key]) {
+                        bc20Map[key] = {
+                            MA_THUOC: maThuoc,
+                            TEN_HOATCHAT: row['HOAT_CHAT'] || '',
+                            TEN_THUOC: row['TEN_THUOC'] || '',
+                            DUONG_DUNG: row['DUONG_DUNG'] || '',
+                            HAM_LUONG: row['HAM_LUONG'] || '',
+                            SO_DKY: row['SO_DANG_KY'] || '',
+                            DON_VI: row['DON_VI_TINH'] || '',
+                            DON_GIA: donGia,
+                            SL_NOITRU: 0,
+                            SL_NGOAITRU: 0,
+                            THANH_TIEN: 0
+                        };
+                    }
+                    if (type === 'NOI_TRU') bc20Map[key].SL_NOITRU += soLuong;
+                    if (type === 'NGOAI_TRU') bc20Map[key].SL_NGOAITRU += soLuong;
+                    bc20Map[key].THANH_TIEN += thanhTien;
+                });
+            }
+
+            // --- BC 21 & BC 19 (DVKT & VTYT - XML3) ---
+            const bc21Map = {};
+            const bc19Map = {};
+            if (dataStore['XML3']) {
+                dataStore['XML3'].rows.forEach(row => {
+                    const maNhom = row['MA_NHOM'] ? String(row['MA_NHOM']) : '';
+                    const type = lkMap[row['MA_LK']] || 'NGOAI_TRU';
+                    const donGia = parseFloat(row['DON_GIA'] || 0);
+                    const soLuong = parseFloat(row['SO_LUONG'] || 0);
+                    const thanhTien = parseFloat(row['THANH_TIEN_BH'] || row['T_BHTT'] || row['THANH_TIEN'] || 0);
+                    
+                    if (maNhom.startsWith('10') || maNhom.startsWith('11')) {
+                        const maVtyt = row['MA_VAT_TU'] || row['MA_VTYT'] || row['MA_DICH_VU'] || '';
+                        const key = maVtyt + '_' + donGia;
+                        if (!bc19Map[key]) {
+                            bc19Map[key] = {
+                                MA_VTYT: maVtyt,
+                                TEN_VTYT: row['TEN_VAT_TU'] || row['TEN_VTYT'] || row['TEN_DICH_VU'] || '',
+                                TEN_THUONGMAI: row['TEN_THUONGMAI'] || '',
+                                QUY_CACH: row['QUY_CACH'] || '',
+                                DON_VI: row['DON_VI_TINH'] || '',
+                                GIA_MUA: row['GIA_MUA'] || donGia,
+                                GIA_THANHTOAN: donGia,
+                                SL_NOITRU: 0,
+                                SL_NGOAITRU: 0,
+                                THANH_TIEN: 0
+                            };
+                        }
+                        if (type === 'NOI_TRU') bc19Map[key].SL_NOITRU += soLuong;
+                        if (type === 'NGOAI_TRU') bc19Map[key].SL_NGOAITRU += soLuong;
+                        bc19Map[key].THANH_TIEN += thanhTien;
+                    } else {
+                        const maDvkt = row['MA_DICH_VU'] || row['MA_DVKT'] || '';
+                        const donGia21 = parseFloat(row['DON_GIA_BH'] || row['DON_GIA'] || 0);
+                        const key = maDvkt + '_' + donGia21;
+                        if (!bc21Map[key]) {
+                            bc21Map[key] = {
+                                MA_DVKT: maDvkt,
+                                TEN_DVKT: row['TEN_DICH_VU'] || row['TEN_DVKT'] || '',
+                                DON_GIA: donGia21,
+                                SL_NOITRU: 0,
+                                SL_NGOAITRU: 0,
+                                THANH_TIEN: 0
+                            };
+                        }
+                        if (type === 'NOI_TRU') bc21Map[key].SL_NOITRU += soLuong;
+                        if (type === 'NGOAI_TRU') bc21Map[key].SL_NGOAITRU += soLuong;
+                        bc21Map[key].THANH_TIEN += thanhTien;
+                    }
+                });
+            }
+
+            // Convert map to arrays with STT
+            const arr19 = Object.values(bc19Map).map((item, idx) => ({ STT: idx + 1, ...item }));
+            const arr20 = Object.values(bc20Map).map((item, idx) => ({ STT: idx + 1, ...item }));
+            const arr21 = Object.values(bc21Map).map((item, idx) => ({ STT: idx + 1, ...item }));
+
+            const wb = XLSX.utils.book_new();
+
+            if (arr19.length > 0) {
+                const ws19 = XLSX.utils.json_to_sheet(arr19);
+                XLSX.utils.book_append_sheet(wb, ws19, "BC 19");
+            }
+            if (arr20.length > 0) {
+                const ws20 = XLSX.utils.json_to_sheet(arr20);
+                XLSX.utils.book_append_sheet(wb, ws20, "BC 20");
+            }
+            if (arr21.length > 0) {
+                const ws21 = XLSX.utils.json_to_sheet(arr21);
+                XLSX.utils.book_append_sheet(wb, ws21, "BC 21");
+            }
+
+            if (wb.SheetNames.length === 0) {
+                alert("Không có dữ liệu Thuốc, VTYT, hay DVKT để xuất.");
+                return;
+            }
+
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([wbout], { type: 'application/octet-stream' });
+            window.cachedWbReportsUrl = URL.createObjectURL(blob);
+            
+            } finally {
+                if (btn) {
+                    btn.classList.remove('disabled');
+                    if (window.cachedWbReportsUrl) {
+                        btn.href = window.cachedWbReportsUrl;
+                        btn.download = "BaoCao_19_20_21.xlsx";
+                        btn.style.color = '#ff9800';
+                        document.getElementById('lblExportReports').innerText = "Hoàn tất! Tải Về";
+                    } else {
+                        btn.href = "javascript:void(0)";
+                        btn.removeAttribute("download");
+                        document.getElementById('lblExportReports').innerText = "19,20,21";
+                    }
+                }
+            }
+        }
+
+        window.cachedWbReportsLoaiKcbUrl = null;
+
+        async function exportReportsLoaiKcb(e) {
+            const btn = document.getElementById('btnExportReportsLoaiKcb');
+            
+            if (window.cachedWbReportsLoaiKcbUrl) {
+                setTimeout(() => {
+                    URL.revokeObjectURL(window.cachedWbReportsLoaiKcbUrl);
+                    window.cachedWbReportsLoaiKcbUrl = null;
+                    if (btn) {
+                        btn.href = "javascript:void(0)";
+                        btn.removeAttribute("download");
+                        btn.style.color = '#333';
+                        document.getElementById('lblExportReportsLoaiKcb').innerText = "19,20,21 (Loại KCB)";
+                    }
+                }, 500);
+                return;
+            }
+            if (e) e.preventDefault();
+
+            if (!window.currentDataStore) {
+                alert("Không có dữ liệu để xuất.");
+                return;
+            }
+
+            if (btn) {
+                btn.classList.add('disabled');
+                document.getElementById('lblExportReportsLoaiKcb').innerText = "Đang xử lý...";
+            }
+            // Nhường luồng cho UI cập nhật
+            await new Promise(r => setTimeout(r, 50));
+
+            try {
+                const dataStore = window.currentDataStore;
+            
+                // Xây dựng map phân loại Nội trú / Ngoại trú và MA_LOAI_KCB từ XML1
+                const lkMap = {};
+                if (dataStore['XML1']) {
+                    dataStore['XML1'].rows.forEach(row => {
+                        const mlStr = row['MA_LOAI_KCB'] ? String(row['MA_LOAI_KCB']).trim() : '';
+                        const m = mlStr.length === 1 ? '0' + mlStr : mlStr; 
+                        let type = 'KAC';
+                        if (['01','02','05','07','08'].includes(m) || ['1','2','5','7','8'].includes(mlStr)) {
+                            type = 'NGOAI_TRU';
+                        } else if (['03','04','06','09'].includes(m) || ['3','4','6','9'].includes(mlStr)) {
+                            type = 'NOI_TRU';
+                        }
+                        lkMap[row['MA_LK']] = {
+                            type: type,
+                            maLoaiKcb: mlStr
+                        };
+                    });
+                }
+
+                // --- BC 20 (Thuốc - XML2) ---
+                const bc20Map = {}; 
+                if (dataStore['XML2']) {
+                    dataStore['XML2'].rows.forEach(row => {
+                        const lkInfo = lkMap[row['MA_LK']] || { type: 'NGOAI_TRU', maLoaiKcb: '' };
+                        const type = lkInfo.type;
+                        const maLoaiKcb = lkInfo.maLoaiKcb;
+                        const maThuoc = row['MA_THUOC'] || '';
+                        const donGia = parseFloat(row['DON_GIA'] || 0);
+                        const soLuong = parseFloat(row['SO_LUONG'] || 0);
+                        const thanhTien = parseFloat(row['THANH_TIEN_BH'] || row['T_BHTT'] || row['THANH_TIEN'] || 0);
+                        
+                        const key = maThuoc + '_' + donGia + '_' + maLoaiKcb;
+                        if (!bc20Map[key]) {
+                            bc20Map[key] = {
+                                MA_THUOC: maThuoc,
+                                MA_LOAI_KCB: maLoaiKcb,
+                                TEN_HOATCHAT: row['HOAT_CHAT'] || '',
+                                TEN_THUOC: row['TEN_THUOC'] || '',
+                                DUONG_DUNG: row['DUONG_DUNG'] || '',
+                                HAM_LUONG: row['HAM_LUONG'] || '',
+                                SO_DKY: row['SO_DANG_KY'] || '',
+                                DON_VI: row['DON_VI_TINH'] || '',
+                                DON_GIA: donGia,
+                                SL_NOITRU: 0,
+                                SL_NGOAITRU: 0,
+                                THANH_TIEN: 0
+                            };
+                        }
+                        if (type === 'NOI_TRU') bc20Map[key].SL_NOITRU += soLuong;
+                        else bc20Map[key].SL_NGOAITRU += soLuong;
+                        bc20Map[key].THANH_TIEN += thanhTien;
+                    });
+                }
+
+                // --- BC 21 & BC 19 (DVKT & VTYT - XML3) ---
+                const bc21Map = {};
+                const bc19Map = {};
+                if (dataStore['XML3']) {
+                    dataStore['XML3'].rows.forEach(row => {
+                        const lkInfo = lkMap[row['MA_LK']] || { type: 'NGOAI_TRU', maLoaiKcb: '' };
+                        const type = lkInfo.type;
+                        const maLoaiKcb = lkInfo.maLoaiKcb;
+                        const maNhom = row['MA_NHOM'] ? String(row['MA_NHOM']) : '';
+                        const donGia = parseFloat(row['DON_GIA'] || 0);
+                        const soLuong = parseFloat(row['SO_LUONG'] || 0);
+                        const thanhTien = parseFloat(row['THANH_TIEN_BH'] || row['T_BHTT'] || row['THANH_TIEN'] || 0);
+                        
+                        if (maNhom.startsWith('10') || maNhom.startsWith('11')) {
+                            const maVtyt = row['MA_VAT_TU'] || row['MA_VTYT'] || row['MA_DICH_VU'] || '';
+                            const key = maVtyt + '_' + donGia + '_' + maLoaiKcb;
+                            if (!bc19Map[key]) {
+                                bc19Map[key] = {
+                                    MA_VTYT: maVtyt,
+                                    MA_LOAI_KCB: maLoaiKcb,
+                                    TEN_VTYT: row['TEN_VAT_TU'] || row['TEN_VTYT'] || row['TEN_DICH_VU'] || '',
+                                    TEN_THUONGMAI: row['TEN_THUONGMAI'] || '',
+                                    QUY_CACH: row['QUY_CACH'] || '',
+                                    DON_VI: row['DON_VI_TINH'] || '',
+                                    GIA_MUA: row['GIA_MUA'] || donGia,
+                                    GIA_THANHTOAN: donGia,
+                                    SL_NOITRU: 0,
+                                    SL_NGOAITRU: 0,
+                                    THANH_TIEN: 0
+                                };
+                            }
+                            if (type === 'NOI_TRU') bc19Map[key].SL_NOITRU += soLuong;
+                            else bc19Map[key].SL_NGOAITRU += soLuong;
+                            bc19Map[key].THANH_TIEN += thanhTien;
+                        } else {
+                            const maDvkt = row['MA_DICH_VU'] || row['MA_DVKT'] || '';
+                            const donGia21 = parseFloat(row['DON_GIA_BH'] || row['DON_GIA'] || 0);
+                            const key = maDvkt + '_' + donGia21 + '_' + maLoaiKcb;
+                            if (!bc21Map[key]) {
+                                bc21Map[key] = {
+                                    MA_DVKT: maDvkt,
+                                    MA_LOAI_KCB: maLoaiKcb,
+                                    TEN_DVKT: row['TEN_DICH_VU'] || row['TEN_DVKT'] || '',
+                                    DON_GIA: donGia21,
+                                    SL_NOITRU: 0,
+                                    SL_NGOAITRU: 0,
+                                    THANH_TIEN: 0
+                                };
+                            }
+                            if (type === 'NOI_TRU') bc21Map[key].SL_NOITRU += soLuong;
+                            else bc21Map[key].SL_NGOAITRU += soLuong;
+                            bc21Map[key].THANH_TIEN += thanhTien;
+                        }
+                    });
+                }
+
+                // Convert map to arrays with STT
+                const arr19 = Object.values(bc19Map).map((item, idx) => ({ STT: idx + 1, ...item }));
+                const arr20 = Object.values(bc20Map).map((item, idx) => ({ STT: idx + 1, ...item }));
+                const arr21 = Object.values(bc21Map).map((item, idx) => ({ STT: idx + 1, ...item }));
+
+                const wb = XLSX.utils.book_new();
+
+                if (arr19.length > 0) {
+                    const ws19 = XLSX.utils.json_to_sheet(arr19);
+                    XLSX.utils.book_append_sheet(wb, ws19, "BC 19");
+                }
+                if (arr20.length > 0) {
+                    const ws20 = XLSX.utils.json_to_sheet(arr20);
+                    XLSX.utils.book_append_sheet(wb, ws20, "BC 20");
+                }
+                if (arr21.length > 0) {
+                    const ws21 = XLSX.utils.json_to_sheet(arr21);
+                    XLSX.utils.book_append_sheet(wb, ws21, "BC 21");
+                }
+
+                if (wb.SheetNames.length === 0) {
+                    alert("Không có dữ liệu Thuốc, VTYT, hay DVKT để xuất.");
+                    return;
+                }
+
+                const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                const blob = new Blob([wbout], { type: 'application/octet-stream' });
+                window.cachedWbReportsLoaiKcbUrl = URL.createObjectURL(blob);
+                
+            } finally {
+                if (btn) {
+                    btn.classList.remove('disabled');
+                    if (window.cachedWbReportsLoaiKcbUrl) {
+                        btn.href = window.cachedWbReportsLoaiKcbUrl;
+                        btn.download = "BaoCao_19_20_21_LoaiKCB.xlsx";
+                        btn.style.color = '#ff9800';
+                        document.getElementById('lblExportReportsLoaiKcb').innerText = "Hoàn tất! Tải Về";
+                    } else {
+                        btn.href = "javascript:void(0)";
+                        btn.removeAttribute("download");
+                        document.getElementById('lblExportReportsLoaiKcb').innerText = "19,20,21 (Loại KCB)";
+                    }
+                }
+            }
+        }
+
+        window.cachedWbChiPhiUrl = null;
+
+        async function exportChiPhi(e) {
+            const btn = document.getElementById('btnExportChiPhi');
+
+            if (window.cachedWbChiPhiUrl) {
+                setTimeout(() => {
+                    URL.revokeObjectURL(window.cachedWbChiPhiUrl);
+                    window.cachedWbChiPhiUrl = null;
+                    if (btn) {
+                        btn.href = "javascript:void(0)";
+                        btn.removeAttribute("download");
+                        btn.style.color = '#333';
+                        document.getElementById('lblExportChiPhi').innerText = "C79a-HD";
+                    }
+                }, 500);
+                return;
+            }
+            if (e) e.preventDefault();
+
+            if (!window.currentDataStore) {
+                alert("Không có dữ liệu để xuất.");
+                return;
+            }
+
+            if (btn) {
+                btn.classList.add('disabled');
+                document.getElementById('lblExportChiPhi').innerText = "Đang xử lý...";
+            }
+            await new Promise(r => setTimeout(r, 50));
+
+            try {
+                const dataStore = window.currentDataStore;
+                const dt1 = dataStore['XML1'] ? dataStore['XML1'].rows : [];
+                const dt3 = dataStore['XML3'] ? dataStore['XML3'].rows : [];
+
+                if (dt1.length === 0) {
+                    alert("Không có dữ liệu XML1 (Tổng Hợp) để xuất báo cáo chi phí.");
+                    return;
+                }
+
+            // 2. XỬ LÝ NHÓM DỮ LIỆU DT3 TRƯỚC
+            const dt3Grouped = {};
+            dt3.forEach(row => {
+                const maLk = String(row['MA_LK'] || '').trim();
+                if (!dt3Grouped[maLk]) {
+                    dt3Grouped[maLk] = [];
+                }
+                dt3Grouped[maLk].push(row);
+            });
+
+            function getDec(val) {
+                if (!val) return 0;
+                const parsed = parseFloat(val);
+                return isNaN(parsed) ? 0 : parsed;
+            }
+
+            function sumTheoNhom(chiTiet, maNhomArr) {
+                return chiTiet
+                    .filter(r => maNhomArr.includes(String(r['MA_NHOM'])))
+                    .reduce((sum, r) => sum + getDec(r['THANH_TIEN_BH'] || r['T_BHTT'] || r['THANH_TIEN']), 0);
+            }
+
+            // 3. ĐỔ DỮ LIỆU TỪ DT1 VÀ TÍNH TOÁN TỪ DT3
+            let stt = 1;
+            const exportData = [];
+
+            dt1.forEach(r1 => {
+                const maLk = String(r1['MA_LK'] || '').trim();
+                const chiTiet = dt3Grouped[maLk] || [];
+
+                // --- CÁC HÀM TÍNH TỔNG (SUM) DỰA THEO MA_NHOM ---
+                const sumXetNghiem = sumTheoNhom(chiTiet, ["1"]);
+                const sumCdha = sumTheoNhom(chiTiet, ["2", "3"]);
+                const sumMau = sumTheoNhom(chiTiet, ["7", "17"]);
+                const sumPttt = sumTheoNhom(chiTiet, ["8", "18"]);
+                const sumKham = sumTheoNhom(chiTiet, ["13"]);
+
+                exportData.push({
+                    "STT": stt++,
+                    "HO_TEN": r1["HO_TEN"] || '',
+                    "NGAY_SINH": r1["NGAY_SINH"] || '',
+                    "GIOI_TINH": r1["GIOI_TINH"] || '',
+                    "MA_THE_BHYT": r1["MA_THE_BHYT"] || '',
+                    "MA_DKBD": r1["MA_DKBD"] || '',
+                    "MA_LOAI_KCB": r1["MA_LOAI_KCB"] || '',
+                    "MA_BENH_CHINH": r1["MA_BENH_CHINH"] || '',
+                    "NGAY_KHAM": r1["NGAY_VAO"] || '',
+                    "TONG_TIEN_BV": getDec(r1["T_TONGCHI_BV"]),
+                    "TONG_TIEN_BH": getDec(r1["T_TONGCHI_BH"]),
+                    "XET_NGHIEM": sumXetNghiem,
+                    "CĐHA_TDCN": sumCdha,
+                    "T_THUOC": getDec(r1["T_THUOC"]),
+                    "T_MAU": sumMau,
+                    "T_PTTT": sumPttt,
+                    "T_VTYT": getDec(r1["T_VTYT"]),
+                    "T_CONGKHAM": sumKham,
+                    "T_BHTT": getDec(r1["T_BHTT"])
+                });
+            });
+
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            
+            // Format tiêu đề và tiền tệ: JS excel (SheetJS)
+            // Thêm format tiền tệ (cột J đến S - tức cột số 9 đến 18 trong array index 0-based)
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for(let R = range.s.r + 1; R <= range.e.r; ++R) {
+                for(let C = 9; C <= 18; ++C) {
+                    const cellRef = XLSX.utils.encode_cell({r: R, c: C});
+                    if(!ws[cellRef]) continue;
+                    ws[cellRef].z = '#,##0';
+                }
+            }
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "BaoCao_ChiPhi");
+            
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([wbout], { type: 'application/octet-stream' });
+            window.cachedWbChiPhiUrl = URL.createObjectURL(blob);
+
+            } finally {
+                if (btn) {
+                    btn.classList.remove('disabled');
+                    if (window.cachedWbChiPhiUrl) {
+                        btn.href = window.cachedWbChiPhiUrl;
+                        btn.download = "BaoCao_ChiPhi.xlsx";
+                        btn.style.color = '#ff9800';
+                        document.getElementById('lblExportChiPhi').innerText = "Hoàn tất! Tải Về";
+                    } else {
+                        btn.href = "javascript:void(0)";
+                        btn.removeAttribute("download");
+                        document.getElementById('lblExportChiPhi').innerText = "C79a-HD";
+                    }
+                }
+            }
+        }
+
+        window.cachedWbBenhChinhUrl = null;
+
+        async function exportBenhChinh(e) {
+            const btn = document.getElementById('btnExportBenhChinh');
+
+            if (window.cachedWbBenhChinhUrl) {
+                setTimeout(() => {
+                    URL.revokeObjectURL(window.cachedWbBenhChinhUrl);
+                    window.cachedWbBenhChinhUrl = null;
+                    if (btn) {
+                        btn.href = "javascript:void(0)";
+                        btn.removeAttribute("download");
+                        btn.style.color = '#333';
+                        document.getElementById('lblExportBenhChinh').innerText = "Mã Bệnh";
+                    }
+                }, 500);
+                return;
+            }
+            if (e) e.preventDefault();
+
+            if (!window.currentDataStore) {
+                alert("Không có dữ liệu để xuất.");
+                return;
+            }
+
+            if (btn) {
+                btn.classList.add('disabled');
+                document.getElementById('lblExportBenhChinh').innerText = "Đang xử lý...";
+            }
+            await new Promise(r => setTimeout(r, 50));
+
+            try {
+                const dataStore = window.currentDataStore;
+                const dt1 = dataStore['XML1'] ? dataStore['XML1'].rows : [];
+                const dt3 = dataStore['XML3'] ? dataStore['XML3'].rows : [];
+
+                if (dt1.length === 0) {
+                    alert("Không có dữ liệu XML1 (Tổng Hợp) để xuất báo cáo bệnh chính.");
+                    return;
+                }
+
+                // Tiện ích lấy số thập phân an toàn
+                function getDec(val) {
+                    if (!val) return 0;
+                    const parsed = parseFloat(val);
+                    return isNaN(parsed) ? 0 : parsed;
+                }
+
+                // Nhóm dt3 theo MA_LK
+                const dt3TienIch = {};
+                dt3.forEach(r => {
+                    const maLk = String(r['MA_LK'] || '').trim();
+                    if (!dt3TienIch[maLk]) {
+                        dt3TienIch[maLk] = { XN: 0, CDHA: 0, PTTT: 0 };
+                    }
+                    const maNhom = String(r['MA_NHOM'] || '').trim();
+                    const tien = getDec(r['THANH_TIEN_BH'] || r['T_BHTT'] || r['THANH_TIEN']);
+                    if (maNhom === "1") dt3TienIch[maLk].XN += tien;
+                    if (maNhom === "2" || maNhom === "3") dt3TienIch[maLk].CDHA += tien;
+                    if (maNhom === "8" || maNhom === "18") dt3TienIch[maLk].PTTT += tien;
+                });
+
+                // Nhóm dt1 theo 3 ký tự đầu của MA_BENH_CHINH và MA_LOAI_KCB
+                const dt1Grouped = {};
+                dt1.forEach(r => {
+                    const maBenhFull = (r['MA_BENH_CHINH'] || 'CHUA_XAC_DINH').trim();
+                    const maBenh = maBenhFull !== 'CHUA_XAC_DINH' && maBenhFull.length >= 3 ? maBenhFull.substring(0, 3) : maBenhFull;
+                    const maLoaiKcb = String(r['MA_LOAI_KCB'] || '').trim();
+                    const key = maBenh + '_' + maLoaiKcb;
+
+                    if (!dt1Grouped[key]) {
+                        dt1Grouped[key] = {
+                            MA_BENH_CHINH: maBenh,
+                            MA_LOAI_KCB: maLoaiKcb,
+                            SO_LUOT: 0,
+                            TONG_TIEN_BH: 0,
+                            TONG_TIEN_BV: 0,
+                            XET_NGHIEM: 0,
+                            CDHA: 0,
+                            T_THUOC: 0,
+                            T_PTTT: 0,
+                            T_BHTT: 0,
+                            MA_LKs: []
+                        };
+                    }
+
+                    const g = dt1Grouped[key];
+                    g.SO_LUOT += 1;
+                    g.TONG_TIEN_BH += getDec(r['T_TONGCHI_BH']);
+                    g.TONG_TIEN_BV += getDec(r['T_TONGCHI_BV']);
+                    g.T_THUOC += getDec(r['T_THUOC']);
+                    g.T_BHTT += getDec(r['T_BHTT']);
+                    
+                    const maLk = String(r['MA_LK'] || '').trim();
+                    if (maLk) {
+                        g.MA_LKs.push(maLk);
+                    }
+                });
+
+                // Gắn chi phí từ dt3 sang dt1Grouped và chuẩn bị dữ liệu xuất
+                const exportData = [];
+                Object.values(dt1Grouped).forEach(g => {
+                    let tongXN = 0, tongCDHA = 0, tongPTTT = 0;
+                    g.MA_LKs.forEach(maLk => {
+                        if (dt3TienIch[maLk]) {
+                            tongXN += dt3TienIch[maLk].XN;
+                            tongCDHA += dt3TienIch[maLk].CDHA;
+                            tongPTTT += dt3TienIch[maLk].PTTT;
+                        }
+                    });
+
+                    exportData.push({
+                        "MA_BENH_CHINH": g.MA_BENH_CHINH,
+                        "MA_LOAI_KCB": g.MA_LOAI_KCB,
+                        "SO_LUOT": g.SO_LUOT,
+                        "TONG_TIEN_BH": g.TONG_TIEN_BH,
+                        "TONG_TIEN_BV": g.TONG_TIEN_BV,
+                        "XET_NGHIEM": tongXN,
+                        "CĐHA": tongCDHA,
+                        "T_THUOC": g.T_THUOC,
+                        "T_PTTT": tongPTTT,
+                        "T_BHTT": g.T_BHTT
+                    });
+                });
+
+                const ws = XLSX.utils.json_to_sheet(exportData);
+
+                // Format cột C (SO_LUOT) đến J (T_BHTT)
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                for(let R = range.s.r + 1; R <= range.e.r; ++R) {
+                    for(let C = 2; C <= 9; ++C) {
+                        const cellRef = XLSX.utils.encode_cell({r: R, c: C});
+                        if(!ws[cellRef]) continue;
+                        ws[cellRef].z = '#,##0';
+                    }
+                }
+
+                // Apply width
+                ws['!cols'] = [
+                    { wch: 15 }, // MA_BENH_CHINH
+                    { wch: 15 }, // MA_LOAI_KCB
+                    { wch: 10 }, // SO_LUOT
+                    { wch: 15 }, // TONG_TIEN_BH
+                    { wch: 15 }, // TONG_TIEN_BV
+                    { wch: 15 }, // XET_NGHIEM
+                    { wch: 15 }, // CĐHA
+                    { wch: 15 }, // T_THUOC
+                    { wch: 15 }, // T_PTTT
+                    { wch: 15 }  // T_BHTT
+                ];
+
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "ThongKe_BenhChinh");
+                
+                const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                const blob = new Blob([wbout], { type: 'application/octet-stream' });
+                window.cachedWbBenhChinhUrl = URL.createObjectURL(blob);
+
+            } finally {
+                if (btn) {
+                    btn.classList.remove('disabled');
+                    if (window.cachedWbBenhChinhUrl) {
+                        btn.href = window.cachedWbBenhChinhUrl;
+                        btn.download = "BaoCao_BenhChinh.xlsx";
+                        btn.style.color = '#ff9800';
+                        document.getElementById('lblExportBenhChinh').innerText = "Hoàn tất! Tải Về";
+                    } else {
+                        btn.href = "javascript:void(0)";
+                        btn.removeAttribute("download");
+                        document.getElementById('lblExportBenhChinh').innerText = "Mã Bệnh";
+                    }
+                }
+            }
+        }
+
+        // ==========================================
+        // MODULE CHẤM CÔNG (HÀNH CHÍNH & NGOÀI GIỜ)
+        // ==========================================
+        window.nhanVienMap = {};
+        window.nhanVienList = [];
+        window.cachedWbChamCongHCUrl = null;
+        window.cachedWbChamCongNGUrl = null;
+
+        function normalizeCchn(s) {
+            if (!s) return '';
+            return String(s).toUpperCase().replace(/\s+/g, '').trim();
+        }
+
+        function normalizeHeader(s) {
+            if (!s) return '';
+            return String(s)
+                .toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]/g, '');
+        }
+
+        function handleDmNhanVien(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const wb = XLSX.read(data, { type: 'array' });
+                    const sheetName = wb.SheetNames[0];
+                    const ws = wb.Sheets[sheetName];
+                    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+                    if (!rows || rows.length === 0) {
+                        alert("File danh mục không có dữ liệu.");
+                        return;
+                    }
+
+                    // Tìm dòng tiêu đề
+                    let headerRowIdx = -1;
+                    for (let r = 0; r < Math.min(rows.length, 12); r++) {
+                        const row = rows[r];
+                        if (!row || !Array.isArray(row)) continue;
+                        for (let c = 0; c < row.length; c++) {
+                            const nh = normalizeHeader(row[c]);
+                            if (nh === 'macchn' || nh === 'cchn' || nh === 'gphn' || nh.includes('cchn') || nh.includes('gphn') || nh.includes('mabacsi') || nh.includes('chungchi') || nh.includes('giayphep')) {
+                                headerRowIdx = r;
+                                break;
+                            }
+                        }
+                        if (headerRowIdx !== -1) break;
+                    }
+
+                    if (headerRowIdx === -1) headerRowIdx = 0;
+
+                    const headerRow = rows[headerRowIdx] || [];
+                    let colCchn = -1;
+                    let colTen = -1;
+                    let colChucVu = -1;
+
+                    // Pass 1: Tìm kiếm chính xác / ưu tiên cao
+                    for (let c = 0; c < headerRow.length; c++) {
+                        const nh = normalizeHeader(headerRow[c]);
+                        if (colCchn === -1 && (nh === 'macchn' || nh === 'cchn' || nh === 'gphn' || nh === 'socchn' || nh === 'sogphn' || nh === 'socchnsogphn' || nh === 'mabs' || nh === 'mabacsi')) {
+                            colCchn = c;
+                        }
+                        if (colTen === -1 && (nh === 'hoten' || nh === 'hovaten' || nh === 'tennhanvien' || nh === 'tennv' || nh === 'nhanvien' || nh === 'bacsi' || nh === 'tenbacsi')) {
+                            colTen = c;
+                        }
+                        if (colChucVu === -1 && (nh === 'chucvu' || nh === 'chucdanh' || nh === 'bophan' || nh === 'chucvubophan' || nh === 'khoaphong' || nh === 'khoa')) {
+                            colChucVu = c;
+                        }
+                    }
+
+                    // Pass 2: Tìm kiếm gần đúng (nếu chưa tìm thấy ở Pass 1)
+                    for (let c = 0; c < headerRow.length; c++) {
+                        const nh = normalizeHeader(headerRow[c]);
+                        if (colCchn === -1 && (nh.includes('cchn') || nh.includes('gphn') || nh.includes('chungchi') || nh.includes('giayphep'))) {
+                            colCchn = c;
+                        }
+                        if (colTen === -1 && (nh.includes('hoten') || nh.includes('hovaten') || nh.includes('nhanvien') || (nh.includes('ten') && !nh.includes('khoa') && !nh.includes('phong') && !nh.includes('bophan') && !nh.includes('dichvu') && !nh.includes('thuoc') && !nh.includes('vtyt') && !nh.includes('donvi')))) {
+                            if (c !== colCchn) colTen = c;
+                        }
+                        if (colChucVu === -1 && (nh.includes('chucvu') || nh.includes('bophan') || nh.includes('chucdanh') || nh.includes('khoaphong') || nh.includes('khoa') || nh.includes('vitri'))) {
+                            if (c !== colCchn && c !== colTen) colChucVu = c;
+                        }
+                    }
+
+                    const nvMap = {};
+                    const nvList = [];
+
+                    for (let r = headerRowIdx + 1; r < rows.length; r++) {
+                        const row = rows[r];
+                        if (!row || !Array.isArray(row)) continue;
+                        const cchnRaw = colCchn !== -1 ? String(row[colCchn] || '').trim() : '';
+                        const hoTen = colTen !== -1 ? String(row[colTen] || '').trim() : '';
+                        const chucVu = colChucVu !== -1 ? String(row[colChucVu] || '').trim() : '';
+
+                        if (!cchnRaw && !hoTen) continue;
+                        if (cchnRaw.toLowerCase().includes('nghỉ') || hoTen.toLowerCase().includes('người lập') || hoTen.toLowerCase().includes('giám đốc') || hoTen.toLowerCase().includes('kế toán')) continue;
+
+                        const normKey = normalizeCchn(cchnRaw);
+                        const item = {
+                            cchn: cchnRaw,
+                            hoTen: hoTen,
+                            chucVu: chucVu,
+                            normKey: normKey
+                        };
+                        if (normKey) {
+                            nvMap[normKey] = item;
+                        }
+                        nvList.push(item);
+                    }
+
+                    window.nhanVienMap = nvMap;
+                    window.nhanVienList = nvList;
+
+                    const lbl = document.getElementById('lblImportNhanVien');
+                    if (lbl) {
+                        lbl.innerText = `DM: ${nvList.length} NV`;
+                    }
+                    const btn = document.getElementById('btnImportNhanVien');
+                    if (btn) {
+                        btn.style.color = '#28a745';
+                    }
+
+                    alert(`Tải danh mục thành công! Nhận diện được ${nvList.length} nhân viên (Tìm theo MACCHN).`);
+                } catch (err) {
+                    console.error("Lỗi đọc danh mục nhân viên:", err);
+                    alert("Lỗi khi đọc file danh mục: " + err.message);
+                } finally {
+                    event.target.value = '';
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function parseXmlDate(str) {
+            if (!str) return null;
+            const s = String(str).trim();
+            if (!s) return null;
+            const numOnly = s.replace(/\D/g, '');
+            if (numOnly.length >= 8) {
+                const y = parseInt(numOnly.substr(0, 4), 10);
+                const m = parseInt(numOnly.substr(4, 2), 10) - 1;
+                const d = parseInt(numOnly.substr(6, 2), 10);
+                const hh = numOnly.length >= 10 ? parseInt(numOnly.substr(8, 2), 10) : 0;
+                const mm = numOnly.length >= 12 ? parseInt(numOnly.substr(10, 2), 10) : 0;
+                const ss = numOnly.length >= 14 ? parseInt(numOnly.substr(12, 2), 10) : 0;
+                const dt = new Date(y, m, d, hh, mm, ss);
+                return isNaN(dt.getTime()) ? null : dt;
+            }
+            const dt = new Date(s);
+            return isNaN(dt.getTime()) ? null : dt;
+        }
+
+        function getChamCongDataByMonth() {
+            const dataStore = window.currentDataStore;
+            if (!dataStore) {
+                alert("Chưa có dữ liệu XML nào được tải vào.");
+                return null;
+            }
+
+            const dt2 = dataStore['XML2'] ? dataStore['XML2'].rows : [];
+            const dt3 = dataStore['XML3'] ? dataStore['XML3'].rows : [];
+
+            if (dt2.length === 0 && dt3.length === 0) {
+                alert("Không tìm thấy dữ liệu XML2 (Thuốc) hoặc XML3 (DVKT/VTYT) để tổng hợp chấm công.");
+                return null;
+            }
+
+            const events = [];
+
+            // 1. XML2: MA_BAC_SI với NGAY_YL
+            dt2.forEach(r => {
+                const bs = r['MA_BAC_SI'] ? String(r['MA_BAC_SI']).trim() : '';
+                const yl = parseXmlDate(r['NGAY_YL']);
+                if (bs && yl) {
+                    events.push({ cchn: bs, date: yl });
+                }
+            });
+
+            // 2. XML3: MA_BAC_SI với NGAY_YL, NGUOI_THUC_HIEN với NGAY_TH_YL
+            dt3.forEach(r => {
+                const bs = r['MA_BAC_SI'] ? String(r['MA_BAC_SI']).trim() : '';
+                const yl = parseXmlDate(r['NGAY_YL']);
+                if (bs && yl) {
+                    events.push({ cchn: bs, date: yl });
+                }
+
+                const th = r['NGUOI_THUC_HIEN'] ? String(r['NGUOI_THUC_HIEN']).trim() : '';
+                const thYl = parseXmlDate(r['NGAY_TH_YL']);
+                if (th && thYl) {
+                    const splitted = th.split(';');
+                    splitted.forEach(item => {
+                        const m = item.trim();
+                        if (m) {
+                            events.push({ cchn: m, date: thYl });
+                        }
+                    });
+                }
+            });
+
+            if (events.length === 0) {
+                alert("Không tìm thấy mốc y lệnh / thực hiện y lệnh nào hợp lệ trong XML2 và XML3.");
+                return null;
+            }
+
+            // Nhóm theo Năm - Tháng (YYYY-MM)
+            const monthsMap = {};
+            events.forEach(ev => {
+                const y = ev.date.getFullYear();
+                const m = ev.date.getMonth() + 1;
+                const mKey = `${y}-${String(m).padStart(2, '0')}`;
+                if (!monthsMap[mKey]) {
+                    monthsMap[mKey] = {
+                        year: y,
+                        month: m,
+                        eventsByEmp: {}
+                    };
+                }
+                const norm = normalizeCchn(ev.cchn);
+                if (!monthsMap[mKey].eventsByEmp[norm]) {
+                    monthsMap[mKey].eventsByEmp[norm] = {
+                        rawCchn: ev.cchn,
+                        events: []
+                    };
+                }
+                monthsMap[mKey].eventsByEmp[norm].events.push(ev);
+            });
+
+            // Xử lý chi tiết theo từng tháng
+            const resultMonths = {};
+            const catalogList = window.nhanVienList || [];
+
+            for (const mKey of Object.keys(monthsMap).sort()) {
+                const mData = monthsMap[mKey];
+                const year = mData.year;
+                const month = mData.month;
+                const daysInMonth = new Date(year, month, 0).getDate();
+
+                // Xác định danh sách nhân viên: CHỈ lấy những nhân viên THỰC TẾ CÓ TRONG XML của tháng này
+                let empList = [];
+                const addedNorms = new Set();
+                const xmlNormKeys = Object.keys(mData.eventsByEmp);
+
+                if (catalogList.length > 0) {
+                    // Nếu đã tải danh mục: lọc các nhân viên có trong XML và xếp theo thứ tự danh mục trước
+                    catalogList.forEach(item => {
+                        if (mData.eventsByEmp[item.normKey]) {
+                            empList.push({
+                                cchn: item.cchn || mData.eventsByEmp[item.normKey].rawCchn,
+                                hoTen: item.hoTen,
+                                chucVu: item.chucVu,
+                                normKey: item.normKey
+                            });
+                            addedNorms.add(item.normKey);
+                        }
+                    });
+                    // Thêm các nhân viên có trong XML nhưng chưa có trong danh mục (họ tên, chức vụ để rỗng)
+                    for (const norm of xmlNormKeys.sort()) {
+                        if (!addedNorms.has(norm)) {
+                            empList.push({
+                                cchn: mData.eventsByEmp[norm].rawCchn,
+                                hoTen: '',
+                                chucVu: '',
+                                normKey: norm
+                            });
+                            addedNorms.add(norm);
+                        }
+                    }
+                } else {
+                    // Chưa tải danh mục: chỉ lấy những nhân viên có trong XML (tên & chức vụ rỗng)
+                    for (const norm of xmlNormKeys.sort()) {
+                        empList.push({
+                            cchn: mData.eventsByEmp[norm].rawCchn,
+                            hoTen: '',
+                            chucVu: '',
+                            normKey: norm
+                        });
+                    }
+                }
+
+                // Tính toán công cho từng nhân viên và từng ngày
+                const employeesCalculated = empList.map(emp => {
+                    const empEventsObj = mData.eventsByEmp[emp.normKey];
+                    const empEvents = empEventsObj ? empEventsObj.events : [];
+
+                    // Gom sự kiện theo ngày
+                    const daysEvents = {};
+                    empEvents.forEach(ev => {
+                        const d = ev.date.getDate();
+                        if (!daysEvents[d]) daysEvents[d] = [];
+                        daysEvents[d].push(ev.date);
+                    });
+
+                    const days = {};
+                    let totalOvertimeMins = 0;
+                    let cntX = 0;
+                    let cntX2 = 0;
+                    let cntX3 = 0;
+
+                    for (let d = 1; d <= daysInMonth; d++) {
+                        const dList = daysEvents[d] || [];
+                        let adminSym = '';
+                        let truaTimeStr = '';
+                        let toiTimeStr = '';
+                        let truaFraction = null;
+                        let toiFraction = null;
+
+                        if (dList.length > 0) {
+                            // Chấm công hành chính
+                            const hasMorning = dList.some(dt => dt.getHours() < 12 || (dt.getHours() === 12 && dt.getMinutes() <= 30));
+                            const hasAfternoon = dList.some(dt => dt.getHours() > 12 || (dt.getHours() === 12 && dt.getMinutes() > 30));
+
+                            if (hasMorning && hasAfternoon) {
+                                adminSym = 'x';
+                                cntX++;
+                            } else if (hasMorning) {
+                                adminSym = 'x\\2';
+                                cntX2++;
+                            } else if (hasAfternoon) {
+                                adminSym = 'x/2';
+                                cntX3++;
+                            }
+
+                            // Chấm công ngoài giờ
+                            // Ca trưa: > 11:30 và <= 13:30
+                            const truaList = dList.filter(dt => {
+                                const totalM = dt.getHours() * 60 + dt.getMinutes();
+                                return totalM > (11 * 60 + 30) && totalM <= (13 * 60 + 30);
+                            });
+                            if (truaList.length > 0) {
+                                const maxTrua = new Date(Math.max(...truaList.map(dt => dt.getTime())));
+                                const h = maxTrua.getHours();
+                                const m = maxTrua.getMinutes();
+                                const s = maxTrua.getSeconds();
+                                truaTimeStr = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                                truaFraction = (h * 3600 + m * 60 + s) / 86400;
+                                totalOvertimeMins += (h * 60 + m) - (11 * 60 + 30);
+                            }
+
+                            // Ca tối: > 17:00
+                            const toiList = dList.filter(dt => {
+                                const totalM = dt.getHours() * 60 + dt.getMinutes();
+                                return totalM > (17 * 60);
+                            });
+                            if (toiList.length > 0) {
+                                const maxToi = new Date(Math.max(...toiList.map(dt => dt.getTime())));
+                                const h = maxToi.getHours();
+                                const m = maxToi.getMinutes();
+                                const s = maxToi.getSeconds();
+                                toiTimeStr = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                                toiFraction = (h * 3600 + m * 60 + s) / 86400;
+                                totalOvertimeMins += (h * 60 + m) - (17 * 60);
+                            }
+                        }
+
+                        days[d] = {
+                            adminSym,
+                            truaTimeStr,
+                            toiTimeStr,
+                            truaFraction,
+                            toiFraction
+                        };
+                    }
+
+                    return {
+                        cchn: emp.cchn,
+                        hoTen: emp.hoTen,
+                        chucVu: emp.chucVu,
+                        days,
+                        cntX,
+                        cntX2,
+                        cntX3,
+                        totalWorkingDays: cntX * 1 + cntX2 * 0.5 + cntX3 * 0.5,
+                        totalOvertimeMins
+                    };
+                });
+
+                resultMonths[mKey] = {
+                    year,
+                    month,
+                    daysInMonth,
+                    employees: employeesCalculated
+                };
+            }
+
+            return resultMonths;
+        }
+
+        function setSheetCell(ws, r, c, val, type, formula, numFmt, formattedText) {
+            const cellRef = XLSX.utils.encode_cell({ r: r, c: c });
+            const cell = {};
+            if (formula) cell.f = formula;
+            if (val !== undefined && val !== null) cell.v = val;
+            if (type) cell.t = type;
+            else if (typeof val === 'number') cell.t = 'n';
+            else if (typeof val === 'boolean') cell.t = 'b';
+            else cell.t = 's';
+            if (numFmt) cell.z = numFmt;
+            if (formattedText) cell.w = formattedText;
+            ws[cellRef] = cell;
+        }
+
+        async function exportChamCongHC(e) {
+            const btn = document.getElementById('btnExportChamCongHC');
+            if (window.cachedWbChamCongHCUrl) {
+                setTimeout(() => {
+                    URL.revokeObjectURL(window.cachedWbChamCongHCUrl);
+                    window.cachedWbChamCongHCUrl = null;
+                    if (btn) {
+                        btn.href = "javascript:void(0)";
+                        btn.removeAttribute("download");
+                        btn.style.color = '#333';
+                        document.getElementById('lblExportChamCongHC').innerText = "CC Hành Chính";
+                    }
+                }, 500);
+                return;
+            }
+            if (e) e.preventDefault();
+
+            if (!window.currentDataStore) {
+                alert("Chưa có dữ liệu XML để xuất.");
+                return;
+            }
+
+            if (btn) {
+                btn.classList.add('disabled');
+                document.getElementById('lblExportChamCongHC').innerText = "Đang xử lý...";
+            }
+            await new Promise(r => setTimeout(r, 50));
+
+            try {
+                const monthsData = getChamCongDataByMonth();
+                if (!monthsData) return;
+
+                const wb = XLSX.utils.book_new();
+
+                for (const mKey of Object.keys(monthsData).sort()) {
+                    const mInfo = monthsData[mKey];
+                    const N = mInfo.daysInMonth;
+                    const Y = mInfo.year;
+                    const M = mInfo.month;
+                    const employees = mInfo.employees;
+                    const ws = {};
+                    const merges = [];
+
+                    // Row 0 (A1)
+                    setSheetCell(ws, 0, 0, ''); // Đơn vị tự điền
+                    setSheetCell(ws, 0, 27, 'Mẫu số 01b-LĐTL');
+                    merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 9 } });
+                    merges.push({ s: { r: 0, c: 27 }, e: { r: 0, c: 50 } });
+
+                    // Row 1 (A2)
+                    setSheetCell(ws, 1, 0, ''); // Đơn vị tự điền
+                    setSheetCell(ws, 1, 27, '(Ban hành theo Thông tư số 200/2014/TT-BTC Ngày 22/12/2014 của Bộ Tài Chính)');
+                    merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: 9 } });
+                    merges.push({ s: { r: 1, c: 27 }, e: { r: 1, c: 50 } });
+
+                    // Row 3 (A4)
+                    setSheetCell(ws, 3, 0, `BẢNG CHẤM CÔNG NHÂN VIÊN \nTHÁNG ${String(M).padStart(2, '0')} /${Y}`);
+                    merges.push({ s: { r: 3, c: 0 }, e: { r: 3, c: 50 } });
+
+                    // Row 4 (Tiêu đề bảng)
+                    setSheetCell(ws, 4, 0, 'TT');
+                    setSheetCell(ws, 4, 1, 'Họ và tên');
+                    setSheetCell(ws, 4, 2, 'Số CCHN/\nSố GPHN');
+                    setSheetCell(ws, 4, 3, 'Chức vụ/\nBộ phận');
+                    setSheetCell(ws, 4, 4, `Tháng ${M}`);
+                    merges.push({ s: { r: 4, c: 0 }, e: { r: 6, c: 0 } });
+                    merges.push({ s: { r: 4, c: 1 }, e: { r: 6, c: 1 } });
+                    merges.push({ s: { r: 4, c: 2 }, e: { r: 6, c: 2 } });
+                    merges.push({ s: { r: 4, c: 3 }, e: { r: 6, c: 3 } });
+                    merges.push({ s: { r: 4, c: 4 }, e: { r: 4, c: 3 + N } });
+
+                    // Thông số Tháng & Năm góc phải
+                    const thangParamCol = 4 + N + 17;
+                    setSheetCell(ws, 4, thangParamCol, 'Tháng');
+                    setSheetCell(ws, 4, thangParamCol + 1, M);
+                    setSheetCell(ws, 4, thangParamCol + 2, 'Năm');
+                    setSheetCell(ws, 4, thangParamCol + 3, Y);
+
+                    const thangValColLet = XLSX.utils.encode_col(thangParamCol + 1);
+                    const namValColLet = XLSX.utils.encode_col(thangParamCol + 3);
+
+                    // Row 5 (Ngày: thứ tự 1, 2, 3... N) & Row 6 (Thứ: T2, T3... CN)
+                    for (let d = 1; d <= N; d++) {
+                        const colIdx = 4 + d - 1;
+                        const colLet = XLSX.utils.encode_col(colIdx);
+                        const wd = new Date(Y, M - 1, d).getDay();
+                        const wdStr = wd === 0 ? 'CN' : 'T' + (wd + 1);
+
+                        let dayFormula = '';
+                        if (d === 1) {
+                            dayFormula = `DATE(${namValColLet}5,${thangValColLet}5,1)`;
+                        } else {
+                            const prevColLet = XLSX.utils.encode_col(colIdx - 1);
+                            dayFormula = `${prevColLet}6+1`;
+                        }
+
+                        // Hiển thị số ngày: 1, 2, 3, ... N
+                        setSheetCell(ws, 5, colIdx, d, 'n', dayFormula, 'd', String(d));
+                        // Hiển thị thứ: T2, T3... CN
+                        setSheetCell(ws, 6, colIdx, wdStr, 's', `IF(WEEKDAY(${colLet}6)=1,"CN","T"&WEEKDAY(${colLet}6))`);
+                    }
+
+                    // Ký hiệu tổng hợp (Row 5 & Row 6)
+                    const codes = [
+                        { name: 'x', weight: 1 },
+                        { name: 'x\\2', weight: 0.5 },
+                        { name: 'x/2', weight: 0.5 },
+                        { name: 'P', weight: 1 },
+                        { name: 'KL', weight: 1 },
+                        { name: 'NL', weight: 1 },
+                        { name: 'O', weight: 1 },
+                        { name: 'TS', weight: 1 },
+                        { name: 'KH', weight: 1 }
+                    ];
+
+                    codes.forEach((item, idx) => {
+                        const colIdx = 4 + N + idx;
+                        setSheetCell(ws, 5, colIdx, item.name);
+                        setSheetCell(ws, 6, colIdx, item.weight);
+                    });
+
+                    const sumHeaders = [
+                        'Tổng\n(ngày công đi làm)',
+                        'Nghỉ phép',
+                        'Nghỉ không lương',
+                        'Nghỉ lễ, tết',
+                        'Nghỉ ốm',
+                        'Nghỉ Thai sản',
+                        'Nghỉ kết hôn'
+                    ];
+
+                    sumHeaders.forEach((headerText, idx) => {
+                        const colIdx = 4 + N + codes.length + idx;
+                        setSheetCell(ws, 5, colIdx, headerText);
+                        merges.push({ s: { r: 5, c: colIdx }, e: { r: 6, c: colIdx } });
+                    });
+
+                    // Điền dữ liệu nhân viên (Row 7 trở đi)
+                    const endDayLetter = XLSX.utils.encode_col(3 + N);
+                    const colXLetter = XLSX.utils.encode_col(4 + N);
+                    const colX2Letter = XLSX.utils.encode_col(5 + N);
+                    const colX3Letter = XLSX.utils.encode_col(6 + N);
+
+                    employees.forEach((emp, eIdx) => {
+                        const r = 7 + eIdx;
+                        const R = r + 1; // 1-based row in Excel
+
+                        setSheetCell(ws, r, 0, eIdx + 1);
+                        setSheetCell(ws, r, 1, emp.hoTen || '');
+                        setSheetCell(ws, r, 2, emp.cchn || '');
+                        setSheetCell(ws, r, 3, emp.chucVu || '');
+
+                        for (let d = 1; d <= N; d++) {
+                            const colIdx = 4 + d - 1;
+                            const sym = emp.days[d].adminSym || '';
+                            if (sym) {
+                                setSheetCell(ws, r, colIdx, sym);
+                            }
+                        }
+
+                        // Đếm ký hiệu
+                        codes.forEach((cItem, cIdx) => {
+                            const colIdx = 4 + N + cIdx;
+                            const colLet = XLSX.utils.encode_col(colIdx);
+                            let calcVal = 0;
+                            if (cItem.name === 'x') calcVal = emp.cntX;
+                            else if (cItem.name === 'x\\2') calcVal = emp.cntX2;
+                            else if (cItem.name === 'x/2') calcVal = emp.cntX3;
+                            setSheetCell(ws, r, colIdx, calcVal, 'n', `COUNTIF($E${R}:$${endDayLetter}${R},${colLet}$6)`);
+                        });
+
+                        // Cột Tổng (ngày công đi làm)
+                        const colTongCongIdx = 4 + N + codes.length;
+                        setSheetCell(ws, r, colTongCongIdx, emp.totalWorkingDays, 'n', `SUMPRODUCT(${colXLetter}$7:${colX3Letter}$7,${colXLetter}${R}:${colX3Letter}${R})`);
+
+                        // Các cột nghỉ phép, nghỉ KL, nghỉ lễ...
+                        for (let sIdx = 1; sIdx < sumHeaders.length; sIdx++) {
+                            const colIdx = colTongCongIdx + sIdx;
+                            const targetCodeColLet = XLSX.utils.encode_col(4 + N + 3 + (sIdx - 1));
+                            setSheetCell(ws, r, colIdx, 0, 'n', `SUMPRODUCT(${targetCodeColLet}$7:${targetCodeColLet}$7,${targetCodeColLet}${R}:${targetCodeColLet}${R})`);
+                        }
+                    });
+
+                    // Chú giải & Ký tên
+                    const footRow = 7 + employees.length + 1;
+                    setSheetCell(ws, footRow, 1, 'Ký hiệu chấm công');
+                    setSheetCell(ws, footRow, 2, 'x : làm việc từ 7h00-17h00');
+                    setSheetCell(ws, footRow + 1, 2, 'x\\2: làm việc từ 07h00-11h30 ( nửa ngày)');
+                    setSheetCell(ws, footRow + 2, 2, 'x/2: làm việc từ 13h30-17h00 ( nửa ngày)');
+                    setSheetCell(ws, footRow + 3, 2, 'P: nghỉ phép');
+                    setSheetCell(ws, footRow + 4, 2, 'KL: nghỉ không lương');
+                    setSheetCell(ws, footRow + 5, 2, 'TS: nghỉ thai sản');
+                    setSheetCell(ws, footRow + 6, 2, 'O: nghỉ ốm đau');
+                    setSheetCell(ws, footRow + 7, 2, 'KH: nghỉ kết hôn');
+                    setSheetCell(ws, footRow + 8, 2, 'NL: nghỉ lễ, tết');
+
+                    setSheetCell(ws, footRow + 9, 31, 'Ngày ..... tháng ..... năm .....');
+                    setSheetCell(ws, footRow + 10, 0, 'Người lập');
+                    setSheetCell(ws, footRow + 10, 14, 'Kế toán');
+                    setSheetCell(ws, footRow + 10, 31, 'Thủ trưởng đơn vị');
+
+                    setSheetCell(ws, footRow + 11, 0, '(Ký, họ tên)');
+                    setSheetCell(ws, footRow + 11, 14, '(Ký, họ tên)');
+                    setSheetCell(ws, footRow + 11, 31, '(Ký, họ tên, đóng dấu)');
+
+                    ws['!merges'] = merges;
+                    ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: footRow + 16, c: 4 + N + 22 } });
+
+                    // Độ rộng cột
+                    const colWidths = [{ wch: 5 }, { wch: 22 }, { wch: 18 }, { wch: 20 }];
+                    for (let c = 4; c < 4 + N; c++) colWidths.push({ wch: 4.8 });
+                    for (let c = 4 + N; c < 4 + N + 23; c++) colWidths.push({ wch: 6 });
+                    ws['!cols'] = colWidths;
+
+                    XLSX.utils.book_append_sheet(wb, ws, `Tháng ${M}`);
+                }
+
+                const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                const blob = new Blob([wbout], { type: 'application/octet-stream' });
+                window.cachedWbChamCongHCUrl = URL.createObjectURL(blob);
+
+            } catch (err) {
+                console.error("Lỗi xuất bảng chấm công hành chính:", err);
+                alert("Lỗi xuất chấm công hành chính: " + err.message);
+            } finally {
+                if (btn) {
+                    btn.classList.remove('disabled');
+                    if (window.cachedWbChamCongHCUrl) {
+                        btn.href = window.cachedWbChamCongHCUrl;
+                        btn.download = "CHAMCONG_HANHCHINH.xlsx";
+                        btn.style.color = '#ff9800';
+                        document.getElementById('lblExportChamCongHC').innerText = "Hoàn tất! Tải Về";
+                    } else {
+                        btn.href = "javascript:void(0)";
+                        btn.removeAttribute("download");
+                        document.getElementById('lblExportChamCongHC').innerText = "CC Hành Chính";
+                    }
+                }
+            }
+        }
+
+        async function exportChamCongNG(e) {
+            const btn = document.getElementById('btnExportChamCongNG');
+            if (window.cachedWbChamCongNGUrl) {
+                setTimeout(() => {
+                    URL.revokeObjectURL(window.cachedWbChamCongNGUrl);
+                    window.cachedWbChamCongNGUrl = null;
+                    if (btn) {
+                        btn.href = "javascript:void(0)";
+                        btn.removeAttribute("download");
+                        btn.style.color = '#333';
+                        document.getElementById('lblExportChamCongNG').innerText = "CC Ngoài Giờ";
+                    }
+                }, 500);
+                return;
+            }
+            if (e) e.preventDefault();
+
+            if (!window.currentDataStore) {
+                alert("Chưa có dữ liệu XML để xuất.");
+                return;
+            }
+
+            if (btn) {
+                btn.classList.add('disabled');
+                document.getElementById('lblExportChamCongNG').innerText = "Đang xử lý...";
+            }
+            await new Promise(r => setTimeout(r, 50));
+
+            try {
+                const monthsData = getChamCongDataByMonth();
+                if (!monthsData) return;
+
+                const wb = XLSX.utils.book_new();
+
+                for (const mKey of Object.keys(monthsData).sort()) {
+                    const mInfo = monthsData[mKey];
+                    const N = mInfo.daysInMonth;
+                    const Y = mInfo.year;
+                    const M = mInfo.month;
+                    const employees = mInfo.employees;
+                    const ws = {};
+                    const merges = [];
+
+                    const totalEndColIdx = 5 + 2 * N;
+                    const totalMinColIdx = 6 + 2 * N;
+                    const totalHourColIdx = 7 + 2 * N;
+
+                    // Row 0 (A1)
+                    setSheetCell(ws, 0, 0, ''); // Đơn vị tự điền
+                    setSheetCell(ws, 0, totalMinColIdx - 16, 'Mẫu số 01b-LĐTL');
+                    merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 16 } });
+                    merges.push({ s: { r: 0, c: totalMinColIdx - 16 }, e: { r: 0, c: totalMinColIdx } });
+
+                    // Row 1 (A2)
+                    setSheetCell(ws, 1, 0, ''); // Đơn vị tự điền
+                    setSheetCell(ws, 1, totalMinColIdx - 16, '(Ban hành theo Thông tư số 200/2014/TT-BTC Ngày 22/12/2014 của Bộ Tài Chính)');
+                    merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: 16 } });
+                    merges.push({ s: { r: 1, c: totalMinColIdx - 16 }, e: { r: 1, c: totalMinColIdx } });
+
+                    // Row 3 (G4)
+                    setSheetCell(ws, 3, 6, 'BẢNG CHẤM CÔNG NGOÀI GIỜ NHÂN VIÊN');
+                    merges.push({ s: { r: 3, c: 6 }, e: { r: 3, c: totalEndColIdx } });
+
+                    // Row 4 (Tiêu đề bảng)
+                    setSheetCell(ws, 4, 0, 'TT');
+                    setSheetCell(ws, 4, 1, 'Họ và tên');
+                    setSheetCell(ws, 4, 2, 'Chức vụ/\nBộ phận');
+                    setSheetCell(ws, 4, 3, 'CCHN/\nGPHN');
+                    setSheetCell(ws, 4, 6, `Tháng ${M}`);
+                    setSheetCell(ws, 4, totalMinColIdx, 'Tổng\nSố Phút ngoài giờ');
+                    setSheetCell(ws, 4, totalHourColIdx, 'Tổng\nGiờ');
+
+                    merges.push({ s: { r: 4, c: 0 }, e: { r: 6, c: 0 } });
+                    merges.push({ s: { r: 4, c: 1 }, e: { r: 6, c: 1 } });
+                    merges.push({ s: { r: 4, c: 2 }, e: { r: 6, c: 2 } });
+                    merges.push({ s: { r: 4, c: 3 }, e: { r: 6, c: 3 } });
+                    merges.push({ s: { r: 4, c: 4 }, e: { r: 6, c: 4 } });
+                    merges.push({ s: { r: 4, c: 6 }, e: { r: 4, c: totalEndColIdx } });
+                    merges.push({ s: { r: 4, c: totalMinColIdx }, e: { r: 6, c: totalMinColIdx } });
+                    merges.push({ s: { r: 4, c: totalHourColIdx }, e: { r: 6, c: totalHourColIdx } });
+
+                    // Thông số Tháng & Năm góc phải
+                    setSheetCell(ws, 4, totalHourColIdx + 1, 'Tháng');
+                    setSheetCell(ws, 4, totalHourColIdx + 2, M);
+                    setSheetCell(ws, 4, totalHourColIdx + 3, 'Năm');
+                    setSheetCell(ws, 4, totalHourColIdx + 4, Y);
+
+                    const thangValColLet = XLSX.utils.encode_col(totalHourColIdx + 2);
+                    const namValColLet = XLSX.utils.encode_col(totalHourColIdx + 4);
+
+                    // Row 5 (Ngày: thứ tự 1, 2, 3...) & Row 6 (Thứ: T2, T3... CN) & Row 7 (Trưa / Tối)
+                    setSheetCell(ws, 7, 4, 'Trưa');
+                    setSheetCell(ws, 7, 5, 'Tối');
+
+                    for (let d = 1; d <= N; d++) {
+                        const cTrua = 6 + 2 * (d - 1);
+                        const cToi = cTrua + 1;
+                        const colLet = XLSX.utils.encode_col(cTrua);
+                        const wd = new Date(Y, M - 1, d).getDay();
+                        const wdStr = wd === 0 ? 'CN' : 'T' + (wd + 1);
+
+                        let dayFormula = '';
+                        if (d === 1) {
+                            dayFormula = `DATE(${namValColLet}5,${thangValColLet}5,1)`;
+                        } else {
+                            const prevDayColLet = XLSX.utils.encode_col(cTrua - 2);
+                            dayFormula = `${prevDayColLet}6+1`;
+                        }
+
+                        // Row 6 (index 5): số ngày 1, 2, 3... merged 2 cột Trưa & Tối
+                        setSheetCell(ws, 5, cTrua, d, 'n', dayFormula, 'd', String(d));
+                        merges.push({ s: { r: 5, c: cTrua }, e: { r: 5, c: cToi } });
+
+                        // Row 7 (index 6): Thứ T2, T3... CN merged 2 cột Trưa & Tối
+                        setSheetCell(ws, 6, cTrua, wdStr, 's', `IF(WEEKDAY(${colLet}6)=1,"CN","T"&WEEKDAY(${colLet}6))`);
+                        merges.push({ s: { r: 6, c: cTrua }, e: { r: 6, c: cToi } });
+
+                        // Row 8 (index 7): Trưa / Tối
+                        setSheetCell(ws, 7, cTrua, 'Trưa');
+                        setSheetCell(ws, 7, cToi, 'Tối');
+                    }
+
+                    // Điền dữ liệu nhân viên (Row 8 trở đi)
+                    const endDayColLetter = XLSX.utils.encode_col(totalEndColIdx);
+                    const totalMinColLetter = XLSX.utils.encode_col(totalMinColIdx);
+                    const totalHourColLetter = XLSX.utils.encode_col(totalHourColIdx);
+
+                    employees.forEach((emp, eIdx) => {
+                        const r = 8 + eIdx;
+                        const R = r + 1;
+
+                        setSheetCell(ws, r, 0, eIdx + 1);
+                        setSheetCell(ws, r, 1, emp.hoTen || '');
+                        setSheetCell(ws, r, 2, emp.chucVu || '');
+                        setSheetCell(ws, r, 3, emp.cchn || '');
+
+                        // Baseline trưa 11:30 và tối 17:00
+                        setSheetCell(ws, r, 4, (11 * 3600 + 30 * 60) / 86400, 'n', null, 'h:mm;@', '11:30:00');
+                        setSheetCell(ws, r, 5, (17 * 3600) / 86400, 'n', null, 'h:mm;@', '17:00:00');
+
+                        for (let d = 1; d <= N; d++) {
+                            const dInfo = emp.days[d];
+                            const cTrua = 6 + 2 * (d - 1);
+                            const cToi = cTrua + 1;
+
+                            if (dInfo.truaFraction !== null) {
+                                setSheetCell(ws, r, cTrua, dInfo.truaFraction, 'n', null, 'h:mm;@', dInfo.truaTimeStr);
+                            }
+                            if (dInfo.toiFraction !== null) {
+                                setSheetCell(ws, r, cToi, dInfo.toiFraction, 'n', null, 'h:mm;@', dInfo.toiTimeStr);
+                            }
+                        }
+
+                        // Công thức & kết quả tổng phút ngoài giờ
+                        const formulaPhut = `SUMPRODUCT((ISNUMBER(G${R}:${endDayColLetter}${R}))*(MOD(COLUMN(G${R}:${endDayColLetter}${R})-COLUMN(G${R}),2)=0)*(G${R}:${endDayColLetter}${R}>$E${R})*(G${R}:${endDayColLetter}${R}-$E${R})*1440)+SUMPRODUCT((ISNUMBER(G${R}:${endDayColLetter}${R}))*(MOD(COLUMN(G${R}:${endDayColLetter}${R})-COLUMN(G${R}),2)=1)*(G${R}:${endDayColLetter}${R}>$F${R})*(G${R}:${endDayColLetter}${R}-$F${R})*1440)`;
+                        setSheetCell(ws, r, totalMinColIdx, Math.round(emp.totalOvertimeMins), 'n', formulaPhut);
+
+                        // Công thức & kết quả tổng giờ
+                        const hours = Math.floor(emp.totalOvertimeMins / 60);
+                        const mins = Math.round(emp.totalOvertimeMins % 60);
+                        const hourStr = `${hours} giờ ${mins} phút`;
+                        const formulaGio = `QUOTIENT(ROUND(${totalMinColLetter}${R},0),60)&" giờ "&MOD(ROUND(${totalMinColLetter}${R},0),60)&" phút"`;
+                        setSheetCell(ws, r, totalHourColIdx, hourStr, 's', formulaGio);
+                    });
+
+                    // Chữ ký footer
+                    const footRow = 8 + employees.length + 1;
+                    setSheetCell(ws, footRow, 1, 'Ký hiệu chấm công');
+                    setSheetCell(ws, footRow, 2, 'x : làm việc từ 7h00-17h00');
+                    setSheetCell(ws, footRow + 1, 2, 'TS: nghỉ thai sản');
+                    setSheetCell(ws, footRow + 2, 2, 'O: nghỉ ốm đau');
+                    setSheetCell(ws, footRow + 3, 2, 'KH: nghỉ kết hôn');
+                    setSheetCell(ws, footRow + 4, 2, 'NL: nghỉ lễ, tết');
+
+                    setSheetCell(ws, footRow + 5, 40, 'Ngày ..... tháng ..... năm .....');
+
+                    setSheetCell(ws, footRow + 6, 0, 'Người lập');
+                    setSheetCell(ws, footRow + 6, 16, 'Kế toán');
+                    setSheetCell(ws, footRow + 6, 40, 'Thủ trưởng đơn vị');
+
+                    setSheetCell(ws, footRow + 7, 0, '(Ký, họ tên)');
+                    setSheetCell(ws, footRow + 7, 16, '(Ký, họ tên)');
+                    setSheetCell(ws, footRow + 7, 40, '(Ký, họ tên, đóng dấu)');
+
+                    ws['!merges'] = merges;
+                    ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: footRow + 10, c: totalHourColIdx + 5 } });
+
+                    // Độ rộng cột
+                    const colWidths = [{ wch: 6 }, { wch: 20 }, { wch: 18 }, { wch: 16 }, { wch: 8 }, { wch: 8 }];
+                    for (let c = 6; c <= totalEndColIdx; c++) colWidths.push({ wch: 7.2 });
+                    colWidths.push({ wch: 16 }); // Phut
+                    colWidths.push({ wch: 18 }); // Gio
+                    ws['!cols'] = colWidths;
+
+                    XLSX.utils.book_append_sheet(wb, ws, `Tháng ${M} - Ngoài giờ`);
+                }
+
+                const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                const blob = new Blob([wbout], { type: 'application/octet-stream' });
+                window.cachedWbChamCongNGUrl = URL.createObjectURL(blob);
+
+            } catch (err) {
+                console.error("Lỗi xuất bảng chấm công ngoài giờ:", err);
+                alert("Lỗi xuất chấm công ngoài giờ: " + err.message);
+            } finally {
+                if (btn) {
+                    btn.classList.remove('disabled');
+                    if (window.cachedWbChamCongNGUrl) {
+                        btn.href = window.cachedWbChamCongNGUrl;
+                        btn.download = "CHAMCONG_NGOAIGIO.xlsx";
+                        btn.style.color = '#ff9800';
+                        document.getElementById('lblExportChamCongNG').innerText = "Hoàn tất! Tải Về";
+                    } else {
+                        btn.href = "javascript:void(0)";
+                        btn.removeAttribute("download");
+                        document.getElementById('lblExportChamCongNG').innerText = "CC Ngoài Giờ";
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
